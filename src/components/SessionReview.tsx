@@ -313,6 +313,12 @@ export function SessionReview({
     later: Clock3,
   };
   const status = positionStatus(review, position.id);
+  const lateStops = review.findings
+    .filter((f) => f.ruleId === "stop-before-entry" && f.status === "deviated")
+    .map((f) => f.positionId);
+  const hasClosedRecord = review.session.positions.every(
+    (p) => p.executionsComplete,
+  );
   const mode =
     review.session.exampleMode ??
     (review.session.recordsComplete ? "full" : "daily-gap");
@@ -344,16 +350,20 @@ export function SessionReview({
               checked={mode === example.id}
               onChange={() => onExample(example.id)}
             />
-            {example.label}
+            {example.id === "full" && !hasClosedRecord
+              ? "Complete daily entry record"
+              : example.label}
           </label>
         ))}
       </fieldset>
       <p className="coverage-note">
         {mode === "daily-gap"
-          ? "Other daily entries may be missing. Daily position order cannot be confirmed; available plan checks still work."
+          ? `Other daily entries may be missing. Daily position order cannot be confirmed; available ${review.rules.checks ? "entry-time and plan" : "entry-time"} checks still work.`
           : mode === "plan-gap"
             ? "Position D has no recorded stop or target. Its entry checks still work; original risk and reward-to-risk cannot be verified."
-            : "All sample fills are available. Position B’s stop was recorded after entry, so its original planned risk cannot be verified."}
+            : lateStops.length
+              ? `All sample fills are available. Position ${lateStops.join(", ")} has a stop recorded at or after entry; its original planned risk cannot be verified.`
+              : "The full daily entry record is available. Only confirmed rules are checked."}
       </p>
       <ol className="timeline" aria-label="Select a sample position">
         {review.session.positions.map((p) => {
