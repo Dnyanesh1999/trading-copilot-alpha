@@ -1,14 +1,16 @@
-# Status — implemented static alpha
+# Status — richer static alpha
 
-7 October 2026. Fresh guided alpha implemented; original September source unavailable. Public repository and GitHub Pages deployed.
+7 October 2026. User-requested five-check revision implemented; the existing guided flow and approved design preserved. Fresh implementation; original September source unavailable.
 
-- Live: https://dnyanesh1999.github.io/trading-copilot-alpha/
-- App baseline: b4013e5. Initial sanitized scaffold: 37f6f05.
-- CI/deploy successful: https://github.com/Dnyanesh1999/trading-copilot-alpha/actions/runs/37598192949 . npm ci, 50 Vitest checks and production build passed in Actions.
-- Public page independently opened in IAB/Chrome, matching release bundle `index-DzwUeT5Y.js`; welcome → confirm → D evidence/source links → focus → save/completion verified. HTTP 200. Documentation-only follow-up does not change this bundle.
-- Desktop/mobile guided flow, changed rules, incomplete evidence, saved snapshot/reload, back/reset, keyboard actions and visual comparison verified. [Detailed coverage and fidelity ledger](verification/VERIFICATION.md).
-- Approved design faithfully implemented with documented functional/accessibility adaptations; no known clipping or inert controls in verified desktop/mobile viewports. Local desktop screenshots are at the concept native dimensions; live screenshot also retained.
-- Survey rechecked: nine responses, unchanged distributions. Student's current target is ten; professor's written target remains fifteen. No agreement to lower it is verified. [Survey counts](SURVEY_SNAPSHOT.md).
-- [Shared collaborator commit and ownership](REVIEW_BASELINE.md). External briefs ready; no external Claude/Gemini/Antigravity reviews received yet.
+- App baseline: `15d26a6`. Previous two-rule baseline: `b4013e5`; original sanitized scaffold: `37f6f05`.
+- Public repository: https://github.com/Dnyanesh1999/trading-copilot-alpha
+- Pages URL: https://dnyanesh1999.github.io/trading-copilot-alpha/
+- Local verification: 82 Vitest checks, TypeScript and production build pass. Chrome desktop 1505×1045/mobile 390×844 flow verified without horizontal overflow or app console errors/warnings. See [current verification](verification/RICHER_REVIEW.md); prior two-rule ledger remains historical.
+- Default 20 findings: 13 followed, 5 deviated, 2 insufficient evidence. Five checks: daily limit, entry cutoff, pre-entry stop recording, planned price risk, planned reward-to-risk. Outcome remains separate from adherence.
+- Save/reload retains actual session, rule snapshot, focus and selected position. Legacy two-rule saves remain compatible. Explicit save replaces one browser-local record.
+- [Same baseline and assignments for collaborators](REVIEW_BASELINE.md); updated external briefs prepared, no external reviews received yet.
+- Survey snapshot remains nine submissions verified earlier on 7 October. Student target ten; professor's written target fifteen, reduction not approved. Recruitment eligibility remains unconfirmed. [Verified survey snapshot](SURVEY_SNAPSHOT.md).
 
-Limits: fictional data, two deterministic rules, one local saved review per browser. No login/backend, live AI, broker integration, arbitrary strategy parsing, centralized usage data or completed trader study. Professor reviews before trader testing; usage metrics remain to be agreed. Supervisor submission is prepared privately for the student to send; not sent by Codex.
+Publication of this revision is in progress; public browser/deployment evidence will be added after verification. The previous deployed alpha was already live.
+
+Limits: entirely fictional static equities, no login, live AI, broker or backend. Stop-plan timing cannot prove a protective order or actual stop execution. No profitability improvement, participant results or central usage dataset. User-requested extra checks are not a new supervisor approval. Professor reviews before trader testing; usage metrics still to be agreed. Supervisor update remains a private draft for the user to send.

@@ -9,3 +9,5 @@ Recommend at most five concrete copy/flow improvements that simplify comprehensi
 Read the revised 7 October specification: two entry rules plus stop-before-entry, planned price risk and planned reward-to-risk. Keep survey interest separate from evidence of actual use.
 
 Student clarified current recruitment target is ten, while professor’s written request remains fifteen; do not describe the reduced target as supervisor-approved.
+
+Shared current app baseline: 15d26a6. All collaborators start from that commit, then compare latest main. Record both SHAs.
