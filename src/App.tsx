@@ -4,10 +4,17 @@ import { Welcome } from "./components/Welcome";
 import { Rules, type Draft } from "./components/Rules";
 import { SessionReview } from "./components/SessionReview";
 import { Completion } from "./components/Completion";
-import { createRules, sampleSession } from "./core/fixtures";
-import { reviewSession, validRules } from "./core/review";
+import { createRules, realisticSession } from "./core/fixtures";
+import { reviewSession, validRules, validChecks } from "./core/review";
 import { loadReview, saveReview, STORAGE_KEY } from "./core/storage";
 import type { ConfirmedRules, Focus, SavedReview } from "./core/types";
+const initialDraft: Draft = {
+  maxPositions: "3",
+  cutoff: "11:00",
+  extraChecks: true,
+  maxRisk: "500",
+  minRewardRisk: "2",
+};
 function initialSaved() {
   try {
     return loadReview(localStorage);
@@ -19,12 +26,9 @@ export default function App() {
   const [stage, setStage] = useState<
     "welcome" | "rules" | "session" | "complete"
   >("welcome");
-  const [draft, setDraft] = useState<Draft>({
-    maxPositions: "3",
-    cutoff: "11:00",
-  });
+  const [draft, setDraft] = useState<Draft>(initialDraft);
   const [rules, setRules] = useState<ConfirmedRules | null>(null);
-  const [complete, setComplete] = useState(true);
+  const [session, setSession] = useState(() => realisticSession());
   const [selectedId, setSelectedId] = useState("D");
   const [focus, setFocus] = useState<Focus | null>(null);
   const [saved, setSaved] = useState<SavedReview | null>(initialSaved);
@@ -32,8 +36,8 @@ export default function App() {
   const [resetOpen, setResetOpen] = useState(false);
   const [error, setError] = useState("");
   const review = useMemo(
-    () => (rules ? reviewSession(rules, sampleSession(complete)) : null),
-    [rules, complete],
+    () => (rules ? reviewSession(rules, session) : null),
+    [rules, session],
   );
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -44,11 +48,24 @@ export default function App() {
     setStage(next);
   };
   const confirm = () => {
-    if (!validRules(Number(draft.maxPositions), draft.cutoff)) {
-      setError("Choose a whole number from 1 to 50 and a valid entry time.");
+    const checks = draft.extraChecks
+      ? {
+          stopBeforeEntry: true,
+          maxRisk: Number(draft.maxRisk),
+          minRewardRisk: Number(draft.minRewardRisk),
+        }
+      : undefined;
+    if (
+      !validRules(Number(draft.maxPositions), draft.cutoff) ||
+      !validChecks(checks)
+    ) {
+      setError(
+        "Choose a daily limit from 1 to 50, a valid entry time and positive risk-plan limits.",
+      );
       return;
     }
-    setRules(createRules(Number(draft.maxPositions), draft.cutoff));
+    if (!checks && focus === "risk-plan") setFocus(null);
+    setRules(createRules(Number(draft.maxPositions), draft.cutoff, checks));
     changeStage("session");
   };
   const reset = () => {
@@ -64,15 +81,15 @@ export default function App() {
     setSelectedId("D");
     setRules(null);
     setFocus(null);
-    setComplete(true);
-    setDraft({ maxPositions: "3", cutoff: "11:00" });
+    setSession(realisticSession());
+    setDraft(initialDraft);
     setResetOpen(false);
     changeStage("welcome");
   };
   const save = () => {
     if (!review || !focus) return;
     try {
-      setSaved(saveReview(localStorage, review, focus));
+      setSaved(saveReview(localStorage, review, focus, selectedId));
       changeStage("complete");
     } catch {
       setError(
@@ -84,14 +101,23 @@ export default function App() {
     if (!saved) return;
     setRules(saved.review.rules);
     setSelectedId(
-      saved.review.findings.find((f) => f.status === "deviated")?.positionId ??
+      (saved.review.session.positions.some(
+        (p) => p.id === saved.selectedPositionId,
+      )
+        ? saved.selectedPositionId
+        : undefined) ??
+        saved.review.findings.find((f) => f.status === "deviated")
+          ?.positionId ??
         saved.review.session.positions[0].id,
     );
     setDraft({
       maxPositions: String(saved.review.rules.maxPositions),
       cutoff: saved.review.rules.cutoff,
+      extraChecks: !!saved.review.rules.checks,
+      maxRisk: String(saved.review.rules.checks?.maxRisk ?? 500),
+      minRewardRisk: String(saved.review.rules.checks?.minRewardRisk ?? 2),
     });
-    setComplete(saved.review.session.recordsComplete);
+    setSession(structuredClone(saved.review.session));
     setFocus(saved.focus);
     changeStage("complete");
   };
@@ -111,10 +137,10 @@ export default function App() {
       {stage === "welcome" && (
         <Welcome
           onStart={() => {
-            setDraft({ maxPositions: "3", cutoff: "11:00" });
+            setDraft(initialDraft);
             setRules(null);
             setSelectedId("D");
-            setComplete(true);
+            setSession(realisticSession());
             setFocus(null);
             changeStage("rules");
           }}
@@ -137,8 +163,7 @@ export default function App() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           review={review}
-          complete={complete}
-          onComplete={setComplete}
+          onExample={(mode) => setSession(realisticSession(mode))}
           focus={focus}
           onFocus={setFocus}
           onSave={save}
@@ -163,8 +188,8 @@ export default function App() {
         >
           <ol className="help-list">
             <li>
-              <strong>Confirm two rules.</strong> Choose a daily position limit
-              and an entry cutoff.
+              <strong>Confirm your rules.</strong> Set two entry boundaries and
+              three risk-plan checks. Extra settings stay under Risk plan.
             </li>
             <li>
               <strong>Explore a session.</strong> Select any fictional position

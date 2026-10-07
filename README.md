@@ -20,11 +20,11 @@ Vite serves the app under `/trading-copilot-alpha/`. Production output is `dist/
 - [Specification](docs/SPEC.md), [current status](docs/STATUS.md), [design reference](docs/DESIGN.md).
 - [Antigravity brief](docs/handoffs/ANTIGRAVITY.md), [Claude brief](docs/handoffs/CLAUDE.md), [Gemini brief](docs/handoffs/GEMINI.md).
 
-The guided static alpha is implemented. [Open the live alpha](https://dnyanesh1999.github.io/trading-copilot-alpha/). See [verification and limitations](docs/verification/VERIFICATION.md) and the [shared collaborator baseline](docs/REVIEW_BASELINE.md). Original September source could not be located after Antigravity was reinstalled; this is a fresh build from preserved requirements and approved concepts.
+The guided static alpha is implemented, with a richer five-check revision requested on 7 October. [Open the live alpha](https://dnyanesh1999.github.io/trading-copilot-alpha/). See [verification and limitations](docs/verification/VERIFICATION.md) and the [shared collaborator baseline](docs/REVIEW_BASELINE.md). Original September source could not be located after Antigravity was reinstalled; this is a fresh build from preserved requirements and approved concepts.
 
 ## Capability boundaries
 
-Two explicit rules, fictional execution records, deterministic checking and local saved focus. No broker import, order execution, live model, arbitrary strategy extraction, backend, shared participant data collection or demonstrated behaviour/profitability improvement. Breakout and stop-loss evidence is not available. Local browser data is not an evaluation dataset.
+Five explicit checks, fictional directional equity fills and timestamped stop/target plans, deterministic review and local saved focus. Two entry controls remain visible; three additional plan checks sit under a disclosure. No broker import, order execution, live model, arbitrary strategy extraction, backend, shared participant data collection or demonstrated behaviour/profitability improvement. A recorded stop plan is available in some fixtures; actual broker stop execution and breakout validity are not established. Local browser data is not an evaluation dataset.
 
 ## Supervisor direction
 

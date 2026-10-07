@@ -5,6 +5,7 @@ import type {
   Position,
   Review,
   Session,
+  PlanChecks,
 } from "./types";
 
 export function validRules(maxPositions: number, cutoff: string): boolean {
@@ -15,6 +16,30 @@ export function validRules(maxPositions: number, cutoff: string): boolean {
     /^([01]\d|2[0-3]):[0-5]\d$/.test(cutoff)
   );
 }
+export function validChecks(checks?: PlanChecks): boolean {
+  if (checks === undefined) return true;
+  return (
+    checks !== null &&
+    typeof checks.stopBeforeEntry === "boolean" &&
+    (checks.maxRisk === null ||
+      (Number.isFinite(checks.maxRisk) && checks.maxRisk > 0)) &&
+    (checks.minRewardRisk === null ||
+      (Number.isFinite(checks.minRewardRisk) && checks.minRewardRisk > 0))
+  );
+}
+export const RULE_LABELS = {
+  "daily-limit": "Daily position limit",
+  "entry-cutoff": "Entry cutoff",
+  "stop-before-entry": "Stop recorded before entry",
+  "planned-risk": "Planned risk per position",
+  "reward-risk": "Planned reward-to-risk",
+} as const;
+export const rupees = (amount: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(amount);
 // Only explicit-offset execution timestamps are accepted. A bare clock cannot establish an IST day.
 export function timestampInfo(
   value: string | null,
@@ -84,6 +109,7 @@ const ordinal = (n: number) =>
 export function reviewSession(rules: ConfirmedRules, input: Session): Review {
   if (
     !validRules(rules.maxPositions, rules.cutoff) ||
+    !validChecks(rules.checks) ||
     rules.timezone !== "Asia/Kolkata" ||
     !rules.confirmedAt ||
     !rules.id
@@ -191,6 +217,84 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
         entries.map((e) => e.id),
       );
     }
+    if (rules.checks) {
+      const { checks } = rules;
+      const stopTime = timestampInfo(position.stop?.recordedAt ?? null);
+      const stopSources = [
+        ...entries.map((e) => e.id),
+        ...(position.stop ? [position.stop.id] : []),
+      ];
+      if (checks.stopBeforeEntry) {
+        const available = entry && stopTime && validPrice(position.stop?.price);
+        const status = !available
+          ? "insufficient_evidence"
+          : stopTime.epoch < entry.epoch
+            ? "followed"
+            : "deviated";
+        make(
+          "stop-before-entry",
+          status,
+          available
+            ? `Stop recorded ${stopTime.clock} · entry ${entry.clock} IST`
+            : "Pre-entry stop: evidence missing",
+          !available
+            ? "A valid stop plan and its recording time, plus the first entry time, are needed."
+            : status === "deviated"
+              ? "The available stop plan was recorded at or after the first entry. It cannot establish an original pre-entry stop."
+              : "The stop plan was recorded before the first entry. This does not prove a protective order was placed or honoured.",
+          available
+            ? `${stopTime.clock} IST ${status === "followed" ? "<" : "≥"} ${entry.clock} IST (comparison includes seconds)`
+            : "Pre-entry stop recording cannot be verified",
+          stopSources,
+        );
+      }
+      const metrics = planMetrics(position);
+      if (checks.maxRisk !== null) {
+        const status =
+          metrics.risk === null
+            ? "insufficient_evidence"
+            : metrics.risk <= checks.maxRisk
+              ? "followed"
+              : "deviated";
+        make(
+          "planned-risk",
+          status,
+          metrics.risk === null
+            ? "Planned risk: evidence missing"
+            : `${rupees(metrics.risk)} risk · maximum ${rupees(checks.maxRisk)}`,
+          metrics.risk === null
+            ? metrics.riskReason
+            : "Initial filled quantity × distance from weighted entry to the pre-entry planned stop. This is a planned price risk, excluding fees, slippage and gaps.",
+          metrics.risk === null
+            ? "Original planned risk cannot be verified"
+            : `${metrics.quantity} × ${rupees(metrics.stopDistance!)} = ${rupees(metrics.risk)}; maximum ${rupees(checks.maxRisk)}`,
+          stopSources,
+        );
+      }
+      if (checks.minRewardRisk !== null) {
+        const status =
+          metrics.rewardRisk === null
+            ? "insufficient_evidence"
+            : metrics.rewardRisk + 1e-10 * Math.max(1, checks.minRewardRisk) >=
+                checks.minRewardRisk
+              ? "followed"
+              : "deviated";
+        make(
+          "reward-risk",
+          status,
+          metrics.rewardRisk === null
+            ? "Planned reward-to-risk: evidence missing"
+            : `${metrics.rewardRisk.toFixed(2)}R · minimum ${checks.minRewardRisk}R`,
+          metrics.rewardRisk === null
+            ? metrics.rewardReason
+            : "The original planned target distance divided by the original planned stop distance. It does not predict the realised result.",
+          metrics.rewardRisk === null
+            ? "Original planned reward-to-risk cannot be verified"
+            : `${rupees(metrics.targetDistance!)} ÷ ${rupees(metrics.stopDistance!)} = ${metrics.rewardRisk.toFixed(2)}R; minimum ${checks.minRewardRisk}R`,
+          [...stopSources, ...(position.target ? [position.target.id] : [])],
+        );
+      }
+    }
   }
   return { rules: structuredClone(rules), session, findings };
 }
@@ -216,6 +320,15 @@ export function reviewSummary(review: Review) {
   const followed = review.session.positions.filter(
     (p) => positionStatus(review, p.id) === "followed",
   ).length;
+  if (review.rules.checks)
+    return {
+      title: positions.size
+        ? `${positions.size === 1 ? "One position" : `${positions.size} positions`} to revisit.`
+        : unknown.length
+          ? "Some checks need more information."
+          : "Every checked rule was followed.",
+      description: `${deviations.length} confirmed ${deviations.length === 1 ? "deviation" : "deviations"} · ${unknown.length} ${unknown.length === 1 ? "check needs" : "checks need"} more evidence. Select a position to connect its outcome with its plan.`,
+    };
   if (unknown.length)
     return {
       title: time
@@ -246,4 +359,107 @@ export function reviewSummary(review: Review) {
     title: `${deviations.length} rule ${deviations.length === 1 ? "deviation" : "deviations"} to explore.`,
     description: `${positions.size} ${positions.size === 1 ? "position crossed" : "positions crossed"} a confirmed limit. Open a position to see the evidence.`,
   };
+}
+
+const validDirection = (direction: unknown) =>
+  direction === "long" || direction === "short";
+const validPrice = (n: number | undefined): n is number =>
+  typeof n === "number" && Number.isFinite(n) && n > 0;
+export function entryMetrics(position: Position) {
+  const entries = position.executions.filter((e) => e.side === "entry");
+  if (
+    !position.allEntriesCovered ||
+    !entryInfo(position) ||
+    !entries.length ||
+    entries.some((e) => !validPrice(e.price) || !validPrice(e.quantity))
+  )
+    return null;
+  const quantity = entries.reduce((n, e) => n + e.quantity, 0);
+  return {
+    quantity,
+    price: entries.reduce((n, e) => n + e.price * e.quantity, 0) / quantity,
+  };
+}
+export function planMetrics(position: Position) {
+  const filled = entryMetrics(position);
+  const entry = entryInfo(position);
+  const stopTime = timestampInfo(position.stop?.recordedAt ?? null);
+  const targetTime = timestampInfo(position.target?.recordedAt ?? null);
+  const result = {
+    quantity: filled?.quantity ?? null,
+    entryPrice: filled?.price ?? null,
+    stopDistance: null as number | null,
+    targetDistance: null as number | null,
+    risk: null as number | null,
+    rewardRisk: null as number | null,
+    riskReason:
+      "Complete initial fills, direction and a valid stop recorded before entry are required.",
+    rewardReason:
+      "Both a valid pre-entry stop and target, plus complete initial fills and direction, are required.",
+  };
+  if (
+    !filled ||
+    !entry ||
+    !validDirection(position.direction) ||
+    !stopTime ||
+    stopTime.epoch >= entry.epoch ||
+    !validPrice(position.stop?.price)
+  )
+    return result;
+  const sign = position.direction === "long" ? 1 : -1;
+  const stopDistance = sign * (filled.price - position.stop.price);
+  if (stopDistance <= 0) {
+    result.riskReason =
+      "The recorded stop is not on the loss side of the weighted entry for this direction.";
+    return result;
+  }
+  result.stopDistance = stopDistance;
+  result.risk = Math.round(filled.quantity * stopDistance * 100) / 100;
+  if (
+    !targetTime ||
+    targetTime.epoch >= entry.epoch ||
+    !validPrice(position.target?.price)
+  )
+    return result;
+  const targetDistance = sign * (position.target.price - filled.price);
+  if (targetDistance <= 0) {
+    result.rewardReason =
+      "The recorded target is not on the reward side of the weighted entry for this direction.";
+    return result;
+  }
+  result.targetDistance = targetDistance;
+  result.rewardRisk = targetDistance / stopDistance;
+  return result;
+}
+export function grossResult(position: Position): number | null {
+  const entry = entryMetrics(position);
+  const exits = position.executions.filter((e) => e.side === "exit");
+  const lastEntry = Math.max(
+    ...position.executions
+      .filter((e) => e.side === "entry")
+      .map((e) => timestampInfo(e.timestamp)?.epoch ?? Infinity),
+  );
+  if (
+    !entry ||
+    !position.executionsComplete ||
+    !validDirection(position.direction) ||
+    !exits.length ||
+    exits.some(
+      (e) =>
+        !validPrice(e.price) ||
+        !validPrice(e.quantity) ||
+        !timestampInfo(e.timestamp) ||
+        timestampInfo(e.timestamp)!.epoch < lastEntry,
+    )
+  )
+    return null;
+  if (exits.reduce((n, e) => n + e.quantity, 0) !== entry.quantity) return null;
+  const sign = position.direction === "long" ? 1 : -1;
+  return (
+    Math.round(
+      sign *
+        exits.reduce((n, e) => n + (e.price - entry.price) * e.quantity, 0) *
+        100,
+    ) / 100
+  );
 }

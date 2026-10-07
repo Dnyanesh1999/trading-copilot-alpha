@@ -17,6 +17,8 @@ export function Completion({
       "Before opening a position, pause to check the time and the positions already opened today.",
     "daily-limit":
       "Keep your daily allowance visible. Partial fills belong to the same position.",
+    "risk-plan":
+      "Before entry, record a stop and target. Check the planned price risk and reward-to-risk against your confirmed limits.",
     later:
       "You can come back to this review when you are ready to choose a focus.",
   };
@@ -43,10 +45,19 @@ export function Completion({
         <p>
           {saved.review.rules.maxPositions} positions per day · before{" "}
           {saved.review.rules.cutoff} IST ·{" "}
-          {saved.review.session.recordsComplete
-            ? "Complete sample"
-            : "Incomplete daily records"}
+          {saved.review.session.exampleMode === "plan-gap"
+            ? "Missing risk plan"
+            : saved.review.session.recordsComplete
+              ? "Full execution record"
+              : "Missing daily records"}
         </p>
+        {saved.review.rules.checks && (
+          <p>
+            Stop recorded before entry · maximum planned risk ₹
+            {saved.review.rules.checks.maxRisk} · minimum planned reward-to-risk{" "}
+            {saved.review.rules.checks.minRewardRisk}R
+          </p>
+        )}
         <p>
           {saved.review.rules.comparison === "hypothetical"
             ? "Comparison against sample history."

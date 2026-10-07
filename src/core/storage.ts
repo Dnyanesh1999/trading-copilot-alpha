@@ -5,8 +5,10 @@ export function saveReview(
   storage: Pick<Storage, "setItem">,
   review: Review,
   focus: Focus,
+  selectedPositionId?: string,
 ): SavedReview {
   const saved: SavedReview = {
+    ...(selectedPositionId ? { selectedPositionId } : {}),
     version: 1,
     savedAt: new Date().toISOString(),
     focus,
@@ -24,7 +26,9 @@ export function loadReview(
     const data = JSON.parse(raw) as SavedReview;
     if (
       data.version !== 1 ||
-      !["entry-check", "daily-limit", "later"].includes(data.focus) ||
+      !["entry-check", "daily-limit", "risk-plan", "later"].includes(
+        data.focus,
+      ) ||
       !Number.isFinite(Date.parse(data.savedAt)) ||
       !data.review ||
       !validRules(data.review.rules.maxPositions, data.review.rules.cutoff) ||

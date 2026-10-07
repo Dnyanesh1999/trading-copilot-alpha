@@ -1,4 +1,6 @@
-# Alpha verification — 7 October 2026
+# Initial two-rule alpha verification — 7 October 2026
+
+Historical verification for the initial release. See [richer five-check verification](RICHER_REVIEW.md) for the current revision.
 
 Implemented app baseline: b4013e5. Verification by Codex; no claim of trader or external-provider evaluation.
 

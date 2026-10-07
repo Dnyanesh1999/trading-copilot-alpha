@@ -3,6 +3,9 @@ import { Arrow, Progress } from "./Chrome";
 export interface Draft {
   maxPositions: string;
   cutoff: string;
+  extraChecks: boolean;
+  maxRisk: string;
+  minRewardRisk: string;
 }
 export function Rules({
   draft,
@@ -17,7 +20,12 @@ export function Rules({
   onBack: () => void;
   error: string;
 }) {
-  const defaults = draft.maxPositions === "3" && draft.cutoff === "11:00";
+  const defaults =
+    draft.maxPositions === "3" &&
+    draft.cutoff === "11:00" &&
+    draft.extraChecks &&
+    draft.maxRisk === "500" &&
+    draft.minRewardRisk === "2";
   const changeCount = (delta: number) =>
     onChange({
       ...draft,
@@ -30,10 +38,13 @@ export function Rules({
       <Progress current={1} />
       <div className="screen-heading">
         <p className="context">A fictional session. A simple place to start.</p>
-        <h1 tabIndex={-1}>Start with two simple rules.</h1>
-        <p>What would you like to check? Make the limits yours.</p>
+        <h1 tabIndex={-1}>Your session. Your boundaries.</h1>
+        <p>
+          Start with two entry rules. Your risk-plan checks are ready below.
+        </p>
       </div>
       <form
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
           onConfirm();
@@ -95,6 +106,70 @@ export function Rules({
             </p>
           </div>
         </div>
+        <details className="risk-settings">
+          <summary>
+            <span>Risk plan</span>
+            <span className="risk-settings-preview">
+              {draft.extraChecks
+                ? `Pre-entry stop · ₹${draft.maxRisk} cap · ${draft.minRewardRisk}R minimum`
+                : "Additional checks off"}
+            </span>
+          </summary>
+          <div className="risk-settings-body">
+            <label className="toggle-label">
+              <input
+                type="checkbox"
+                checked={draft.extraChecks}
+                onChange={(e) =>
+                  onChange({ ...draft, extraChecks: e.target.checked })
+                }
+              />{" "}
+              Include risk-plan checks
+            </label>
+            <p>
+              A stop recorded before entry, a risk cap, and a planned
+              reward-to-risk minimum. These check the recorded plan, not a
+              broker’s protective order.
+            </p>
+            <div className="risk-inputs">
+              <label htmlFor="max-risk">
+                Maximum planned risk · ₹
+                <input
+                  id="max-risk"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  disabled={!draft.extraChecks}
+                  required={draft.extraChecks}
+                  value={draft.maxRisk}
+                  onChange={(e) =>
+                    onChange({ ...draft, maxRisk: e.target.value })
+                  }
+                />
+              </label>
+              <label htmlFor="min-reward-risk">
+                Minimum planned reward-to-risk · R
+                <input
+                  id="min-reward-risk"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  disabled={!draft.extraChecks}
+                  required={draft.extraChecks}
+                  value={draft.minRewardRisk}
+                  onChange={(e) =>
+                    onChange({ ...draft, minRewardRisk: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <p className="fine-print">
+              Risk uses initial filled quantity and the distance to the
+              pre-entry stop. Fees, slippage and gaps are excluded. A planned
+              target is not a promised return.
+            </p>
+          </div>
+        </details>
         <p className="comparison-note">
           {defaults
             ? "These are the original rules for our fictional sample session."

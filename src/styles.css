@@ -1525,3 +1525,329 @@ th {
     font-size: 30px;
   }
 }
+/* Richer static review: preserve the guided flow, disclose plan settings progressively. */
+.risk-settings {
+  max-width: 900px;
+  margin: 24px auto 0;
+  border-top: 1px solid var(--line, #e8e2df);
+  border-bottom: 1px solid var(--line, #e8e2df);
+  text-align: left;
+}
+.risk-settings summary {
+  cursor: pointer;
+  padding: 22px 6px;
+  font-weight: 600;
+}
+.risk-settings-preview {
+  margin-left: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #655b6d;
+}
+.risk-settings-body {
+  padding: 0 24px 24px;
+}
+.risk-settings-body p {
+  color: #655b6d;
+  font-size: 15px;
+  max-width: 720px;
+  line-height: 1.65;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+.toggle-label input {
+  width: 20px;
+  height: 20px;
+  accent-color: #ac715f;
+}
+.risk-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 22px 0;
+}
+.risk-inputs label {
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+}
+.risk-inputs input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d5c8dc;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 22px;
+}
+.risk-inputs input:disabled {
+  opacity: 0.5;
+}
+.timeline-instrument {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: #736675;
+  margin-top: 8px;
+}
+.position-review {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px;
+  padding: 36px 0;
+  border-top: 1px solid #e9e2df;
+  border-bottom: 1px solid #e9e2df;
+  text-align: left;
+}
+.trade-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+.trade-heading .context {
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+.trade-heading h2 {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(27px, 2.6vw, 38px);
+  margin: 0;
+  font-weight: 500;
+}
+.instrument-name {
+  font-size: 12px;
+  color: #716775;
+}
+.trade-outcome {
+  text-align: right;
+  display: grid;
+  gap: 6px;
+  padding-top: 3px;
+}
+.trade-outcome > span,
+.trade-outcome small {
+  font-size: 11px;
+  color: #716775;
+}
+.trade-outcome strong {
+  font-size: 27px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.trade-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 32px 0;
+}
+.trade-metrics > div {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.trade-metrics span {
+  font-size: 12px;
+  color: #716775;
+}
+.trade-metrics strong {
+  font-size: 23px;
+  font-weight: 500;
+}
+.trade-metrics small {
+  font-size: 11px;
+  color: #716775;
+  line-height: 1.5;
+}
+.position-journey {
+  display: flex;
+  gap: 22px;
+  border-top: 1px solid #ded1df;
+  padding-top: 14px;
+}
+.position-journey > div {
+  display: grid;
+  gap: 6px;
+  position: relative;
+  flex: 1;
+}
+.position-journey small {
+  font-size: 12px;
+  color: #716775;
+}
+.position-journey strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.position-journey > div > span:last-child {
+  font-size: 15px;
+}
+.journey-marker {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ad91c2;
+  top: -18px;
+}
+.journey-marker.exit {
+  background: #ed967e;
+}
+.plan-records {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 22px 0;
+  color: #655b6d;
+}
+.plan-records p {
+  margin: 6px 0;
+}
+.plan-records span {
+  font-weight: 600;
+  display: inline-block;
+  width: 85px;
+}
+.trade-reflection {
+  padding: 16px 20px;
+  background: #f7f1fa;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #5e4c68;
+  margin-bottom: 0;
+}
+.rule-review h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 500;
+}
+.rule-review .finding-row {
+  padding: 13px 0;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee9ed;
+}
+.rule-review .finding-row > div {
+  display: grid;
+  gap: 5px;
+}
+.rule-review .finding-row strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.rule-review .finding-row > div > span {
+  color: #716775;
+  font-size: 12px;
+}
+.rule-review .status {
+  white-space: nowrap;
+  font-size: 12px;
+}
+.rule-review .outline {
+  margin-top: 22px;
+  font-size: 13px;
+  padding: 13px 18px;
+}
+.focus-options {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 1100px) {
+  .position-review {
+    gap: 28px;
+  }
+  .trade-heading {
+    flex-wrap: wrap;
+  }
+  .trade-outcome {
+    text-align: left;
+  }
+  .trade-metrics {
+    gap: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .position-review {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .focus-options {
+    grid-template-columns: 1fr 1fr;
+  }
+  .trade-heading {
+    flex-wrap: nowrap;
+  }
+  .trade-outcome {
+    text-align: right;
+  }
+  .coverage {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 520px) {
+  .risk-settings summary {
+    display: list-item;
+    line-height: 1.6;
+  }
+  .risk-settings-preview {
+    display: block;
+    margin: 5px 0 0 18px;
+    font-size: 12px;
+  }
+  .risk-settings-body {
+    padding: 0 6px 20px;
+  }
+  .risk-inputs {
+    grid-template-columns: 1fr;
+  }
+  .trade-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .trade-outcome {
+    text-align: left;
+  }
+  .trade-metrics {
+    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .trade-metrics strong {
+    font-size: 21px;
+  }
+  .rule-review .finding-row {
+    align-items: start;
+    gap: 10px;
+  }
+  .rule-review .status {
+    font-size: 11px;
+    white-space: normal;
+    max-width: 106px;
+    flex-shrink: 0;
+  }
+  .rule-review .status svg {
+    flex-shrink: 0;
+  }
+  .focus-options {
+    grid-template-columns: 1fr;
+  }
+  .timeline-instrument {
+    margin: 0;
+    font-size: 11px;
+  }
+  .position-journey {
+    gap: 15px;
+  }
+  .trade-heading h2 {
+    font-size: 32px;
+  }
+}
+
+.execution-table tr:target {
+  background: #f7e8dd;
+  outline: 2px solid #d99178;
+  outline-offset: -2px;
+  scroll-margin-top: 24px;
+}

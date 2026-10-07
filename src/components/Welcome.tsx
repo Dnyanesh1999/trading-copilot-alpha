@@ -32,7 +32,9 @@ export function Welcome({
               Set my rules
             </button>
           </div>
-          <p className="demo-note">Alpha · fictional sample trades</p>
+          <p className="demo-note">
+            Alpha · fictional equities · five evidence-based checks
+          </p>
         </div>
         <div className="welcome-art">
           <img
