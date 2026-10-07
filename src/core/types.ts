@@ -1,16 +1,16 @@
-export type FindingStatus = 'followed' | 'deviated' | 'insufficient_evidence';
-export type RuleId = 'daily-limit' | 'entry-cutoff';
+export type FindingStatus = "followed" | "deviated" | "insufficient_evidence";
+export type RuleId = "daily-limit" | "entry-cutoff";
 export interface ConfirmedRules {
   id: string;
   maxPositions: number;
   cutoff: string;
-  timezone: 'Asia/Kolkata';
+  timezone: "Asia/Kolkata";
   confirmedAt: string;
-  comparison: 'sample-plan' | 'hypothetical';
+  comparison: "sample-plan" | "hypothetical";
 }
 export interface Execution {
   id: string;
-  side: 'entry' | 'exit';
+  side: "entry" | "exit";
   timestamp: string | null;
   quantity: number;
   price: number;
@@ -42,7 +42,7 @@ export interface Review {
   session: Session;
   findings: Finding[];
 }
-export type Focus = 'entry-check' | 'daily-limit' | 'later';
+export type Focus = "entry-check" | "daily-limit" | "later";
 export interface SavedReview {
   version: 1;
   savedAt: string;
