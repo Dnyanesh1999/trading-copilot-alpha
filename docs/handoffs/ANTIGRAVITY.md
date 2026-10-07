@@ -1,0 +1,5 @@
+# Antigravity — UI ownership brief
+
+Repository: https://github.com/Dnyanesh1999/trading-copilot-alpha . Read AGENTS.md, docs/SPEC.md, docs/STATUS.md and docs/DESIGN.md first. Check latest main before starting; Codex may already have implemented the first release. Never replace the whole application or create a competing source folder.
+
+Task: faithfully implement or refine the approved welcome/review concepts, guided rules, evidence and completion states on desktop/mobile. Branch codex/antigravity-ui. Own src/components and src/styles.css; coordinate App.tsx with Codex. Do not change core/types, fixtures or review calculations. Controls must work, not just look good. Preserve computed copy, unknown handling and explicit hypothetical labels. Report screenshots, browser viewport, files changed, tests and remaining limitations. Return a commit/PR; do not merge or deploy independently. Preserve Codex's latest fixes.
