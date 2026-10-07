@@ -2,7 +2,7 @@
 
 Original sanitized runnable scaffold: `37f6f05` (published before UI implementation).
 
-Shared current app baseline: `15d26a6` (richer five-check revision, 7 October 2026). Earlier two-rule implementation: `b4013e5`. Every collaborator should inspect this same commit first, then compare the current main branch for later integration changes. Record both SHAs in the returned review. Additional documentation commits do not change this app baseline.
+Shared current app baseline: `984682a` (richer five-check revision, 7 October 2026). Earlier two-rule implementation: `b4013e5`. Every collaborator should inspect this same commit first, then compare the current main branch for later integration changes. Record both SHAs in the returned review. Additional documentation commits do not change this app baseline.
 
 Repository: https://github.com/Dnyanesh1999/trading-copilot-alpha
 Live alpha: https://dnyanesh1999.github.io/trading-copilot-alpha/

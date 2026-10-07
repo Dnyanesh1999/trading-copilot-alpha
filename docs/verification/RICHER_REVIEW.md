@@ -21,3 +21,7 @@ Saved reviews now retain their actual session and optional selectedPositionId ra
 Static invented instruments and executions, no live AI, account connection or backend. Recorded plan timing is not evidence of a placed or honoured stop order. Risk/ratio are planned price distances, not guaranteed loss/return. No central telemetry or completed user study. One explicitly replaced local save; Google Fonts with fallbacks. Desktop/mobile Chrome checks do not establish all-browser coverage or a dedicated screen-reader audit. Reduced-motion CSS retained; OS preference emulation not claimed.
 
 Publication and public browser verification are recorded in docs/STATUS.md. The private supervisor update remains for the user to send.
+
+## Public compatibility follow-up
+
+The five-check public deployment succeeded in Actions run 37611352991 and served the new welcome. An existing two-rule browser save restored its original SAMPLE-ALPHA fills, 2-position/13:00 rule snapshot, incomplete daily records and chosen focus. No new plan or exit data was invented. Follow-up app baseline 984682a derives the coverage label/note from actual findings and execution coverage, avoiding references to absent legacy plan checks. Latest main Actions is authoritative for final publication.
