@@ -7,3 +7,6 @@ dist/
 playwright-report/
 test-results/
 private/
+.wrangler/
+.dev.vars*
+!.dev.vars.example

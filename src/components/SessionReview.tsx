@@ -289,9 +289,11 @@ export function SessionReview({
   error,
   selectedId,
   onSelect,
+  onEvidence,
 }: {
   selectedId: string;
   onSelect: (id: string) => void;
+  onEvidence: () => void;
   review: Review;
   onExample: (mode: ExampleMode) => void;
   focus: Focus | null;
@@ -404,7 +406,13 @@ export function SessionReview({
               </div>
             ))}
           </div>
-          <button className="outline" onClick={() => setEvidenceOpen(true)}>
+          <button
+            className="outline"
+            onClick={() => {
+              onEvidence();
+              setEvidenceOpen(true);
+            }}
+          >
             {status === "deviated"
               ? "Why was this flagged?"
               : status === "insufficient_evidence"

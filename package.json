@@ -9,7 +9,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "preview": "vite preview --host 127.0.0.1",
-    "format": "prettier --write src .github vite.config.ts"
+    "format": "prettier --write src .github vite.config.ts",
+    "logging:setup": "node scripts/setup-logging.mjs",
+    "logging:migrate": "WRANGLER_SEND_METRICS=false wrangler d1 migrations apply DB --local --config worker/wrangler.jsonc",
+    "logging:dev": "WRANGLER_SEND_METRICS=false wrangler dev --local --ip 127.0.0.1 --port 8787 --config worker/wrangler.jsonc",
+    "logging:export": "node scripts/export-logging.mjs",
+    "logging:check": "tsc --noEmit -p worker/tsconfig.json",
+    "logging:test": "node scripts/check-logging.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.52.0",
@@ -17,12 +23,15 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261011.1",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "prettier": "^3.9.9",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "wrangler": "^4.149.0"
   }
 }

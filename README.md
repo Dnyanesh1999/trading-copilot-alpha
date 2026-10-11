@@ -31,3 +31,7 @@ Five explicit checks, fictional directional equity fills and timestamped stop/ta
 1 October feedback aligned on trading copilot starting with strategy-aware review. Static data is acceptable for the working alpha; repository/live page requested for professor review before trader testing. Fifteen survey responses requested. Survey rechecked 7 October: still nine submissions; student now targets ten (one more); professor’s written target remains fifteen. See [verified counts](docs/SURVEY_SNAPSHOT.md).
 
 All code and assets in this repository are prepared with AI assistance. See docs/AI_ASSISTANCE.md for provenance and verification limits.
+
+## Internal logging development
+
+Optional local Worker/D1 collection is available only in explicitly enabled development mode. It is not deployed or participant-ready. See [setup and verification](docs/verification/LOCAL_BACKEND.md). Default and production demo tracking remains disabled.

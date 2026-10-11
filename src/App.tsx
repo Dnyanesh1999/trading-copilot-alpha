@@ -8,6 +8,41 @@ import { createRules, realisticSession } from "./core/fixtures";
 import { reviewSession, validRules, validChecks } from "./core/review";
 import { loadReview, saveReview, STORAGE_KEY } from "./core/storage";
 import type { ConfirmedRules, Focus, SavedReview } from "./core/types";
+import { createJourney } from "./core/journey";
+import { createJourneyTransport } from "./core/journey-transport";
+import { InternalLogging } from "./components/InternalLogging";
+const internalLogging =
+  import.meta.env.DEV &&
+  new URLSearchParams(location.search).get("internalLogging") === "1";
+function internalStorage() {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+const transport = internalLogging
+  ? createJourneyTransport(internalStorage())
+  : null;
+const journey = createJourney(
+  internalLogging,
+  undefined,
+  undefined,
+  undefined,
+  transport?.enqueue,
+);
+function exportJourney() {
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(journey.export(), null, 2)], {
+      type: "application/json",
+    }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "internal-journey.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 const initialDraft: Draft = {
   maxPositions: "3",
   cutoff: "11:00",
@@ -43,8 +78,36 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
     document.querySelector<HTMLElement>("main h1")?.focus();
   }, [stage]);
+  useEffect(() => {
+    const visibility = () =>
+      journey.visibility(document.visibilityState === "visible");
+    const leave = () => journey.end();
+    const retry = () => {
+      void transport?.flush();
+    };
+    // A visible checkpoint bounds lost timing if the page later crashes.
+    const tick = () => {
+      journey.export();
+      retry();
+    };
+    const timer = transport ? window.setInterval(tick, 5000) : undefined;
+    window.addEventListener("online", retry);
+    retry();
+    visibility();
+    document.addEventListener("visibilitychange", visibility);
+    window.addEventListener("pagehide", leave);
+    return () => {
+      document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("pagehide", leave);
+      journey.end();
+      window.clearInterval(timer);
+      window.removeEventListener("online", retry);
+    };
+  }, []);
   const changeStage = (next: typeof stage) => {
     setError("");
+    journey.stage(next);
+    if (next === "welcome") journey.end();
     setStage(next);
   };
   const confirm = () => {
@@ -66,6 +129,7 @@ export default function App() {
     }
     if (!checks && focus === "risk-plan") setFocus(null);
     setRules(createRules(Number(draft.maxPositions), draft.cutoff, checks));
+    journey.action("rules_confirmed");
     changeStage("session");
   };
   const reset = () => {
@@ -77,6 +141,7 @@ export default function App() {
       );
       return;
     }
+    journey.action("reset");
     setSaved(null);
     setSelectedId("D");
     setRules(null);
@@ -90,8 +155,10 @@ export default function App() {
     if (!review || !focus) return;
     try {
       setSaved(saveReview(localStorage, review, focus, selectedId));
+      journey.action("focus_saved");
       changeStage("complete");
     } catch {
+      journey.action("save_failed");
       setError(
         "Your browser could not save this review. Allow local storage, then try again.",
       );
@@ -123,6 +190,9 @@ export default function App() {
   };
   return (
     <>
+      {transport && (
+        <InternalLogging transport={transport} onExport={exportJourney} />
+      )}
       <a className="skip-link" href="#content">
         Skip to content
       </a>
@@ -137,6 +207,7 @@ export default function App() {
       {stage === "welcome" && (
         <Welcome
           onStart={() => {
+            journey.start("rules");
             setDraft(initialDraft);
             setRules(null);
             setSelectedId("D");
@@ -144,9 +215,15 @@ export default function App() {
             setFocus(null);
             changeStage("rules");
           }}
-          onCustom={() => changeStage("rules")}
+          onCustom={() => {
+            journey.start("rules");
+            changeStage("rules");
+          }}
           saved={saved}
-          onSaved={openSaved}
+          onSaved={() => {
+            journey.start("complete", false);
+            openSaved();
+          }}
         />
       )}
       {stage === "rules" && (
@@ -161,9 +238,16 @@ export default function App() {
       {stage === "session" && review && (
         <SessionReview
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={(id) => {
+            journey.action("position_selected");
+            setSelectedId(id);
+          }}
+          onEvidence={() => journey.action("evidence_opened")}
           review={review}
-          onExample={(mode) => setSession(realisticSession(mode))}
+          onExample={(mode) => {
+            journey.action("example_changed");
+            setSession(realisticSession(mode));
+          }}
           focus={focus}
           onFocus={setFocus}
           onSave={save}
@@ -174,7 +258,10 @@ export default function App() {
       {stage === "complete" && saved && (
         <Completion
           saved={saved}
-          onExplore={() => changeStage("rules")}
+          onExplore={() => {
+            journey.start("rules");
+            changeStage("rules");
+          }}
           onBack={() => {
             openSaved();
             changeStage("session");

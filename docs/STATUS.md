@@ -1,3 +1,11 @@
+# Local backend checkpoint — 11 October 2026
+
+Local Worker/D1 ingestion, deduplication, queued retries and protected export implemented. 107 tests, frontend build, Worker type-check and 24 real local backend checks pass. Browser save, outage/reload/recovery and D1 restart persistence verified. No deployment/participant collection. See [local backend evidence](verification/LOCAL_BACKEND.md).
+
+# Local development checkpoint — 11 October 2026
+
+Development-only internal journey logging added on codex/internal-journey-logging. 87 tests/build pass; browser export verified. Memory-only, no backend or participant collection, not deployed. See [verification](verification/INTERNAL_JOURNEY.md). Historical release and supervision statements below remain dated 7 October.
+
 # Status — richer static alpha
 
 7 October 2026. User-requested five-check revision implemented; the existing guided flow and approved design preserved. Fresh implementation; original September source unavailable.

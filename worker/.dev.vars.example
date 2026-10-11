@@ -1,0 +1,4 @@
+# Run npm run logging:setup to generate local-only random tokens.
+# Never use VITE_ prefixed variables for these tokens.
+INGEST_TOKEN=generate-with-logging-setup
+EXPORT_TOKEN=generate-with-logging-setup

@@ -1851,3 +1851,20 @@ th {
   outline-offset: -2px;
   scroll-margin-top: 24px;
 }
+
+.internal-logging {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f2edff;
+  border-bottom: 1px solid #d4c9eb;
+  font-size: 0.8rem;
+}
+.internal-logging button {
+  border: 1px solid #77668d;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  background: white;
+}
