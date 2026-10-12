@@ -35,3 +35,6 @@ A selected position shows its fills, plan, risk, ratio, outcome and rule checks.
 ## Release checks
 
 Meaningful tests for legacy rules, partial fills, cutoff/stop equality, IST timestamps, missing coverage/plans, late target, invalid values, long/short calculations, risk/ratio boundaries, result/adherence separation, changed rules, saved snapshots and storage failures. Build and full desktop/mobile browser walkthrough required. Public GitHub repository and Pages; supervisor submission remains a draft for the user to send. Professor reviews the alpha before trader testing; evaluation metrics remain to be agreed.
+
+## User-approved motion revision — 12 October2026
+Welcome has one initial light-trail/art reveal per page visit; return home is quiet and controls are available immediately. A measured halo follows selected position and findings reveal briefly. Each rule opens its own engine-derived evidence/calculation; referenced rows can be focused/highlighted. Desktop uses rule buttons, mobile a compact selector. Progress remains mounted across the three stages. Check draw/card settle follows successful save only; restored saved reviews remain static. Choose later is a neutral review save. Reduced-motion guards retained. No animation-frame telemetry or artificial AI delay.

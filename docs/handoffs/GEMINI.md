@@ -11,3 +11,5 @@ Read the revised 7 October specification: two entry rules plus stop-before-entry
 Student clarified current recruitment target is ten, while professor’s written request remains fifteen; do not describe the reduced target as supervisor-approved.
 
 Shared current app baseline: 984682a. All collaborators start from that commit, then compare latest main. Record both SHAs.
+
+12 October release: inspect welcome/progress/save motion, direct per-rule evidence, mobile dropdown and source-row keyboard focus. Production logging stays disabled; local backend tooling is not a deployed study service. No external review already completed is implied.

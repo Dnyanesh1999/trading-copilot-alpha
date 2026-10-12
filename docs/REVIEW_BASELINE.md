@@ -2,14 +2,14 @@
 
 Original sanitized runnable scaffold: `37f6f05` (published before UI implementation).
 
-Shared current app baseline: `984682a` (richer five-check revision, 7 October 2026). Earlier two-rule implementation: `b4013e5`. Every collaborator should inspect this same commit first, then compare the current main branch for later integration changes. Record both SHAs in the returned review. Additional documentation commits do not change this app baseline.
+Shared current app baseline: `5784fb5` (polished five-check demo, 12 October 2026). Previous richer baseline: `984682a`. Earlier two-rule implementation: `b4013e5`. Every collaborator should inspect this same commit first, then compare the current main branch for later integration changes. Record both SHAs in the returned review. Additional documentation commits do not change this app baseline.
 
 Repository: https://github.com/Dnyanesh1999/trading-copilot-alpha
 Live alpha: https://dnyanesh1999.github.io/trading-copilot-alpha/
 
 | Owner | Branch | File ownership |
 |---|---|---|
-| Codex | codex/richer-static-review | src/core, src/App.tsx, fixtures, tests, integration, CI/deployment |
+| Codex | codex/welcome-polish-release | src/core, src/App.tsx, fixtures, tests, integration, CI/deployment |
 | Antigravity | codex/antigravity-ui | src/components, src/styles.css, public illustration; coordinate changes with Codex |
 | Claude | codex/claude-review | docs/reviews/YYYY-MM-DD_claude.md only |
 | Gemini / Google AI Pro | codex/gemini-review | docs/reviews/YYYY-MM-DD_gemini.md only |
@@ -20,3 +20,5 @@ Codex has implemented the first complete UI to make the alpha reviewable now. An
 The private project-control directory remains outside this repository. Never add private portal links or participant/account identifiers.
 
 Current scope: five deterministic checks, directional fictional fills, timestamped plan records, outcome separated from adherence, and progressive risk settings. Review the revised SPEC.md and verification/RICHER_REVIEW.md. This expansion is requested by the user; no new supervisor approval or external review is claimed.
+
+12 October update: public demo motion and local-only internal logging tooling added. Production tracking remains disabled. No external reviews received. Use5784fb5 for current review; rule/outcome semantics remain unchanged.
