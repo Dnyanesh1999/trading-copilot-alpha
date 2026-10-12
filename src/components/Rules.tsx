@@ -1,5 +1,5 @@
 import { Minus, Plus } from "lucide-react";
-import { Arrow, Progress } from "./Chrome";
+import { Arrow } from "./Chrome";
 export interface Draft {
   maxPositions: string;
   cutoff: string;
@@ -35,7 +35,6 @@ export function Rules({
     });
   return (
     <main id="content" className="rules page-enter">
-      <Progress current={1} />
       <div className="screen-heading">
         <p className="context">A fictional session. A simple place to start.</p>
         <h1 tabIndex={-1}>Your session. Your boundaries.</h1>

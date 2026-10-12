@@ -30,22 +30,37 @@ export function Header({
 export function Progress({
   current = 0,
   welcome = false,
+  complete = false,
+  animate = true,
 }: {
   current?: number;
   welcome?: boolean;
+  complete?: boolean;
+  animate?: boolean;
 }) {
   return (
     <ol
-      className={`steps ${welcome ? "welcome-steps" : ""}`}
+      className={`steps ${welcome ? "welcome-steps" : ""} ${!animate ? "progress-still" : ""}`}
       aria-label="Review progress"
     >
       {["Your rules", "Your session", "Your next step"].map((label, i) => (
         <li
           key={label}
-          aria-current={current === i + 1 ? "step" : undefined}
-          className={current >= i + 1 ? "reached" : ""}
+          aria-current={!complete && current === i + 1 ? "step" : undefined}
+          className={`${current >= i + 1 ? "reached" : ""} ${!welcome && (complete || current > i + 1) ? "step-done" : ""}`}
         >
-          <span>{i + 1}</span>
+          <span aria-hidden="true">
+            {!welcome && (complete || current > i + 1) ? (
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m6 12 4 4 8-8" pathLength="1" />
+              </svg>
+            ) : (
+              i + 1
+            )}
+          </span>
+          {!welcome && (complete || current > i + 1) && (
+            <small className="sr-only">Completed: </small>
+          )}
           <div>{label}</div>
         </li>
       ))}

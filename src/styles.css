@@ -2073,3 +2073,174 @@ th {
     border-radius: 8px;
   }
 }
+/* Confirmation -> progress -> successful save. Shared progress stays mounted. */
+.workflow-progress {
+  max-width: 1050px;
+  margin: auto;
+  padding: 12px 30px 0;
+}
+.workflow-progress + main {
+  padding-top: 0;
+}
+.workflow-progress .steps li > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease;
+}
+.workflow-progress .steps li > span svg {
+  width: 15px;
+  height: 15px;
+  stroke: #624b85;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.workflow-progress .steps .step-done > span svg path {
+  stroke-dasharray: 1;
+  animation: progress-check 300ms ease-out;
+}
+.workflow-progress .steps li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  width: 122px;
+  left: calc(50% + 15px);
+  top: 12px;
+  height: 2px;
+  background: #e8e4ef;
+}
+.workflow-progress .steps li:not(:last-child)::after {
+  background: #b8a3d8;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.workflow-progress .steps li.step-done::after {
+  transform: scaleX(1);
+}
+.progress-still *,
+.progress-still *::before,
+.progress-still *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@keyframes progress-check {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.confirmed-boundaries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  padding: 11px 16px;
+  margin: 16px auto 24px;
+  width: fit-content;
+  max-width: 100%;
+  background: #f5f1fa;
+  border: 1px solid #e7dfef;
+  border-radius: 12px;
+  color: #624b75;
+  font-size: 12px;
+}
+.confirmed-boundaries strong {
+  font-weight: 600;
+}
+.confirmed-boundaries > span {
+  color: #716775;
+}
+.confirmation-arrival {
+  animation: boundary-confirm 350ms ease-out;
+}
+@keyframes boundary-confirm {
+  from {
+    opacity: 0.6;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.save-check path {
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.completion-fresh:not(.completion-deferred) .save-check path {
+  animation: save-draw 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes save-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.completion-fresh .completion-check {
+  animation: save-settle 350ms ease-out;
+}
+.completion-fresh .saved-focus {
+  animation: save-settle 450ms ease-out;
+}
+@keyframes save-settle {
+  from {
+    opacity: 0.65;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.completion-deferred .completion-check {
+  background: #f1ebfa;
+  color: #7560ae;
+}
+.saved-boundaries {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.saved-boundaries > span {
+  border: 1px solid #ddd3e9;
+  background: #ffffff90;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: #665777;
+}
+@media (max-width: 760px) {
+  .workflow-progress {
+    padding: 16px 24px 0;
+  }
+  .workflow-progress .steps li:not(:last-child)::before {
+    width: calc(100% - 30px);
+    top: 11px;
+  }
+  .confirmed-boundaries {
+    text-align: center;
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+  .confirmed-boundaries > span {
+    width: 100%;
+  }
+  .completion h1 {
+    font-size: 36px;
+  }
+}

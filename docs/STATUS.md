@@ -1,3 +1,7 @@
+# Local progress/save motion — 12 October 2026
+
+Second approved motion stage implemented on codex/progress-save-motion: persistent progress, confirmed boundaries, successful-save animation and static restoration; neutral deferred focus.107 tests/build/Worker check pass; desktop/mobile and event counts verified. Not pushed/deployed. Reduced-motion guards checked; live preference/blocked-storage UI remain untested.
+
 # Local motion checkpoint — 12 October 2026
 
 First approved motion feature on codex/review-evidence-motion: smooth position selection and direct selected-check evidence with source highlighting. Desktop/mobile, keyboard and one-open/one-save event counts verified;107 tests/build/Worker type-check pass. Reduced-motion CSS guard checked; actual preference emulation remains unverified. Local only; not deployed.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Header, Modal } from "./components/Chrome";
+import { Header, Modal, Progress } from "./components/Chrome";
 import { Welcome } from "./components/Welcome";
 import { Rules, type Draft } from "./components/Rules";
 import { SessionReview } from "./components/SessionReview";
@@ -67,6 +67,8 @@ export default function App() {
   const [selectedId, setSelectedId] = useState("D");
   const [focus, setFocus] = useState<Focus | null>(null);
   const [saved, setSaved] = useState<SavedReview | null>(initialSaved);
+  const [freshSave, setFreshSave] = useState(false);
+  const [justConfirmed, setJustConfirmed] = useState(false);
   const [help, setHelp] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [error, setError] = useState("");
@@ -108,6 +110,8 @@ export default function App() {
     setError("");
     journey.stage(next);
     if (next === "welcome") journey.end();
+    if (next !== "complete") setFreshSave(false);
+    if (next !== "session") setJustConfirmed(false);
     setStage(next);
   };
   const confirm = () => {
@@ -129,6 +133,7 @@ export default function App() {
     }
     if (!checks && focus === "risk-plan") setFocus(null);
     setRules(createRules(Number(draft.maxPositions), draft.cutoff, checks));
+    setJustConfirmed(true);
     journey.action("rules_confirmed");
     changeStage("session");
   };
@@ -155,6 +160,7 @@ export default function App() {
     if (!review || !focus) return;
     try {
       setSaved(saveReview(localStorage, review, focus, selectedId));
+      setFreshSave(true);
       journey.action("focus_saved");
       changeStage("complete");
     } catch {
@@ -166,6 +172,8 @@ export default function App() {
   };
   const openSaved = () => {
     if (!saved) return;
+    setFreshSave(false);
+    setJustConfirmed(false);
     setRules(saved.review.rules);
     setSelectedId(
       (saved.review.session.positions.some(
@@ -216,6 +224,7 @@ export default function App() {
             changeStage("rules");
           }}
           onCustom={() => {
+            setFocus(null);
             journey.start("rules");
             changeStage("rules");
           }}
@@ -225,6 +234,17 @@ export default function App() {
             openSaved();
           }}
         />
+      )}
+      {stage !== "welcome" && (
+        <div className="workflow-progress">
+          <Progress
+            current={
+              stage === "rules" ? 1 : stage === "session" ? (focus ? 3 : 2) : 3
+            }
+            complete={stage === "complete"}
+            animate={stage !== "complete" || freshSave}
+          />
+        </div>
       )}
       {stage === "rules" && (
         <Rules
@@ -243,6 +263,7 @@ export default function App() {
             setSelectedId(id);
           }}
           onEvidence={() => journey.action("evidence_opened")}
+          justConfirmed={justConfirmed}
           review={review}
           onExample={(mode) => {
             journey.action("example_changed");
@@ -258,7 +279,9 @@ export default function App() {
       {stage === "complete" && saved && (
         <Completion
           saved={saved}
+          freshSave={freshSave}
           onExplore={() => {
+            setFocus(null);
             journey.start("rules");
             changeStage("rules");
           }}

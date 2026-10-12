@@ -1,14 +1,16 @@
-import { Check } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import type { SavedReview } from "../core/types";
 import { FOCUS_LABELS } from "../core/fixtures";
 import { reviewSummary } from "../core/review";
-import { Arrow, Progress } from "./Chrome";
+import { Arrow } from "./Chrome";
 export function Completion({
   saved,
+  freshSave,
   onExplore,
   onBack,
 }: {
   saved: SavedReview;
+  freshSave: boolean;
   onExplore: () => void;
   onBack: () => void;
 }) {
@@ -23,21 +25,48 @@ export function Completion({
       "You can come back to this review when you are ready to choose a focus.",
   };
   return (
-    <main id="content" className="completion page-enter">
-      <Progress current={3} />
+    <main
+      id="content"
+      className={`completion ${freshSave ? "completion-fresh" : "completion-restored"} ${saved.focus === "later" ? "completion-deferred" : ""}`}
+    >
       <div className="completion-check">
-        <Check size={38} aria-hidden="true" />
+        {saved.focus === "later" ? (
+          <Bookmark size={32} aria-hidden="true" />
+        ) : (
+          <svg
+            className="save-check"
+            viewBox="0 0 24 24"
+            width="38"
+            height="38"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="m6 12 4 4 8-8" pathLength="1" />
+          </svg>
+        )}
       </div>
       <h1 tabIndex={-1}>
-        {saved.focus === "later"
-          ? "A little clarity. A fresh start."
-          : "One small step, ready for next time."}
+        {freshSave
+          ? saved.focus === "later"
+            ? "Your review is saved. Your focus can wait."
+            : "One small step, saved for next time."
+          : saved.focus === "later"
+            ? "Your saved review."
+            : "Your saved next step."}
       </h1>
       <p>Your review and rule snapshot are saved in this browser.</p>
       <section className="saved-focus">
-        <span>Your next step</span>
+        <span>
+          {saved.focus === "later"
+            ? "Your review, ready to revisit"
+            : "Your next step"}
+        </span>
         <h2>{FOCUS_LABELS[saved.focus]}</h2>
         <p>{guidance[saved.focus]}</p>
+        <div className="saved-boundaries" aria-label="Saved rule snapshot">
+          <span>{saved.review.rules.maxPositions} positions/day</span>
+          <span>Before {saved.review.rules.cutoff} IST</span>
+        </div>
       </section>
       <details className="saved-details">
         <summary>See my saved review</summary>

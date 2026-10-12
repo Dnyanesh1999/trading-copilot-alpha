@@ -30,7 +30,7 @@ import {
   rupees,
 } from "../core/review";
 import { FOCUS_LABELS } from "../core/fixtures";
-import { Arrow, Modal, Progress } from "./Chrome";
+import { Arrow, Modal } from "./Chrome";
 const statusLabel = {
   followed: "Followed",
   deviated: "Deviated",
@@ -420,10 +420,12 @@ export function SessionReview({
   selectedId,
   onSelect,
   onEvidence,
+  justConfirmed,
 }: {
   selectedId: string;
   onSelect: (id: string) => void;
   onEvidence: () => void;
+  justConfirmed: boolean;
   review: Review;
   onExample: (mode: ExampleMode) => void;
   focus: Focus | null;
@@ -464,7 +466,19 @@ export function SessionReview({
     (review.session.recordsComplete ? "full" : "daily-gap");
   return (
     <main id="content" className="review page-enter">
-      <Progress current={focus ? 3 : 2} />
+      <div
+        className={`confirmed-boundaries ${justConfirmed ? "confirmation-arrival" : ""}`}
+      >
+        <Check size={17} aria-hidden="true" />
+        <strong>
+          Confirmed rules · {new Set(review.findings.map((f) => f.ruleId)).size}{" "}
+          checks
+        </strong>
+        <span>
+          {review.rules.maxPositions} positions/day · entries before{" "}
+          {review.rules.cutoff} IST
+        </span>
+      </div>
       <div className="screen-heading">
         <p className="context">
           Fictional equity session · 23 September 2026
