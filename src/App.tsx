@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Header, Modal, Progress } from "./components/Chrome";
 import { Welcome } from "./components/Welcome";
 import { Rules, type Draft } from "./components/Rules";
@@ -61,6 +61,7 @@ export default function App() {
   const [stage, setStage] = useState<
     "welcome" | "rules" | "session" | "complete"
   >("welcome");
+  const welcomeSeen = useRef(false);
   const [draft, setDraft] = useState<Draft>(initialDraft);
   const [rules, setRules] = useState<ConfirmedRules | null>(null);
   const [session, setSession] = useState(() => realisticSession());
@@ -108,6 +109,7 @@ export default function App() {
   }, []);
   const changeStage = (next: typeof stage) => {
     setError("");
+    if (stage === "welcome" && next !== "welcome") welcomeSeen.current = true;
     journey.stage(next);
     if (next === "welcome") journey.end();
     if (next !== "complete") setFreshSave(false);
@@ -214,6 +216,7 @@ export default function App() {
       />
       {stage === "welcome" && (
         <Welcome
+          animateIntro={!welcomeSeen.current}
           onStart={() => {
             journey.start("rules");
             setDraft(initialDraft);

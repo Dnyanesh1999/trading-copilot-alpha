@@ -2244,3 +2244,116 @@ th {
     font-size: 36px;
   }
 }
+/* Final welcome polish: one initial flourish, immediate controls, quiet return. */
+.welcome-art {
+  position: relative;
+}
+.welcome-art img {
+  position: relative;
+}
+.welcome-light-trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.welcome-light-trail path {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.welcome-intro .welcome-art img {
+  animation: welcome-art-arrive 520ms ease-out;
+}
+.welcome-intro .welcome-light-trail path {
+  animation: welcome-path-light 700ms ease-out 80ms;
+}
+.welcome-intro .welcome-copy h1 {
+  animation: welcome-copy-arrive 350ms ease-out;
+}
+.welcome-intro .welcome-description {
+  animation: welcome-copy-arrive 420ms ease-out;
+}
+@keyframes welcome-art-arrive {
+  from {
+    opacity: 0.75;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes welcome-copy-arrive {
+  from {
+    opacity: 0.8;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes welcome-path-light {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  75% {
+    opacity: 0.55;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+button > svg {
+  transition: transform 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) > svg,
+  .text-action:hover > svg,
+  .source-chips button:hover > svg,
+  .resume button:hover > svg {
+    transform: translateX(3px);
+  }
+  .focus-options button:hover {
+    border-color: #b3a0ca;
+    background: #f6f2fc;
+  }
+  .focus-options button[aria-pressed="true"]:hover {
+    background: #eae3f8;
+  }
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.timeline button:active {
+  transform: none;
+}
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--lavender);
+  outline-offset: 4px;
+}
+.focus-options button {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-light-trail {
+    display: none;
+  }
+}
+/* The illustration fades past its grid column; contain that paint at every width. */
+.welcome {
+  overflow-x: clip;
+}
