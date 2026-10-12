@@ -21,4 +21,4 @@ The private project-control directory remains outside this repository. Never add
 
 Current scope: five deterministic checks, directional fictional fills, timestamped plan records, outcome separated from adherence, and progressive risk settings. Review the revised SPEC.md and verification/RICHER_REVIEW.md. This expansion is requested by the user; no new supervisor approval or external review is claimed.
 
-12 October update: public demo motion and local-only internal logging tooling added. Production tracking remains disabled. No external reviews received. Use5784fb5 for current review; rule/outcome semantics remain unchanged.
+12 October update: public demo motion and local-only internal logging tooling added. Production tracking remains disabled. No external reviews received. Use 5784fb5 for current review; rule/outcome semantics remain unchanged.

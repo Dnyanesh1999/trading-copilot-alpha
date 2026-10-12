@@ -36,6 +36,6 @@ All code and assets in this repository are prepared with AI assistance. See docs
 
 Optional local Worker/D1 collection is available only in explicitly enabled development mode. It is not deployed or participant-ready. See [setup and verification](docs/verification/LOCAL_BACKEND.md). Default and production demo tracking remains disabled.
 
-## Current checkpoint — 12 October2026
+## Current checkpoint — 12 October 2026
 
-User-approved motion polish is implemented, with107 passing tests/build and desktop/mobile production checks. Current app baseline5784fb5.8 October supervision reviewed the alpha positively and agreed about ten beta traders; survey remains n9 last checked11 October. Trader recruitment descriptions remain pending. No participant results or external AI reviews. Read docs/STATUS.md for deployment evidence.
+User-approved motion polish is implemented, with 107 passing tests/build and desktop/mobile production checks. Current app baseline 5784fb5. 8 October supervision reviewed the alpha positively and agreed about ten beta traders; survey remains n9 last checked 11 October. Trader recruitment descriptions remain pending. No participant results or external AI reviews. Read docs/STATUS.md for deployment evidence.
