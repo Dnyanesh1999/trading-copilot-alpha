@@ -1,3 +1,7 @@
+# Local motion checkpoint — 12 October 2026
+
+First approved motion feature on codex/review-evidence-motion: smooth position selection and direct selected-check evidence with source highlighting. Desktop/mobile, keyboard and one-open/one-save event counts verified;107 tests/build/Worker type-check pass. Reduced-motion CSS guard checked; actual preference emulation remains unverified. Local only; not deployed.
+
 # Local backend checkpoint — 11 October 2026
 
 Local Worker/D1 ingestion, deduplication, queued retries and protected export implemented. 107 tests, frontend build, Worker type-check and 24 real local backend checks pass. Browser save, outage/reload/recovery and D1 restart persistence verified. No deployment/participant collection. See [local backend evidence](verification/LOCAL_BACKEND.md).

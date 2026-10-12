@@ -78,9 +78,10 @@ export function Modal({
         if (e.key !== "Tab") return;
         const controls = Array.from(
           ref.current!.querySelectorAll<HTMLElement>(
-            "button:not(:disabled), a[href], input:not(:disabled), summary, [tabindex='0']",
+            "button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex='0']",
           ),
-        );
+        ).filter((control) => control.getClientRects().length > 0);
+        const active = document.activeElement as HTMLElement | null;
         const first = controls[0];
         const last = controls[controls.length - 1];
         if (e.shiftKey && document.activeElement === first) {
@@ -89,6 +90,23 @@ export function Modal({
         } else if (!e.shiftKey && document.activeElement === last) {
           e.preventDefault();
           first?.focus();
+        } else if (active && !controls.includes(active)) {
+          // Source rows may receive deliberate focus without becoming tab stops.
+          e.preventDefault();
+          const relative = e.shiftKey
+            ? controls
+                .filter(
+                  (control) =>
+                    active.compareDocumentPosition(control) &
+                    Node.DOCUMENT_POSITION_PRECEDING,
+                )
+                .at(-1)
+            : controls.find(
+                (control) =>
+                  active.compareDocumentPosition(control) &
+                  Node.DOCUMENT_POSITION_FOLLOWING,
+              );
+          (relative ?? (e.shiftKey ? last : first))?.focus();
         }
       }}
       onCancel={(e) => {

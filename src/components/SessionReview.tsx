@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   Check,
   CircleHelp,
@@ -15,6 +15,8 @@ import type {
   FindingStatus,
   Position,
   ExampleMode,
+  RuleId,
+  PlanLevel,
 } from "../core/types";
 import {
   entryInfo,
@@ -56,113 +58,241 @@ function Status({ status }: { status: FindingStatus }) {
 function Evidence({
   review,
   position,
+  initialRule,
   onClose,
 }: {
   review: Review;
   position: Position;
+  initialRule: RuleId;
   onClose: () => void;
 }) {
   const findings = review.findings.filter((f) => f.positionId === position.id);
-  const executions = review.session.positions.flatMap((p) => p.executions);
-  const sourceIds = new Set(findings.flatMap((f) => f.sourceIds));
+  const [selectedRule, setSelectedRule] = useState(initialRule);
+  const [spotlight, setSpotlight] = useState<string | null>(null);
+  const finding =
+    findings.find((f) => f.ruleId === selectedRule) ?? findings[0];
+  const sourceIds = new Set(finding.sourceIds);
+  const executions = review.session.positions
+    .flatMap((p) => p.executions)
+    .filter((e) => sourceIds.has(e.id));
   const levels = [position.stop, position.target].filter(
-    (level) => level != null,
+    (level): level is PlanLevel => level != null && sourceIds.has(level.id),
   );
+  const focusRecord = (id: string) => {
+    setSpotlight(id);
+    const row = document.getElementById(`record-${id}`);
+    row?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "nearest",
+    });
+    row?.focus({ preventScroll: true });
+  };
+  const availableIds = new Set([
+    ...executions.map((e) => e.id),
+    ...levels.map((l) => l.id),
+  ]);
   return (
     <Modal title={`Position ${position.id}: the evidence`} onClose={onClose}>
       <p className="muted">
-        {position.instrument} · fictional equity position ·{" "}
-        {position.direction ?? "direction unavailable"}
+        {position.instrument} · fictional{" "}
+        {position.direction ?? "direction unavailable"} equity
       </p>
-      <p>
-        Confirmed rules: at most {review.rules.maxPositions} new positions per
-        IST day, entry before {review.rules.cutoff} IST.
-        {review.rules.comparison === "hypothetical"
-          ? " This is a comparison against sample history."
-          : ""}
-      </p>
-      {findings.map((f) => (
-        <section className="evidence-finding" key={f.ruleId}>
-          <h3>
-            {RULE_LABELS[f.ruleId]} <Status status={f.status} />
-          </h3>
-          <p>{f.explanation}</p>
-          <p className="calculation">{f.calculation}</p>
-          <p className="source-ids">
-            Supporting records:{" "}
-            {f.sourceIds.length
-              ? f.sourceIds.map((id, index) => (
-                  <span key={id}>
-                    {index > 0 ? ", " : ""}
-                    <a href={`#record-${id}`}>{id}</a>
-                  </span>
-                ))
-              : "None available"}
-          </p>
-        </section>
-      ))}
-      <div className="execution-table">
-        <table>
-          <caption>Execution records supporting these checks</caption>
-          <thead>
-            <tr>
-              <th>Record</th>
-              <th>Time · IST</th>
-              <th>Quantity</th>
-              <th>Price · ₹</th>
-            </tr>
-          </thead>
-          <tbody>
-            {executions
-              .filter((e) => sourceIds.has(e.id))
-              .map((e) => (
-                <tr key={e.id} id={`record-${e.id}`}>
-                  <td>
-                    <code>{e.id}</code>
-                  </td>
-                  <td>{timestampInfo(e.timestamp)?.clock ?? "Unavailable"}</td>
-                  <td>{e.quantity}</td>
-                  <td>{e.price.toFixed(2)}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      <label className="evidence-mobile-check">
+        Explore a rule
+        <select
+          aria-label="Evidence check"
+          value={finding.ruleId}
+          onChange={(e) => {
+            setSelectedRule(e.target.value as RuleId);
+            setSpotlight(null);
+          }}
+        >
+          {findings.map((f) => (
+            <option key={f.ruleId} value={f.ruleId}>
+              {RULE_LABELS[f.ruleId]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div
+        className="evidence-checks"
+        role="group"
+        aria-label="Choose a rule to explore"
+      >
+        {findings.map((f) => (
+          <button
+            key={f.ruleId}
+            aria-pressed={finding.ruleId === f.ruleId}
+            onClick={() => {
+              setSelectedRule(f.ruleId);
+              setSpotlight(null);
+            }}
+          >
+            {RULE_LABELS[f.ruleId]}
+          </button>
+        ))}
       </div>
-      {levels.length > 0 ? (
-        <div className="execution-table">
-          <table>
-            <caption>
-              Available plan records · recording time, not order execution
-            </caption>
-            <thead>
-              <tr>
-                <th>Record</th>
-                <th>Recorded · IST</th>
-                <th>Price · ₹</th>
-              </tr>
-            </thead>
-            <tbody>
-              {levels.map((level) => (
-                <tr key={level.id} id={`record-${level.id}`}>
-                  <td>
-                    <code>{level.id}</code>
-                  </td>
-                  <td>
-                    {timestampInfo(level.recordedAt)?.clock ?? "Unavailable"}
-                  </td>
-                  <td>{level.price.toFixed(2)}</td>
+      <div className="evidence-detail" key={finding.ruleId}>
+        <section className="evidence-focus" aria-label="Selected finding">
+          <div className="evidence-focus-heading">
+            <h3>{RULE_LABELS[finding.ruleId]}</h3>
+            <Status status={finding.status} />
+          </div>
+          <p>{finding.explanation}</p>
+          <div className="evidence-calculation">
+            <span>From the documented evidence</span>
+            <p>{finding.calculation}</p>
+          </div>
+          <p className="source-ids">
+            {sourceIds.size
+              ? "Supporting records · select one to locate it below"
+              : "No supporting records available for this check."}
+          </p>
+          <div className="source-chips">
+            {finding.sourceIds.map((id) =>
+              availableIds.has(id) ? (
+                <button key={id} onClick={() => focusRecord(id)}>
+                  {id}
+                  <Arrow />
+                </button>
+              ) : (
+                <span key={id}>{id} · unavailable</span>
+              ),
+            )}
+          </div>
+        </section>
+        {executions.length > 0 && (
+          <div className="execution-table">
+            <table>
+              <caption>Execution records for this check</caption>
+              <thead>
+                <tr>
+                  <th>Record</th>
+                  <th>Time · IST</th>
+                  <th>Quantity</th>
+                  <th>Price · ₹</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+              </thead>
+              <tbody>
+                {executions.map((e) => (
+                  <tr
+                    key={e.id}
+                    id={`record-${e.id}`}
+                    tabIndex={-1}
+                    className={spotlight === e.id ? "source-spotlight" : ""}
+                  >
+                    <td>
+                      <code>{e.id}</code>
+                    </td>
+                    <td>
+                      {timestampInfo(e.timestamp)?.clock ?? "Unavailable"}
+                    </td>
+                    <td>{e.quantity}</td>
+                    <td>{e.price.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {levels.length > 0 && (
+          <div className="execution-table">
+            <table>
+              <caption>
+                Plan records for this check · recording time, not order
+                execution
+              </caption>
+              <thead>
+                <tr>
+                  <th>Record</th>
+                  <th>Recorded · IST</th>
+                  <th>Price · ₹</th>
+                </tr>
+              </thead>
+              <tbody>
+                {levels.map((level) => (
+                  <tr
+                    key={level.id}
+                    id={`record-${level.id}`}
+                    tabIndex={-1}
+                    className={spotlight === level.id ? "source-spotlight" : ""}
+                  >
+                    <td>
+                      <code>{level.id}</code>
+                    </td>
+                    <td>
+                      {timestampInfo(level.recordedAt)?.clock ?? "Unavailable"}
+                    </td>
+                    <td>{level.price.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
       <p className="fine-print">
-        Plan checks cannot prove a protective broker order was placed or
-        honoured. Breakout validity, emotions and weekly patterns are not
-        assessed. All instruments, prices and executions are invented.
+        Checks use your confirmed rule snapshot. Missing evidence cannot
+        establish adherence. Plan records do not prove a protective broker order
+        was placed or honoured. All instruments, prices and executions are
+        invented.
       </p>
     </Modal>
+  );
+}
+function SelectionMarker({
+  selectedId,
+  children,
+}: {
+  selectedId: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLOListElement>(null);
+  const [marker, setMarker] = useState<{
+    x: number;
+    y: number;
+    size: number;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const root = ref.current!;
+    const measure = () => {
+      const dot = root.querySelector<HTMLElement>(
+        'button[aria-pressed="true"] .timeline-dot',
+      );
+      if (!dot) return;
+      const parent = root.getBoundingClientRect(),
+        rect = dot.getBoundingClientRect();
+      setMarker({
+        x: rect.left - parent.left - 5,
+        y: rect.top - parent.top - 5,
+        size: rect.width + 10,
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    root
+      .querySelectorAll("button")
+      .forEach((button) => observer.observe(button));
+    return () => observer.disconnect();
+  }, [selectedId]);
+  return (
+    <ol ref={ref} className="timeline" aria-label="Select a sample position">
+      {marker && (
+        <li
+          className="selection-marker"
+          aria-hidden="true"
+          style={{
+            width: marker.size,
+            height: marker.size,
+            transform: `translate(${marker.x}px, ${marker.y}px)`,
+          }}
+        />
+      )}
+      {children}
+    </ol>
   );
 }
 function TradeStory({
@@ -302,12 +432,20 @@ export function SessionReview({
   onBack: () => void;
   error: string;
 }) {
-  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceRule, setEvidenceRule] = useState<RuleId | null>(null);
   const summary = reviewSummary(review);
   const position =
     review.session.positions.find((p) => p.id === selectedId) ??
     review.session.positions[0];
   const findings = review.findings.filter((f) => f.positionId === position.id);
+  const openEvidence = (rule: RuleId) => {
+    onEvidence();
+    setEvidenceRule(rule);
+  };
+  const defaultFinding =
+    findings.find((f) => f.status === "deviated") ??
+    findings.find((f) => f.status === "insufficient_evidence") ??
+    findings[0];
   const icons = {
     "entry-check": ClipboardCheck,
     "daily-limit": BarChart3,
@@ -367,7 +505,7 @@ export function SessionReview({
               ? `All sample fills are available. Position ${lateStops.join(", ")} has a stop recorded at or after entry; its original planned risk cannot be verified.`
               : "The full daily entry record is available. Only confirmed rules are checked."}
       </p>
-      <ol className="timeline" aria-label="Select a sample position">
+      <SelectionMarker selectedId={position.id}>
         {review.session.positions.map((p) => {
           const s = positionStatus(review, p.id);
           return (
@@ -387,30 +525,39 @@ export function SessionReview({
             </li>
           );
         })}
-      </ol>
+      </SelectionMarker>
       <section
-        className="position-review"
+        key={position.id}
+        className="position-review position-reveal"
         aria-label={`Position ${position.id} results`}
       >
         <TradeStory position={position} review={review} />
         <div className="rule-review">
           <h3>Your rule checks</h3>
+          <p className="check-hint">
+            Select a check to see how the evidence connects.
+          </p>
           <div className="finding-list">
             {findings.map((f) => (
-              <div className="finding-row" key={f.ruleId}>
+              <button
+                className="finding-row finding-action"
+                key={f.ruleId}
+                onClick={() => openEvidence(f.ruleId)}
+                aria-label={`Explore ${RULE_LABELS[f.ruleId]} for Position ${position.id}: ${statusLabel[f.status]}`}
+              >
                 <div>
                   <strong>{RULE_LABELS[f.ruleId]}</strong>
                   <span>{f.label}</span>
                 </div>
                 <Status status={f.status} />
-              </div>
+                <Arrow />
+              </button>
             ))}
           </div>
           <button
             className="outline"
             onClick={() => {
-              onEvidence();
-              setEvidenceOpen(true);
+              openEvidence(defaultFinding.ruleId);
             }}
           >
             {status === "deviated"
@@ -474,11 +621,12 @@ export function SessionReview({
         {review.rules.cutoff} IST
         {review.rules.checks ? ` · ${findings.length} rules checked` : ""}
       </p>
-      {evidenceOpen ? (
+      {evidenceRule ? (
         <Evidence
           review={review}
           position={position}
-          onClose={() => setEvidenceOpen(false)}
+          initialRule={evidenceRule}
+          onClose={() => setEvidenceRule(null)}
         />
       ) : null}
     </main>
