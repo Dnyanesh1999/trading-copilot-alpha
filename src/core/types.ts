@@ -16,6 +16,7 @@ export interface PlanLevel {
   recordedAt: string | null;
 }
 export interface ConfirmedRules {
+  enabledRules?: RuleId[];
   checks?: PlanChecks;
   id: string;
   maxPositions: number;

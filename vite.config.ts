@@ -21,8 +21,13 @@ export default defineConfig(({ command }) => {
       host: "127.0.0.1",
       port: 5173,
       strictPort: true,
-      proxy:
-        token.length >= 32
+      proxy: {
+        "^/strategy-api/strategy$": {
+          target: "http://127.0.0.1:8788",
+          changeOrigin: true,
+          rewrite: () => "/strategy",
+        },
+        ...(token.length >= 32
           ? {
               "^/internal-api/events$": {
                 target: "http://127.0.0.1:8787",
@@ -31,7 +36,8 @@ export default defineConfig(({ command }) => {
                 headers: { Authorization: `Bearer ${token}` },
               },
             }
-          : undefined,
+          : {}),
+      },
     },
   };
 });

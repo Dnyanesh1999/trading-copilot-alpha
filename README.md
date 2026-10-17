@@ -1,3 +1,13 @@
+# Local minimal workspace — 17 October 2026
+
+Run `npm ci`, then `npm run dev` and open http://127.0.0.1:5173/trading-copilot-alpha/. Set up a strategy, confirm supported checks, enter trades or use the fictional sample, inspect evidence and save a next focus.
+
+Optional local AI: `npm run ai:dev`; see [AI setup](docs/AI_SETUP.md) for the free-first Gemini route and verification limits. No key is configured automatically. Static GitHub Pages cannot run this local AI server. The current workspace is local and has not replaced the public demo.
+
+[Verification and limits](docs/verification/WORKSPACE.md).
+
+---
+
 # Trading Copilot
 
 A guided strategy-aware trading review: **your rules → your session → your next step**. Static alpha for supervisor UX review; every trade is fictional.

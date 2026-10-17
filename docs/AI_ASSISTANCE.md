@@ -1,3 +1,9 @@
+# 17 October 2026 — minimal workspace
+
+Codex implemented and integrated the dashboard and deterministic manual review. Two Codex subagents handled bounded core/AI modules and regression checks; this is not an independent provider review. Built-in Image Gen produced the local dashboard design concept; Three.js geometry is code-native. Claude Code 2.1.118 was invoked for a tools-disabled audit of selected public source; authentication expired, so no review was received. Gemini integration code was written and tested with fake transport only; no model output or research finding is claimed. User preferences: minimal professional dashboard, subtle 3D/motion, real strategy/trade workflow, free-first AI.
+
+---
+
 # AI assistance and asset provenance
 
 7 October 2026 — OpenAI Codex (exact model version not exposed): environment inspection, accepted specification, fresh implementation and documentation. Verification is recorded in STATUS.md; no human approval or participant study results are invented.

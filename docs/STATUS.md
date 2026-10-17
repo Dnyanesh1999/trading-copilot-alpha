@@ -1,3 +1,9 @@
+# Local workspace checkpoint — 17 October 2026
+
+Minimal dashboard, strategy input/manual confirmation, optional checks, manual trade entry, evidence review, local history and Three.js motion implemented on `codex/minimal-review-workspace`. 139 tests/build/Worker typecheck pass. AI adapter exists but no key/live inference; no cloud or participant release. Details: [workspace verification](verification/WORKSPACE.md). Earlier public release status follows.
+
+---
+
 # Status — polished guided demo
 
 12 October 2026. Release source and local verification recorded below. Publication status is available in the [main deployment workflow](https://github.com/Dnyanesh1999/trading-copilot-alpha/actions/workflows/deploy.yml?query=branch%3Amain). App source baseline: `5784fb5`. Prior public app baseline 984682a; prior public main c41ad29. Historical notes preserved in history/2026-10-12_Pre_Release_STATUS.md.

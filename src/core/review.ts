@@ -108,6 +108,17 @@ const ordinal = (n: number) =>
   `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
 export function reviewSession(rules: ConfirmedRules, input: Session): Review {
   if (
+    (rules.enabledRules !== undefined &&
+      (!Array.isArray(rules.enabledRules) ||
+        !rules.enabledRules.length ||
+        new Set(rules.enabledRules).size !== rules.enabledRules.length ||
+        rules.enabledRules.some((id) => !Object.hasOwn(RULE_LABELS, id)) ||
+        (rules.enabledRules.includes("stop-before-entry") &&
+          !rules.checks?.stopBeforeEntry) ||
+        (rules.enabledRules.includes("planned-risk") &&
+          rules.checks?.maxRisk == null) ||
+        (rules.enabledRules.includes("reward-risk") &&
+          rules.checks?.minRewardRisk == null))) ||
     !validRules(rules.maxPositions, rules.cutoff) ||
     !validChecks(rules.checks) ||
     rules.timezone !== "Asia/Kolkata" ||
@@ -296,13 +307,22 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
       }
     }
   }
-  return { rules: structuredClone(rules), session, findings };
+  return {
+    rules: structuredClone(rules),
+    session,
+    findings: rules.enabledRules
+      ? findings.filter((finding) =>
+          rules.enabledRules!.includes(finding.ruleId),
+        )
+      : findings,
+  };
 }
 export function positionStatus(
   review: Review,
   positionId: string,
 ): FindingStatus {
   const findings = review.findings.filter((f) => f.positionId === positionId);
+  if (!findings.length) return "insufficient_evidence";
   return findings.some((f) => f.status === "deviated")
     ? "deviated"
     : findings.some((f) => f.status === "insufficient_evidence")
@@ -375,10 +395,10 @@ export function entryMetrics(position: Position) {
   )
     return null;
   const quantity = entries.reduce((n, e) => n + e.quantity, 0);
-  return {
-    quantity,
-    price: entries.reduce((n, e) => n + e.price * e.quantity, 0) / quantity,
-  };
+  const price =
+    entries.reduce((n, e) => n + e.price * e.quantity, 0) / quantity;
+  if (!Number.isFinite(quantity) || !Number.isFinite(price)) return null;
+  return { quantity, price };
 }
 export function planMetrics(position: Position) {
   const filled = entryMetrics(position);
@@ -413,8 +433,15 @@ export function planMetrics(position: Position) {
       "The recorded stop is not on the loss side of the weighted entry for this direction.";
     return result;
   }
+  const risk = Math.round(filled.quantity * stopDistance * 100) / 100;
+  if (!Number.isFinite(stopDistance) || !Number.isFinite(risk)) {
+    result.riskReason =
+      "The supplied values exceed the supported calculation range.";
+    result.rewardReason = result.riskReason;
+    return result;
+  }
   result.stopDistance = stopDistance;
-  result.risk = Math.round(filled.quantity * stopDistance * 100) / 100;
+  result.risk = risk;
   if (
     !targetTime ||
     targetTime.epoch >= entry.epoch ||
@@ -427,8 +454,14 @@ export function planMetrics(position: Position) {
       "The recorded target is not on the reward side of the weighted entry for this direction.";
     return result;
   }
+  const ratio = targetDistance / stopDistance;
+  if (!Number.isFinite(targetDistance) || !Number.isFinite(ratio)) {
+    result.rewardReason =
+      "The supplied values exceed the supported calculation range.";
+    return result;
+  }
   result.targetDistance = targetDistance;
-  result.rewardRisk = targetDistance / stopDistance;
+  result.rewardRisk = ratio;
   return result;
 }
 export function grossResult(position: Position): number | null {
