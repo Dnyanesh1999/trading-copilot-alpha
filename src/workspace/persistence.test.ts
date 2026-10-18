@@ -126,3 +126,49 @@ describe("workspace persistence", () => {
     expect(readWorkspace()).toBeNull();
   });
 });
+
+describe("preset and CSV history snapshots", () => {
+  it("restores the setup and invalidates confirmation if the draft setup changes", () => {
+    const data = fixture();
+    data.strategy.setup = { kind: "breakout", label: "Resistance breakout" };
+    data.confirmed = confirmStrategy(data.strategy);
+    writeWorkspace(data);
+    expect(readWorkspace()?.confirmed?.setup?.kind).toBe("breakout");
+    data.strategy.setup = { kind: "ma-reclaim", label: "20-period MA reclaim" };
+    writeWorkspace(data);
+    expect(readWorkspace()?.confirmed).toBeNull();
+  });
+  it("preserves CSV source and rejects malformed signal values in saved history", () => {
+    const data = fixture();
+    data.history[0].source = "csv";
+    writeWorkspace(data);
+    expect(readWorkspace()?.history[0].source).toBe("csv");
+    const bad = JSON.parse(JSON.stringify(data));
+    bad.history[0].review.session.positions[0].signal = {
+      at: null,
+      close: "invented",
+      reference: null,
+      previousClose: null,
+      previousReference: null,
+      rangeEnd: null,
+    };
+    store.set(KEY, JSON.stringify(bad));
+    expect(readWorkspace()?.history).toHaveLength(0);
+  });
+});
+
+it("restores the full CSV capacity and fictional provenance", () => {
+  const workspace = fixture();
+  const session = workspace.history[0].review.session;
+  const original = session.positions[0];
+  session.dataSource = "fictional";
+  session.positions = Array.from({ length: 200 }, (_, i) => ({
+    ...structuredClone(original),
+    id: `csv-${i}`,
+  }));
+  workspace.history[0].source = "csv";
+  writeWorkspace(workspace);
+  const restored = readWorkspace();
+  expect(restored?.history[0].review.session.positions).toHaveLength(200);
+  expect(restored?.history[0].review.session.dataSource).toBe("fictional");
+});

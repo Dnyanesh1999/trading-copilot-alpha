@@ -1,3 +1,9 @@
+# Local strategy library and CSV review — 18 October 2026
+
+Three defined long-equity setups, fictional selectable sessions, local template CSV import and evidence-linked improvement cards now work. Sample actions open a chooser before review; saved setup/action snapshots restore.191tests, frontend build and Worker typecheck pass; desktop/mobile and download→upload→review verified. Actual broker import/chart verification remain unsupported; all bundled records are fictional. Local only, no deployment/participant collection. See [verification](docs/verification/STRATEGY_CSV_REVIEW.md).
+
+---
+
 # Local minimal workspace — 17 October 2026
 
 Run `npm ci`, then `npm run dev` and open http://127.0.0.1:5173/trading-copilot-alpha/. Set up a strategy, confirm supported checks, enter trades or use the fictional sample, inspect evidence and save a next focus.

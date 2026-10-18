@@ -10,7 +10,7 @@ export interface ReviewEntry {
   id: string;
   name: string;
   savedAt: string;
-  source: "sample" | "manual";
+  source: "sample" | "manual" | "csv";
   strategyName: string;
   focus: string;
   review: Review;
@@ -31,6 +31,12 @@ function draft(value: unknown): StrategyDraft | null {
     !text(value.name, 80) ||
     !text(value.description, 6000) ||
     !["intraday", "swing"].includes(String(value.style)) ||
+    (value.setup !== undefined &&
+      (!record(value.setup) ||
+        !["breakout", "ma-reclaim", "opening-range"].includes(
+          String(value.setup.kind),
+        ) ||
+        !text(value.setup.label, 120))) ||
     typeof value.stopBeforeEntry !== "boolean" ||
     !text(value.cutoff, 5) ||
     (value.cutoff !== "" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(value.cutoff)) ||
@@ -41,11 +47,17 @@ function draft(value: unknown): StrategyDraft | null {
     value.enabledRules.length > 5 ||
     new Set(value.enabledRules).size !== value.enabledRules.length ||
     !value.enabledRules.every(
-      (id) => typeof id === "string" && Object.hasOwn(RULE_LABELS, id),
+      (id) =>
+        typeof id === "string" &&
+        id !== "setup-entry" &&
+        Object.hasOwn(RULE_LABELS, id),
     )
   )
     return null;
   return {
+    ...(value.setup
+      ? { setup: value.setup as unknown as StrategyDraft["setup"] }
+      : {}),
     name: value.name,
     description: value.description,
     style: value.style as StrategyDraft["style"],
@@ -79,6 +91,7 @@ function matchingConfirmation(
     });
     const expected = confirmStrategy(strategy);
     if (
+      JSON.stringify(actual.setup) !== JSON.stringify(expected.setup) ||
       actual.maxPositions !== expected.maxPositions ||
       actual.cutoff !== expected.cutoff ||
       actual.timezone !== expected.timezone ||
@@ -105,17 +118,32 @@ function historyEntry(value: unknown): ReviewEntry | null {
     !text(value.focus, 500) ||
     !text(value.savedAt, 100) ||
     !Number.isFinite(Date.parse(value.savedAt)) ||
-    !["sample", "manual"].includes(String(value.source)) ||
+    !["sample", "manual", "csv"].includes(String(value.source)) ||
     !record(value.review) ||
     !record(value.review.session) ||
     !Array.isArray(value.review.session.positions) ||
     !value.review.session.positions.length ||
-    value.review.session.positions.length > 100 ||
+    value.review.session.positions.length > 200 ||
     typeof value.review.session.recordsComplete !== "boolean" ||
     !text(value.review.session.date, 100)
   )
     return null;
   const session = value.review.session;
+  if (
+    session.dataSource !== undefined &&
+    session.dataSource !== "fictional" &&
+    session.dataSource !== "user-supplied"
+  )
+    return null;
+  const signal = (item: unknown) =>
+    item == null ||
+    (record(item) &&
+      ["at", "rangeEnd"].every((k) => item[k] === null || text(item[k], 100)) &&
+      ["close", "reference", "previousClose", "previousReference"].every(
+        (k) =>
+          item[k] === null ||
+          (typeof item[k] === "number" && Number.isFinite(item[k])),
+      ));
   const plan = (level: unknown) =>
     level == null ||
     (record(level) &&
@@ -136,6 +164,7 @@ function historyEntry(value: unknown): ReviewEntry | null {
         record(position) &&
         text(position.id, 200) &&
         text(position.instrument, 200) &&
+        signal(position.signal) &&
         plan(position.stop) &&
         plan(position.target) &&
         (position.direction === undefined ||

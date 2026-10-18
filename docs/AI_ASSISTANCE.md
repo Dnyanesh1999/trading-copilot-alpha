@@ -1,3 +1,9 @@
+# 18 October 2026 — strategy presets, CSV and action plans
+
+OpenAI Codex implemented/integrated the user-requested flow. Existing Codex subagents supplied bounded setup engine/fixtures/tests and CSV parser/export/tests; no independent Claude/Gemini review claimed. Exact deployed model version not exposed. Built-in ImageGen produced the strategy library concept; final controls/SVG/motion are code. No live Gemini calls for this change. All fixtures invented/deterministic, no sampling seed, real trader data or participant outcomes.191tests/build/Worker check and browser journeys passed; limits recorded in verification/STRATEGY_CSV_REVIEW.md. Tool/image cost not measured. Local commit only, no deployment/submission.
+
+---
+
 # 18 October 2026 — live Gemini connection
 
 Codex verified the student-saved local credential without exposing its value, restarted the local server, exercised actual Gemini 3.5 Flash Lite strategy proposals and confirmed the browser review flow. Four fictional development cases after a prompt revision covered English, ambiguity, clarification answers and Hinglish. Earlier ambiguity mistake is documented in private QA; this does not establish held-out accuracy.139 automated tests/build passed. No key/billing creation, payment, external participant collection or deployment. Secret excluded from git and generated frontend artifacts.

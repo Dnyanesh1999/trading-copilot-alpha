@@ -4,7 +4,8 @@ export type RuleId =
   | "entry-cutoff"
   | "stop-before-entry"
   | "planned-risk"
-  | "reward-risk";
+  | "reward-risk"
+  | "setup-entry";
 export interface PlanChecks {
   stopBeforeEntry: boolean;
   maxRisk: number | null;
@@ -15,7 +16,9 @@ export interface PlanLevel {
   price: number;
   recordedAt: string | null;
 }
+export type SetupKind = "breakout" | "ma-reclaim" | "opening-range";
 export interface ConfirmedRules {
+  setup?: { kind: SetupKind; label: string };
   enabledRules?: RuleId[];
   checks?: PlanChecks;
   id: string;
@@ -33,6 +36,14 @@ export interface Execution {
   price: number;
 }
 export interface Position {
+  signal?: {
+    at: string | null;
+    close: number | null;
+    reference: number | null;
+    previousClose: number | null;
+    previousReference: number | null;
+    rangeEnd: string | null;
+  };
   name?: string;
   direction?: "long" | "short";
   allEntriesCovered?: boolean;
@@ -46,6 +57,7 @@ export interface Position {
 }
 export type ExampleMode = "full" | "daily-gap" | "plan-gap";
 export interface Session {
+  dataSource?: "fictional" | "user-supplied";
   exampleMode?: ExampleMode;
   id: string;
   date: string;

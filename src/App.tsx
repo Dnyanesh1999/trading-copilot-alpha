@@ -17,10 +17,10 @@ import {
   type StrategyDraft,
 } from "./core/workspace";
 import type { ConfirmedRules, Session } from "./core/types";
-import { realisticSession } from "./core/fixtures";
+
 import { reviewSession, RULE_LABELS } from "./core/review";
 import { StrategyEditor } from "./workspace/StrategyEditor";
-import { TradeEntry } from "./workspace/TradeEntry";
+import { TradeWorkspace } from "./workspace/TradeWorkspace";
 import { ReviewView } from "./workspace/ReviewView";
 import {
   readWorkspace,
@@ -117,7 +117,7 @@ export default function App() {
       setError((e as Error).message);
     }
   }
-  function startReview(session: Session, source: "sample" | "manual") {
+  function startReview(session: Session, source: "sample" | "manual" | "csv") {
     if (!confirmed) {
       go("strategy");
       setMessage(
@@ -131,7 +131,7 @@ export default function App() {
         id: crypto.randomUUID(),
         name:
           source === "sample"
-            ? "Fictional sample"
+            ? `${confirmed.setup?.label ?? "Fictional"} practice`
             : `Trade review · ${session.date}`,
         savedAt: new Date().toISOString(),
         source,
@@ -309,7 +309,7 @@ export default function App() {
                   setActive(e);
                   setPage("trades");
                 }}
-                onSample={() => startReview(realisticSession(), "sample")}
+                onSample={() => go("trades")}
               />
             </>
           )}
@@ -333,24 +333,18 @@ export default function App() {
                 }}
                 saved={history.some((h) => h.id === active.id)}
               />
-            ) : confirmed ? (
-              <TradeEntry
-                onSession={(s) => startReview(s, "manual")}
-                onSample={() => startReview(realisticSession(), "sample")}
-              />
             ) : (
-              <section className="panel empty-state">
-                <FileText size={32} />
-                <h2>Start with your rules.</h2>
-                <p className="muted">
-                  A review needs your confirmed checklist. Describe your
-                  strategy or set the supported checks manually.
-                </p>
-                <button className="primary" onClick={() => go("strategy")}>
-                  Set up my strategy
-                  <ArrowRight size={16} />
-                </button>
-              </section>
+              <TradeWorkspace
+                rules={confirmed}
+                onPreset={(next) => {
+                  changeStrategy(next);
+                  go("strategy");
+                  setMessage(
+                    "Review this setup and its risk controls, then confirm before choosing trades.",
+                  );
+                }}
+                onReview={startReview}
+              />
             ))}
           {page === "history" && (
             <HistoryTable
@@ -359,7 +353,7 @@ export default function App() {
                 setActive(e);
                 setPage("trades");
               }}
-              onSample={() => startReview(realisticSession(), "sample")}
+              onSample={() => go("trades")}
             />
           )}
           <footer className="workspace-footer">

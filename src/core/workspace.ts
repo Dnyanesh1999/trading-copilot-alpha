@@ -2,6 +2,7 @@ import type { ConfirmedRules, RuleId, Session } from "./types";
 import { reviewSession, timestampInfo, validRules } from "./review";
 
 export interface StrategyDraft {
+  setup?: ConfirmedRules["setup"];
   name: string;
   description: string;
   style: "intraday" | "swing";
@@ -36,6 +37,7 @@ export function confirmStrategy(draft: StrategyDraft): ConfirmedRules {
   if (!validRules(maxPositions, cutoff))
     throw new Error("Use a daily limit from 1 to 50 and a valid IST cutoff.");
   const rules: ConfirmedRules = {
+    ...(draft.setup ? { setup: structuredClone(draft.setup) } : {}),
     id: crypto.randomUUID(),
     confirmedAt: new Date().toISOString(),
     comparison: "hypothetical",

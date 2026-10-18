@@ -1,3 +1,9 @@
+# Local strategy library and CSV review — 18 October 2026
+
+Three defined long-equity setups, fictional selectable sessions, local template CSV import and evidence-linked improvement cards now work. Sample actions open a chooser before review; saved setup/action snapshots restore.191tests, frontend build and Worker typecheck pass; desktop/mobile and download→upload→review verified. Actual broker import/chart verification remain unsupported; all bundled records are fictional. Local only, no deployment/participant collection. See [verification](verification/STRATEGY_CSV_REVIEW.md).
+
+---
+
 # Live local AI checkpoint — 18 October 2026
 
 Server-side Gemini 3.5 Flash Lite now live verified with student-configured ignored credential. Four fictional development cases and browser proposals → confirmation → sample review passed. Prompt clarified vague risk handling after one observed interpretation defect.139 tests/build and secret-exclusion scan pass. Local only; no cloud or participant release. See AI_SETUP.md. Previous checkpoints follow.

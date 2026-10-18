@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ArrowLeft, Check, ChevronDown, Download, Save } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download } from "lucide-react";
 import type { ReviewEntry } from "./persistence";
 import { downloadJson } from "./persistence";
 import { workspaceJourney } from "./InternalJourney";
+import { ImprovementPlan } from "./ImprovementPlan";
 import {
   grossResult,
   positionStatus,
@@ -29,7 +30,7 @@ export function ReviewView({
   const [selected, setSelected] = useState(
     entry.review.session.positions[0]?.id ?? "",
   );
-  const [focus, setFocus] = useState(entry.focus);
+  const [evidenceRule, setEvidenceRule] = useState<string | null>(null);
   const review = entry.review;
   const position = review.session.positions.find((p) => p.id === selected);
   const summary = reviewSummary(review);
@@ -43,9 +44,12 @@ export function ReviewView({
       <section className="review-heading">
         <div>
           <p className="muted">
-            {entry.source === "sample"
+            {entry.source === "sample" ||
+            review.session.dataSource === "fictional"
               ? "Fictional sample · hypothetical comparison"
-              : "Your entered trades · user-supplied evidence"}
+              : entry.source === "csv"
+                ? "Imported CSV · user-supplied evidence"
+                : "Your entered trades · user-supplied evidence"}
           </p>
           <h2>{summary.title}</h2>
           <p className="muted">{summary.description}</p>
@@ -60,6 +64,12 @@ export function ReviewView({
       </section>
       <div className="applied-checklist">
         <strong>{entry.strategyName} · confirmed checklist</strong>
+        {review.rules.setup && (
+          <p>
+            <strong>{review.rules.setup.label}</strong> · documented signal
+            check · long entries
+          </p>
+        )}
         <p>
           {(
             review.rules.enabledRules ?? [
@@ -115,7 +125,11 @@ export function ReviewView({
             </button>
           ))}
         </aside>
-        <section className="panel findings-panel">
+        <section
+          className="panel findings-panel"
+          id="review-evidence"
+          tabIndex={-1}
+        >
           <div className="section-title">
             <div>
               <h2>{position?.instrument}</h2>
@@ -137,7 +151,8 @@ export function ReviewView({
           {findings.map((f) => (
             <details
               className="finding"
-              key={f.ruleId}
+              open={evidenceRule === f.ruleId ? true : undefined}
+              key={`${selected}-${f.ruleId}`}
               onToggle={(e) => {
                 if (e.currentTarget.open)
                   workspaceJourney.action("evidence_opened");
@@ -173,9 +188,11 @@ export function ReviewView({
                       <li key={id}>
                         {execution
                           ? `${execution.side === "entry" ? "Entry" : "Exit"}: ${execution.quantity} × ${rupees(execution.price)} · ${execution.timestamp ?? "time missing"}`
-                          : plan
-                            ? `Plan: ${rupees(plan.price)} · ${plan.recordedAt ?? "recording time missing"}`
-                            : `Record ${id}`}
+                          : id === `${position?.id}-signal` && position?.signal
+                            ? `Signal close: ${position.signal.close ?? "missing"}; reference: ${position.signal.reference ?? "missing"}; time: ${position.signal.at ?? "missing"}${review.rules.setup?.kind === "ma-reclaim" ? `; previous close/reference: ${position.signal.previousClose ?? "missing"}/${position.signal.previousReference ?? "missing"}` : ""}${position.signal.rangeEnd ? `; range end: ${position.signal.rangeEnd}` : ""}`
+                            : plan
+                              ? `Plan: ${rupees(plan.price)} · ${plan.recordedAt ?? "recording time missing"}`
+                              : `Record ${id}`}
                       </li>
                     );
                   })}
@@ -185,36 +202,27 @@ export function ReviewView({
           ))}
         </section>
       </div>
-      <section className="panel focus-panel">
-        <div>
-          <h2>One useful next step.</h2>
-          <p className="muted">Choose what to check before your next entry.</p>
-        </div>
-        <label className="sr-only" htmlFor="focus">
-          Your next focus
-        </label>
-        <select
-          id="focus"
-          value={focus}
-          onChange={(e) => setFocus(e.target.value)}
-        >
-          <option value="">Choose a focus…</option>
-          <option>Record my stop and target before entry</option>
-          <option>Check planned risk before sizing a position</option>
-          <option>Check planned reward-to-risk</option>
-          <option>Review my entry boundaries</option>
-          <option>Keep following my confirmed checklist</option>
-          <option>Decide after another review</option>
-        </select>
-        <button
-          className="primary"
-          disabled={!focus}
-          onClick={() => onSave(focus)}
-        >
-          {saved ? <Check size={16} /> : <Save size={16} />}{" "}
-          {saved ? "Saved · update focus" : "Save review"}
-        </button>
-      </section>
+      <ImprovementPlan
+        review={review}
+        initialFocus={entry.focus}
+        onSave={onSave}
+        saved={saved}
+        onEvidence={(finding) => {
+          setSelected(finding.positionId);
+          setEvidenceRule(finding.ruleId);
+          requestAnimationFrame(() => {
+            document.getElementById("review-evidence")?.scrollIntoView({
+              behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "instant"
+                : "smooth",
+              block: "start",
+            });
+            document
+              .getElementById("review-evidence")
+              ?.focus({ preventScroll: true });
+          });
+        }}
+      />
     </>
   );
 }

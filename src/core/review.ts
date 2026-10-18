@@ -28,6 +28,7 @@ export function validChecks(checks?: PlanChecks): boolean {
   );
 }
 export const RULE_LABELS = {
+  "setup-entry": "Documented entry setup",
   "daily-limit": "Daily position limit",
   "entry-cutoff": "Entry cutoff",
   "stop-before-entry": "Stop recorded before entry",
@@ -108,6 +109,14 @@ const ordinal = (n: number) =>
   `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
 export function reviewSession(rules: ConfirmedRules, input: Session): Review {
   if (
+    (rules.setup !== undefined &&
+      (!rules.setup ||
+        !["breakout", "ma-reclaim", "opening-range"].includes(
+          rules.setup.kind,
+        ) ||
+        typeof rules.setup.label !== "string" ||
+        !rules.setup.label.trim())) ||
+    (rules.enabledRules?.includes("setup-entry") && !rules.setup) ||
     (rules.enabledRules !== undefined &&
       (!Array.isArray(rules.enabledRules) ||
         !rules.enabledRules.length ||
@@ -159,6 +168,73 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
         calculation,
         sourceIds,
       });
+    if (rules.setup) {
+      const signal = position.signal;
+      const signalTime = timestampInfo(signal?.at ?? null);
+      const rangeEnd = timestampInfo(signal?.rangeEnd ?? null);
+      const priced =
+        signal &&
+        validPrice(signal.close ?? undefined) &&
+        validPrice(signal.reference ?? undefined);
+      const prior =
+        signal &&
+        validPrice(signal.previousClose ?? undefined) &&
+        validPrice(signal.previousReference ?? undefined);
+      const rangeValid =
+        rules.setup.kind !== "opening-range" ||
+        (signalTime &&
+          rangeEnd &&
+          rangeEnd.day === signalTime.day &&
+          entry &&
+          entry.day === signalTime.day &&
+          rangeEnd.seconds === 9 * 3600 + 30 * 60 &&
+          signalTime.epoch >= rangeEnd.epoch);
+      const available =
+        position.direction === "long" &&
+        entry &&
+        signalTime &&
+        signalTime.epoch < entry.epoch &&
+        priced &&
+        (rules.setup.kind !== "ma-reclaim" || prior) &&
+        rangeValid;
+      const matched =
+        available &&
+        signal!.close! > signal!.reference! &&
+        (rules.setup.kind !== "ma-reclaim" ||
+          signal!.previousClose! <= signal!.previousReference!);
+      make(
+        "setup-entry",
+        !available
+          ? "insufficient_evidence"
+          : matched
+            ? "followed"
+            : "deviated",
+        !available
+          ? "Setup: evidence missing or timing unclear"
+          : matched
+            ? "Documented signal matches the setup"
+            : "Documented signal did not match the setup",
+        !available
+          ? "A long position, valid documented signal before entry, and the setup's required reference values are needed. Opening-range examples require a same-day 09:30 IST range end. Late signals cannot establish the entry setup."
+          : "Compared only with the supplied signal and reference values. Market prices and indicator calculations have not been independently verified.",
+        !available
+          ? "Entry setup cannot be verified from the supplied records"
+          : `${signal!.close} ${signal!.close! > signal!.reference! ? ">" : "≤"} ${signal!.reference}` +
+              (rules.setup.kind === "ma-reclaim"
+                ? `; prior close ${signal!.previousClose} ${signal!.previousClose! <= signal!.previousReference! ? "≤" : ">"} prior reference ${signal!.previousReference}`
+                : "") +
+              (rules.setup.kind === "opening-range"
+                ? "; documented 09:15–09:30 IST range"
+                : "") +
+              "; signal precedes entry",
+        [
+          ...(signal ? [`${position.id}-signal`] : []),
+          ...position.executions
+            .filter((e) => e.side === "entry")
+            .map((e) => e.id),
+        ],
+      );
+    }
     const entries = position.executions.filter((e) => e.side === "entry");
     if (!countCovered || !entry) {
       make(
@@ -311,8 +387,10 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
     rules: structuredClone(rules),
     session,
     findings: rules.enabledRules
-      ? findings.filter((finding) =>
-          rules.enabledRules!.includes(finding.ruleId),
+      ? findings.filter(
+          (finding) =>
+            rules.enabledRules!.includes(finding.ruleId) ||
+            (finding.ruleId === "setup-entry" && !!rules.setup),
         )
       : findings,
   };
