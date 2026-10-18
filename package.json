@@ -16,7 +16,11 @@
     "logging:export": "node scripts/export-logging.mjs",
     "logging:check": "tsc --noEmit -p worker/tsconfig.json",
     "logging:test": "node scripts/check-logging.mjs",
-    "ai:dev": "node server/strategy-api.mjs"
+    "ai:dev": "node server/strategy-api.mjs",
+    "study:setup": "node scripts/setup-study.mjs",
+    "study:migrate": "WRANGLER_SEND_METRICS=false wrangler d1 migrations apply DB --local --config worker/study.wrangler.jsonc",
+    "study:dev": "WRANGLER_SEND_METRICS=false wrangler dev --local --ip 127.0.0.1 --port 8789 --config worker/study.wrangler.jsonc",
+    "study:check": "node scripts/check-study.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

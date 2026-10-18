@@ -10,3 +10,8 @@ private/
 .wrangler/
 .dev.vars*
 !.dev.vars.example
+
+.playwright-cli/
+
+# Generated Cloudflare runtime declarations
+worker/public-env.d.ts

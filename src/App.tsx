@@ -1,3 +1,4 @@
+import { study } from "./study/client";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -37,7 +38,7 @@ import {
 import { useToast } from "./workspace/Toasts";
 const Orbit = lazy(() => import("./workspace/Orbit"));
 type Page = "overview" | "strategy" | "trades" | "history";
-const initial = readWorkspace();
+
 const nav = [
   { id: "overview", label: "Overview", Icon: Home },
   { id: "strategy", label: "My strategy", Icon: FileText },
@@ -45,6 +46,7 @@ const nav = [
   { id: "history", label: "History", Icon: Clock3 },
 ] as const;
 export default function App() {
+  const [initial] = useState(readWorkspace);
   const notify = useToast();
   const strategyReturn = useRef<Page>("overview");
   const [page, setPage] = useState<Page>("overview");
@@ -124,6 +126,8 @@ export default function App() {
     try {
       const rules = confirmStrategy(strategy);
       if (!persist(strategy, rules)) return;
+      study.outcomes(strategy);
+      study.complete("rules");
       setConfirmed(rules);
       workspaceJourney.action("rules_confirmed");
       go("trades");
@@ -144,6 +148,7 @@ export default function App() {
       return;
     }
     try {
+      study.start("review");
       workspaceJourney.stage("session");
       setActive({
         id: crypto.randomUUID(),
@@ -171,6 +176,8 @@ export default function App() {
       50,
     );
     if (persist(strategy, confirmed, next)) {
+      study.start("action");
+      study.complete("action");
       workspaceJourney.action("focus_saved");
       workspaceJourney.stage("complete");
       setHistory(next);
@@ -249,7 +256,7 @@ export default function App() {
             <span>New review</span>
           </button>
         </header>
-        <InternalJourney />
+        {!study.session() && <InternalJourney />}
         <main id="workspace-main" className="workspace-main" key={page}>
           {error && (
             <div role="alert" className="notice error-notice">
@@ -395,18 +402,26 @@ export default function App() {
               onSample={() => go("trades")}
             />
           )}
+          {!study.session() && import.meta.env.DEV && (
+            <p className="field-note">
+              <a href="?researcher=1">Researcher rehearsal desk</a> ·{" "}
+              <a href="?study=1">Join a rehearsal session</a>
+            </p>
+          )}
           <footer className="workspace-footer">
             <span>
               For reflection on documented trading rules. No trading
               recommendations.
             </span>
-            <button
-              ref={feedbackTrigger}
-              className="text-button"
-              onClick={() => setFeedback(true)}
-            >
-              Share feedback
-            </button>
+            {!study.session() && (
+              <button
+                ref={feedbackTrigger}
+                className="text-button"
+                onClick={() => setFeedback(true)}
+              >
+                Share feedback
+              </button>
+            )}
           </footer>
         </main>
       </div>

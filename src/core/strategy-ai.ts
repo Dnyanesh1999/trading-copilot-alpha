@@ -1,3 +1,4 @@
+import { study } from "../study/client";
 import type { RuleId } from "./types";
 
 export interface StrategyRuleProposal {
@@ -101,7 +102,12 @@ export async function analyzeStrategy(
   try {
     response = await fetch("/strategy-api/strategy", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(study.session()
+          ? { Authorization: `Bearer ${study.session()!.sessionToken}` }
+          : {}),
+      },
       body: JSON.stringify({ description, answers }),
       signal: AbortSignal.timeout(35000),
     });

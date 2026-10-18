@@ -1,3 +1,4 @@
+import { study } from "../study/client";
 import { useToast } from "./Toasts";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Download } from "lucide-react";
@@ -163,8 +164,10 @@ export function ReviewView({
               open={evidenceRule === f.ruleId ? true : undefined}
               key={`${selected}-${f.ruleId}`}
               onToggle={(e) => {
-                if (e.currentTarget.open)
+                if (e.currentTarget.open) {
+                  study.evidence();
                   workspaceJourney.action("evidence_opened");
+                }
               }}
             >
               <summary>

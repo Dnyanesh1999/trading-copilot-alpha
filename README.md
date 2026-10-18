@@ -55,3 +55,7 @@ Optional local Worker/D1 collection is available only in explicitly enabled deve
 ## Current checkpoint — 12 October 2026
 
 User-approved motion polish is implemented, with 107 passing tests/build and desktop/mobile production checks. Current app baseline 5784fb5. 8 October supervision reviewed the alpha positively and agreed about ten beta traders; survey remains n9 last checked 11 October. Trader recruitment descriptions remain pending. No participant results or external AI reviews. Read docs/STATUS.md for deployment evidence.
+
+## Coded study rehearsal
+
+The `?study=1` route provides private-code entry, consent/profile, review and post-use feedback. `?researcher=1` provides protected status and CSV exports. The deployment stays in fictional rehearsal mode until ethics confirmation and final participant information are configured. See [study sessions](docs/verification/STUDY_SESSIONS.md) for data definitions, measurement limits, storage, access and verification.

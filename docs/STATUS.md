@@ -1,3 +1,13 @@
+# 18 October 2026 — online coded-session rehearsal
+
+Combined Cloudflare Worker/D1/Gemini deployment is live at https://trading-copilot-study.dnyanesh-copilot.workers.dev/?study=1. Verified final Worker version33615554-f2b4-478b-a8fe-9874b92e87d2, production assetindex-P39C_YE1.js. Existing GitHub Pages demo remains unchanged.
+
+199 tests, frontend build, Worker type-check,37 real remote synthetic backend checks, and live browser journey passed. Browser journey included actual Gemini proposals/confirmation, fictional CSV import/review/evidence/save,13-item questionnaire, offline failure/retry without losing answers, persisted completion/reload, protected researcher exports and mobile entry. Final remote researcher route presents its credential gate and exposes no rows before authentication. A label-locator timeout in the QA script was corrected to a textarea locator before the interrupted journey resumed; offline application behaviour itself was correct. Browser plugin not available; Playwright CLI used. Private QA is retained outside this repo.
+
+Default rehearsal mode; ethics approval and final participant/provider/retention/withdrawal information remain pending before external use. Two completed synthetic QA labels are not participants. See verification/STUDY_SESSIONS.md for schema, measurements and limitations. Local researcher desk supports cloud data with ?researcher=1&cloud=1; remote desk requires a separate credential. No paid upgrade, participant recruitment or supervisor submission performed. Owner rehearsal access is stored privately outside the repo.
+
+---
+
 # Local toast/navigation polish — 18 October 2026
 
 Branch codex/toasts-navigation-csv: contextual back link on My strategy, viewport-fixed notification stack with Motion14.3.0 spring/3D-tilt enter/exit, save/update/history action, rule confirmation, import/download/export and error feedback. Success only follows actual persistence; errors remain dismissible, success pauses for hover/focus/hidden page and auto-dismisses after6.5s. Reduced motion removes movement. Filled sample download is first; blank template explicitly secondary and empty-template import explains how to proceed.

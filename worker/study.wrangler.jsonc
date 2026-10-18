@@ -1,0 +1,7 @@
+{
+  "$schema":"../node_modules/wrangler/config-schema.json",
+  "name":"trading-copilot-study-rehearsal", "main":"study.ts", "compatibility_date":"2026-10-01",
+  "workers_dev":false,"preview_urls":false,"send_metrics":false,"observability":{"enabled":false},
+  "vars":{"STUDY_MODE":"rehearsal"},
+  "d1_databases":[{"binding":"DB","database_name":"study-rehearsal-local","database_id":"00000000-0000-0000-0000-000000000001","migrations_dir":"study-migrations"}]
+}

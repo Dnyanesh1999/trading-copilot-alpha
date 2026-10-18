@@ -1,3 +1,4 @@
+import { study } from "../study/client";
 import { useState } from "react";
 import { ArrowRight, Check, Sparkles, AlertCircle } from "lucide-react";
 import type { StrategyDraft } from "../core/workspace";
@@ -36,12 +37,14 @@ export function StrategyEditor({
         : [...draft.enabledRules, id],
     });
   async function ask() {
+    study.start("strategy");
     const snapshot = draft.description;
     setBusy(true);
     setError("");
     setAnalysis(null);
     try {
       const result = await analyzeStrategy(snapshot, answers);
+      study.proposals(result);
       setAnalysis(result);
       setModel(result.model);
     } catch (e) {
@@ -133,7 +136,10 @@ export function StrategyEditor({
         )}
       </section>
       <div className="strategy-layout">
-        <section className="panel editor-panel">
+        <section
+          className="panel editor-panel"
+          onFocusCapture={() => study.start("strategy")}
+        >
           <div className="section-title">
             <h2>Put your strategy into words.</h2>
             <Sparkles size={20} />
@@ -246,7 +252,7 @@ export function StrategyEditor({
             </div>
           )}
         </section>
-        <section className="panel">
+        <section className="panel" onFocusCapture={() => study.start("rules")}>
           <h2>Your review checklist</h2>
           <p className="muted">
             Set these manually or start with AI proposals. Only selected checks

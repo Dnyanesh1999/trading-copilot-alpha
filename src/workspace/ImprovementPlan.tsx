@@ -1,3 +1,4 @@
+import { study } from "../study/client";
 import { useState } from "react";
 import { ArrowRight, Check, Save, Target, CircleCheck } from "lucide-react";
 import type { Finding, Review } from "../core/types";
@@ -22,7 +23,10 @@ export function ImprovementPlan({
   const [chosen, setChosen] = useState(!!initialFocus);
   const plan = plans.find((p) => p.id === selected) ?? plans[0];
   return (
-    <section className="panel improvement-panel">
+    <section
+      className="panel improvement-panel"
+      onFocusCapture={() => study.start("action")}
+    >
       <div className="section-title">
         <div>
           <div className="improvement-title">

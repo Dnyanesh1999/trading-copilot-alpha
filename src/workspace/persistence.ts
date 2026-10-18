@@ -1,3 +1,4 @@
+import { studyWorkspace } from "../study/client";
 import type { ConfirmedRules, Review, RuleId } from "../core/types";
 import {
   confirmStrategy,
@@ -206,8 +207,10 @@ function historyEntry(value: unknown): ReviewEntry | null {
 }
 export function readWorkspace(): Workspace | null {
   try {
-    const raw = localStorage.getItem(KEY);
+    const scope = studyWorkspace();
+    const raw = (scope?.store ?? localStorage).getItem(scope?.key ?? KEY);
     if (raw === null) {
+      if (scope) return null;
       const legacy = loadReview(localStorage);
       if (!legacy) return null;
       const labels = {
@@ -256,7 +259,11 @@ export function readWorkspace(): Workspace | null {
   }
 }
 export function writeWorkspace(data: Workspace) {
-  localStorage.setItem(KEY, JSON.stringify(data));
+  const scope = studyWorkspace();
+  (scope?.store ?? localStorage).setItem(
+    scope?.key ?? KEY,
+    JSON.stringify(data),
+  );
 }
 export function downloadJson(name: string, value: unknown) {
   const url = URL.createObjectURL(
