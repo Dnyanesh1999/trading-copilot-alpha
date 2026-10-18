@@ -1,3 +1,4 @@
+import { useToast } from "./Toasts";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Download } from "lucide-react";
 import type { ReviewEntry } from "./persistence";
@@ -27,6 +28,7 @@ export function ReviewView({
   onBack: () => void;
   saved: boolean;
 }) {
+  const notify = useToast();
   const [selected, setSelected] = useState(
     entry.review.session.positions[0]?.id ?? "",
   );
@@ -56,7 +58,14 @@ export function ReviewView({
         </div>
         <button
           className="secondary"
-          onClick={() => downloadJson("trade-review.json", entry)}
+          onClick={() => {
+            downloadJson("trade-review.json", entry);
+            notify({
+              title: "Review export ready",
+              description: "Your JSON download has started.",
+              tone: "info",
+            });
+          }}
         >
           <Download size={16} />
           Export review

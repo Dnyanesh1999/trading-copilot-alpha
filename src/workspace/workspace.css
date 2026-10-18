@@ -1977,3 +1977,111 @@ input[type="number"] {
     padding: 16px;
   }
 }
+
+/* Viewport notifications stay outside the animated/scrolled workspace. */
+.toast-stack {
+  position: fixed;
+  top: max(22px, env(safe-area-inset-top));
+  right: max(24px, env(safe-area-inset-right));
+  width: min(390px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  perspective: 900px;
+}
+.app-toast {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 18px 15px 18px 18px;
+  border: 1px solid #dce9e2;
+  border-radius: 14px;
+  background: #fffffffa;
+  box-shadow:
+    0 18px 50px #25233118,
+    0 3px 9px #25233109;
+  transform-origin: top center;
+}
+.toast-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #428368;
+  background: #edf6f1;
+  border: 1px solid #d6e9de;
+  border-radius: 11px;
+}
+.toast-copy {
+  flex: 1;
+  min-width: 0;
+}
+.toast-copy strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #292833;
+}
+.toast-copy p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #727181;
+  overflow-wrap: anywhere;
+}
+.toast-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+  color: #43765f;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+.toast-close.icon-button {
+  padding: 5px;
+  color: #858390;
+  min-width: 28px;
+  min-height: 28px;
+}
+.toast-error {
+  border-color: #f0d0ca;
+}
+.toast-error .toast-icon {
+  color: #c25a48;
+  background: #fdf0eb;
+  border-color: #f4d9d1;
+}
+.toast-info {
+  border-color: #e4deef;
+}
+.toast-info .toast-icon {
+  color: #8d76b2;
+  background: #f5f1fb;
+  border-color: #e6ddf1;
+}
+.strategy-back {
+  margin-bottom: 22px;
+}
+@media (max-width: 600px) {
+  .toast-stack {
+    top: max(76px, env(safe-area-inset-top));
+    right: 16px;
+  }
+  .app-toast {
+    padding: 15px;
+  }
+  .toast-close.icon-button {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}

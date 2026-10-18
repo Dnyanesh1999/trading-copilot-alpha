@@ -1,3 +1,11 @@
+# Local toast/navigation polish — 18 October 2026
+
+Branch codex/toasts-navigation-csv: contextual back link on My strategy, viewport-fixed notification stack with Motion14.3.0 spring/3D-tilt enter/exit, save/update/history action, rule confirmation, import/download/export and error feedback. Success only follows actual persistence; errors remain dismissible, success pauses for hover/focus/hidden page and auto-dismisses after6.5s. Reduced motion removes movement. Filled sample download is first; blank template explicitly secondary and empty-template import explains how to proceed.
+
+191tests, build and Worker typecheck pass. Browser plugin absent; Playwright CLI used on local5173. Desktop1440×1050/mobile390×844: back to overview/trades, save below fold with visible toast/no jump, update, hover pause, timeout, keyboard dismiss, history action, filled CSV roundtrip, blank error and storage failure without false success pass. No app errors/overlay; existing Three.Clock warning and expected Motion reduced-motion dev notice observed. Existing large lazy Orbit chunk remains; Motion adds about47KB gzip to main bundle (total142KB gzip). No deploy/Gemini call or participant collection. Private evidence06_Experiments/2026-10-18_Toast_QA. Earlier checkpoints follow.
+
+---
+
 # Local strategy library and CSV review — 18 October 2026
 
 Three defined long-equity setups, fictional selectable sessions, local template CSV import and evidence-linked improvement cards now work. Sample actions open a chooser before review; saved setup/action snapshots restore.191tests, frontend build and Worker typecheck pass; desktop/mobile and download→upload→review verified. Actual broker import/chart verification remain unsupported; all bundled records are fictional. Local only, no deployment/participant collection. See [verification](verification/STRATEGY_CSV_REVIEW.md).

@@ -7,6 +7,7 @@ import { rupees } from "../core/review";
 import { PresetPicker, presetDraft } from "./PresetPicker";
 import type { StrategyDraft } from "../core/workspace";
 import { TradeEntry } from "./TradeEntry";
+import { useToast } from "./Toasts";
 function downloadCsv(name: string, text: string) {
   const url = URL.createObjectURL(
     new Blob([text], { type: "text/csv;charset=utf-8" }),
@@ -26,6 +27,17 @@ export function TradeWorkspace({
   onPreset: (draft: StrategyDraft) => void;
   onReview: (session: Session, source: "sample" | "manual" | "csv") => void;
 }) {
+  const notify = useToast();
+  function download(name: string, content: string, template = false) {
+    downloadCsv(name, content);
+    notify({
+      title: template ? "Blank template ready" : "Filled sample CSV ready",
+      description: template
+        ? "Add trade rows before uploading this file."
+        : "Upload this fictional sample to try a review.",
+      tone: "info",
+    });
+  }
   const [mode, setMode] = useState<"sample" | "upload" | "manual">("sample");
   const [kind, setKind] = useState<SetupKind>(rules?.setup?.kind ?? "breakout");
   const sample = useMemo(() => createPresetSession(kind), [kind]);
@@ -58,8 +70,22 @@ export function TradeWorkspace({
       const result = parseTradeCsv(await file.text());
       setUploaded(result.session);
       setWarnings(result.warnings);
+      notify({
+        title: "CSV ready to review",
+        description: `${result.session.positions.length} positions loaded. Preview and select them before reviewing.`,
+      });
     } catch (e) {
-      setError((e as Error).message);
+      const message = (e as Error).message.includes(
+        "header and at least one trade row",
+      )
+        ? "This is a blank template. Add trade rows first, or download the filled sample CSV."
+        : (e as Error).message;
+      setError(message);
+      notify({
+        title: "CSV could not be imported",
+        description: message,
+        tone: "error",
+      });
     } finally {
       setLoading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -154,12 +180,24 @@ export function TradeWorkspace({
               </div>
               <h3>Bring your records into the review.</h3>
               <p className="muted">
-                Use the review CSV template below. Import checks the file here
-                in your browser.
+                Try a filled fictional sample first, then upload it to explore
+                the review. Your file is checked here in your browser.
               </p>
               <div className="upload-buttons">
+                <button
+                  className="secondary"
+                  onClick={() =>
+                    download(
+                      `${kind}-fictional-sample.csv`,
+                      sessionToCsv(sample, "fictional"),
+                    )
+                  }
+                >
+                  <Download size={15} />
+                  Download filled sample CSV
+                </button>
                 <label className="primary file-button">
-                  {loading ? "Reading CSV…" : "Choose CSV file"}
+                  {loading ? "Reading CSV…" : "Upload CSV file"}
                   <input
                     ref={fileRef}
                     type="file"
@@ -169,34 +207,24 @@ export function TradeWorkspace({
                   />
                 </label>
                 <button
-                  className="secondary"
-                  onClick={() =>
-                    downloadCsv(
-                      "trade-review-template.csv",
-                      CSV_COLUMNS.join(",") + "\n",
-                    )
-                  }
-                >
-                  <Download size={15} />
-                  Download CSV template
-                </button>
-                <button
                   className="text-button"
                   onClick={() =>
-                    downloadCsv(
-                      `${kind}-fictional-sample.csv`,
-                      sessionToCsv(sample, "fictional"),
+                    download(
+                      "trade-review-blank-template.csv",
+                      CSV_COLUMNS.join(",") + "\n",
+                      true,
                     )
                   }
                 >
-                  Get a filled example
+                  Get blank template
                 </button>
               </div>
               <p className="field-note">
-                One complete entry and optional full exit per row. Timestamps
-                include an offset, for example 2026-10-15T09:40:00+05:30.
-                Stop/target and signal evidence are optional; missing fields
-                remain unknown.
+                The blank template has column headings only; add your records
+                before uploading. One complete entry and optional full exit per
+                row. Timestamps include an offset, for example
+                2026-10-15T09:40:00+05:30. Stop/target and signal evidence are
+                optional; missing fields remain unknown.
               </p>
               <details className="csv-help">
                 <summary>What about my broker tradebook?</summary>
@@ -235,7 +263,7 @@ export function TradeWorkspace({
                   <button
                     className="secondary"
                     onClick={() =>
-                      downloadCsv(
+                      download(
                         `${kind}-fictional-sample.csv`,
                         sessionToCsv(sample, "fictional"),
                       )

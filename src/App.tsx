@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  ArrowLeft,
   ChartNoAxesColumnIncreasing,
   Check,
   Clock3,
@@ -33,6 +34,7 @@ import {
   trackPage,
   workspaceJourney,
 } from "./workspace/InternalJourney";
+import { useToast } from "./workspace/Toasts";
 const Orbit = lazy(() => import("./workspace/Orbit"));
 type Page = "overview" | "strategy" | "trades" | "history";
 const initial = readWorkspace();
@@ -43,6 +45,8 @@ const nav = [
   { id: "history", label: "History", Icon: Clock3 },
 ] as const;
 export default function App() {
+  const notify = useToast();
+  const strategyReturn = useRef<Page>("overview");
   const [page, setPage] = useState<Page>("overview");
   const [strategy, setStrategy] = useState<StrategyDraft>(
     initial?.strategy ?? structuredClone(defaultStrategy),
@@ -73,7 +77,17 @@ export default function App() {
     document.querySelector<HTMLElement>("header h1")?.focus();
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [page, active?.id]);
+  useEffect(() => {
+    if (error)
+      notify({
+        title: "Something needs attention",
+        description: error,
+        tone: "error",
+      });
+  }, [error, notify]);
   function go(next: Page) {
+    if (next === "strategy" && page !== "strategy")
+      strategyReturn.current = page;
     if (next === "strategy") workspaceJourney.start("rules");
     trackPage(next);
     setPage(next);
@@ -113,6 +127,10 @@ export default function App() {
       setConfirmed(rules);
       workspaceJourney.action("rules_confirmed");
       go("trades");
+      notify({
+        title: "Rules confirmed",
+        description: "Choose the trades you want to review.",
+      });
     } catch (e) {
       setError((e as Error).message);
     }
@@ -157,7 +175,14 @@ export default function App() {
       workspaceJourney.stage("complete");
       setHistory(next);
       setActive(entry);
-      setMessage("Review saved on this device.");
+      setMessage("");
+      notify({
+        title: history.some((h) => h.id === entry.id)
+          ? "Review updated"
+          : "Review saved",
+        description: "Your review and action plan are saved on this device.",
+        action: { label: "View history", onClick: () => go("history") },
+      });
     }
   }
   const title =
@@ -314,12 +339,26 @@ export default function App() {
             </>
           )}
           {page === "strategy" && (
-            <StrategyEditor
-              draft={strategy}
-              onChange={changeStrategy}
-              onConfirm={confirm}
-              confirmed={!!confirmed}
-            />
+            <>
+              <button
+                className="text-button strategy-back"
+                onClick={() => go(strategyReturn.current)}
+              >
+                <ArrowLeft size={16} />
+                Back to{" "}
+                {strategyReturn.current === "trades"
+                  ? "trades"
+                  : strategyReturn.current === "history"
+                    ? "history"
+                    : "overview"}
+              </button>
+              <StrategyEditor
+                draft={strategy}
+                onChange={changeStrategy}
+                onConfirm={confirm}
+                confirmed={!!confirmed}
+              />
+            </>
           )}
           {page === "trades" &&
             (active ? (

@@ -1,3 +1,9 @@
+# 18 October 2026 — owner-reported navigation and notification fixes
+
+Codex (exact deployed model version not exposed) implemented screenshot-based owner feedback: strategy back navigation, filled-first CSV downloads and animated viewport notifications using Motion14.3.0. Official Motion installation/AnimatePresence/reduced-motion docs checked. No image generation, new external AI inference, participant data or external review.191tests/build/Worker checks and local Playwright journeys pass, including simulated persistence failure. Initial browser script failed because it measured scroll before Playwright brought the save button into view; corrected measurement verified unchanged scroll on save. Second run used an outdated confirm-button name for already-confirmed state; locator corrected. These were QA script issues, not claimed app defects. Local only; no deployment/submission.
+
+---
+
 # 18 October 2026 — strategy presets, CSV and action plans
 
 OpenAI Codex implemented/integrated the user-requested flow. Existing Codex subagents supplied bounded setup engine/fixtures/tests and CSV parser/export/tests; no independent Claude/Gemini review claimed. Exact deployed model version not exposed. Built-in ImageGen produced the strategy library concept; final controls/SVG/motion are code. No live Gemini calls for this change. All fixtures invented/deterministic, no sampling seed, real trader data or participant outcomes.191tests/build/Worker check and browser journeys passed; limits recorded in verification/STRATEGY_CSV_REVIEW.md. Tool/image cost not measured. Local commit only, no deployment/submission.
