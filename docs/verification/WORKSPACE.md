@@ -1,3 +1,9 @@
+# Live local AI update — 18 October 2026
+
+The previously missing credential has now been supplied locally by the student. Actual Gemini 3.5 Flash Lite responses and the UI proposals → explicit rule confirmation → sample review flow were verified. Four post-adjustment fictional development smoke cases passed. Vague risk initially produced an interpretation mistake; prompt clarified missing-threshold handling.139 tests/server syntax/production build pass; no credential bytes found in dist and env file is git-ignored. Prior implementation checkpoint and limitations remain below; this update supersedes its no-live-inference status. No cloud release or external study approval is claimed.
+
+---
+
 # Minimal trade-review workspace
 
 17 October 2026. Local branch `codex/minimal-review-workspace`. This checkpoint is local; the public alpha remains the earlier release.

@@ -1,3 +1,9 @@
+# 18 October 2026 — live Gemini connection
+
+Codex verified the student-saved local credential without exposing its value, restarted the local server, exercised actual Gemini 3.5 Flash Lite strategy proposals and confirmed the browser review flow. Four fictional development cases after a prompt revision covered English, ambiguity, clarification answers and Hinglish. Earlier ambiguity mistake is documented in private QA; this does not establish held-out accuracy.139 automated tests/build passed. No key/billing creation, payment, external participant collection or deployment. Secret excluded from git and generated frontend artifacts.
+
+---
+
 # 17 October 2026 — minimal workspace
 
 Codex implemented and integrated the dashboard and deterministic manual review. Two Codex subagents handled bounded core/AI modules and regression checks; this is not an independent provider review. Built-in Image Gen produced the local dashboard design concept; Three.js geometry is code-native. Claude Code 2.1.118 was invoked for a tools-disabled audit of selected public source; authentication expired, so no review was received. Gemini integration code was written and tested with fake transport only; no model output or research finding is claimed. User preferences: minimal professional dashboard, subtle 3D/motion, real strategy/trade workflow, free-first AI.

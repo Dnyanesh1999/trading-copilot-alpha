@@ -1,3 +1,9 @@
+# Live local AI checkpoint — 18 October 2026
+
+Server-side Gemini 3.5 Flash Lite now live verified with student-configured ignored credential. Four fictional development cases and browser proposals → confirmation → sample review passed. Prompt clarified vague risk handling after one observed interpretation defect.139 tests/build and secret-exclusion scan pass. Local only; no cloud or participant release. See AI_SETUP.md. Previous checkpoints follow.
+
+---
+
 # Local workspace checkpoint — 17 October 2026
 
 Minimal dashboard, strategy input/manual confirmation, optional checks, manual trade entry, evidence review, local history and Three.js motion implemented on `codex/minimal-review-workspace`. 139 tests/build/Worker typecheck pass. AI adapter exists but no key/live inference; no cloud or participant release. Details: [workspace verification](verification/WORKSPACE.md). Earlier public release status follows.
