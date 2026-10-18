@@ -41,3 +41,7 @@ Release evidence is maintained outside the public repository. Provider/disclosur
 ## Verified release — 18 October 2026
 
 Online rehearsal: https://trading-copilot-study.dnyanesh-copilot.workers.dev/?study=1. Final Worker33615554-f2b4-478b-a8fe-9874b92e87d2 serves assetindex-P39C_YE1.js. 199 unit/regression tests, build, Worker type-check and37 remote integration checks passed. A real cloud browser journey used Gemini, fictional CSV review and the complete questionnaire, then verified persisted completion and four CSV exports. An intentional offline submission retained form answers and succeeded on retry. Mobile entry has no horizontal overflow. Final remote researcher view was checked with no credential and displayed no session rows. Browser plugin not available; Playwright CLI used. No real participant data or held-out model results were created.
+
+## Full-flow follow-up
+
+Manual-entry drafts now use the coded session's storage key and clear on leave. Stop refuses to close when the event outbox cannot be acknowledged. Researcher invitation creation hides the previous code before a new request begins. AI outage copy offers retry/manual controls without exposing local setup instructions.201tests and fresh live browser regressions passed; final release9067e354-049a-4a5a-86b2-5107db6bbf88.

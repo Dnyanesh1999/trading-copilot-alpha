@@ -692,6 +692,7 @@ export function ResearcherDesk() {
   }, []);
   async function create() {
     setBusy(true);
+    setInvite(null);
     setError("");
     try {
       const r = await fetch(adminPath + "/invites", {

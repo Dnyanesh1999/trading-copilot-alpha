@@ -6,12 +6,18 @@ import {
   type TradeDraft,
 } from "../core/workspace";
 import type { Session } from "../core/types";
-const DRAFT_KEY = "trading-copilot.trade-draft.v1";
+import { studyWorkspace } from "../study/client";
+export function tradeDraftKey() {
+  const workspace = studyWorkspace();
+  return workspace
+    ? workspace.key + ".manual-trades"
+    : "trading-copilot.trade-draft.v1";
+}
 function readDraft(): { trades: TradeDraft[]; complete: boolean } {
   const empty = () => ({ trades: [{ ...defaultTrade }], complete: false });
   try {
     const data: unknown = JSON.parse(
-      sessionStorage.getItem(DRAFT_KEY) ?? "null",
+      sessionStorage.getItem(tradeDraftKey()) ?? "null",
     );
     if (!data || typeof data !== "object") return empty();
     const value = data as { trades?: unknown; complete?: unknown };
@@ -60,7 +66,10 @@ export function TradeEntry({
   const [draftWarning, setDraftWarning] = useState("");
   useEffect(() => {
     try {
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ trades, complete }));
+      sessionStorage.setItem(
+        tradeDraftKey(),
+        JSON.stringify({ trades, complete }),
+      );
       setDraftWarning("");
     } catch {
       setDraftWarning(

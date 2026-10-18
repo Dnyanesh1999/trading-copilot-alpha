@@ -1,3 +1,9 @@
+# 18 October 2026 — full-flow audit follow-up
+
+Fresh live fictional review and supported-flow audit completed. Repaired session isolation for manual trade drafts, failed-outbox Stop handling, stale invitation visibility and trader-facing AI outage copy.201tests/build/Worker type-check pass; live manual/CSV/all-three-presets/history/action/feedback-reload/mobile/Stop/export checks pass. Final Worker9067e354-049a-4a5a-86b2-5107db6bbf88, assetindex-YUhCztzU.js. Extra QA visits/unused invitations are synthetic only. Private evidence retained outside the repo; no participant or physical-device performance claim. Rehearsal remains enabled; ethics/participant-information gate unchanged.
+
+---
+
 # 18 October 2026 — online coded-session rehearsal
 
 Combined Cloudflare Worker/D1/Gemini deployment is live at https://trading-copilot-study.dnyanesh-copilot.workers.dev/?study=1. Verified final Worker version33615554-f2b4-478b-a8fe-9874b92e87d2, production assetindex-P39C_YE1.js. Existing GitHub Pages demo remains unchanged.

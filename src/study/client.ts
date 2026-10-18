@@ -270,7 +270,12 @@ export const study = {
   async stop() {
     study.checkpoint();
     paused = true;
-    await study.flush();
+    if (!(await study.flush())) {
+      paused = false;
+      throw new Error(
+        "Some activity is not stored yet. Reconnect and retry stopping this session.",
+      );
+    }
     try {
       await study.request("/stop", {});
     } catch (e) {
@@ -282,6 +287,9 @@ export const study = {
     const id = saved?.session.sessionId;
     if (id) {
       sessionStorage.removeItem("trading-copilot.study-workspace." + id);
+      sessionStorage.removeItem(
+        "trading-copilot.study-workspace." + id + ".manual-trades",
+      );
       sessionStorage.removeItem("trading-copilot.study-questionnaire." + id);
     }
     saved = null;

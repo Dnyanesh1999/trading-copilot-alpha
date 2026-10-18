@@ -196,3 +196,47 @@ it("clears only the departing session workspace and questionnaire", async () => 
   study.clear();
   expect([...memory.entries()]).toEqual([["unrelated-owner-record", "keep"]]);
 });
+
+it("isolates manual trade drafts from the owner and between study sessions", async () => {
+  const { study, memory } = await client();
+  const { tradeDraftKey } = await import("../workspace/TradeEntry");
+  expect(tradeDraftKey()).toBe("trading-copilot.trade-draft.v1");
+  memory.set(tradeDraftKey(), "owner-draft");
+  study.begin({
+    sessionId: "first",
+    participantId: "DEMO01",
+    sessionToken: "test-one",
+    mode: "rehearsal",
+  });
+  const first = tradeDraftKey();
+  expect(memory.get(first)).toBeUndefined();
+  memory.set(first, "first-session-draft");
+  study.clear();
+  expect(memory.has(first)).toBe(false);
+  expect(memory.get("trading-copilot.trade-draft.v1")).toBe("owner-draft");
+  study.begin({
+    sessionId: "second",
+    participantId: "DEMO02",
+    sessionToken: "test-two",
+    mode: "rehearsal",
+  });
+  expect(tradeDraftKey()).not.toBe(first);
+  expect(memory.get(tradeDraftKey())).toBeUndefined();
+});
+
+it("does not close a session while its activity could not be acknowledged", async () => {
+  const { study } = await client();
+  study.begin({
+    sessionId: "synthetic-session",
+    participantId: "DEMO99",
+    sessionToken: "synthetic-test-token",
+    mode: "rehearsal",
+  });
+  study.start("review");
+  const fetcher = vi.fn().mockRejectedValue(new Error("offline"));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(study.stop()).rejects.toThrow("Reconnect and retry");
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(fetcher.mock.calls[0][0]).toBe("/study-api/events");
+  expect(study.snapshot().pending).toBeGreaterThan(0);
+});

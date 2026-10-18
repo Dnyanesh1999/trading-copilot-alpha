@@ -113,16 +113,18 @@ export async function analyzeStrategy(
     });
   } catch {
     throw new Error(
-      "AI is unavailable. Your draft is safe; use manual rules or start the local AI server.",
+      "AI is unavailable. Your draft is safe; retry or continue with manual rules.",
     );
   }
   if (!response.ok) {
     if (response.status === 503)
       throw new Error(
-        "AI is not configured. Add a server-side Gemini key or use manual rules.",
+        "AI is temporarily unavailable. Your draft is safe; retry or use manual rules.",
       );
     if (response.status === 429)
-      throw new Error("AI quota is busy. Wait a minute or use manual rules.");
+      throw new Error(
+        "AI is unavailable for this request. Continue with manual rules or try again later.",
+      );
     throw new Error(
       "AI could not clarify this strategy. Your draft is safe; retry or use manual rules.",
     );

@@ -71,7 +71,7 @@ describe("bounded strategy AI", () => {
         ),
     );
     await expect(analyzeStrategy("my strategy")).rejects.toThrow(
-      "not configured",
+      "temporarily unavailable",
     );
     vi.stubGlobal(
       "fetch",
