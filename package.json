@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",
+    "better-auth": "1.7.11",
     "lucide-react": "^1.52.0",
     "motion": "^14.3.0",
     "react": "^19.3.0",

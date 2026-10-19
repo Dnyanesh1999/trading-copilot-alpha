@@ -24,6 +24,11 @@ export default defineConfig(({ command }) => {
       port: 5173,
       strictPort: true,
       proxy: {
+        "^/study-cloud-config$": {
+          target: "https://trading-copilot-study.dnyanesh-copilot.workers.dev",
+          changeOrigin: true,
+          rewrite: () => "/study-api/config",
+        },
         "^/study-api/": {
           target: "http://127.0.0.1:8789",
           changeOrigin: true,

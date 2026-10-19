@@ -10,6 +10,10 @@ import {
 } from "../src/study/protocol";
 interface Env {
   DB: D1Database;
+  ACCOUNT_PARTICIPANT?: string;
+  ACCOUNT_LOGIN?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   STUDY_MODE: string;
   STUDY_ADMIN_TOKEN?: string;
   PUBLIC_ORIGIN?: string;
@@ -101,6 +105,8 @@ export default {
           consentVersion,
           information: participantMode ? env.APPROVED_INFO_TEXT : null,
           build: STUDY_BUILD,
+          accountLogin: env.ACCOUNT_LOGIN === "on",
+          googleSignIn: !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET,
         });
       if (url.pathname.startsWith("/admin/")) {
         if (
@@ -192,11 +198,13 @@ export default {
             },
             400,
           );
-        const invite = await env.DB.prepare(
-          "SELECT participant_id FROM study_invites WHERE code_hash=?",
-        )
-          .bind(await hash(body.accessCode))
-          .first<{ participant_id: string }>();
+        const invite = env.ACCOUNT_PARTICIPANT
+          ? { participant_id: env.ACCOUNT_PARTICIPANT }
+          : await env.DB.prepare(
+              "SELECT participant_id FROM study_invites WHERE code_hash=?",
+            )
+              .bind(await hash(body.accessCode))
+              .first<{ participant_id: string }>();
         if (!invite)
           return respond(
             {

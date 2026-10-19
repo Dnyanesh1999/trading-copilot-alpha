@@ -276,3 +276,96 @@
     width: 100%;
   }
 }
+.account-card {
+  max-width: 500px;
+}
+.account-card form > label {
+  display: block;
+  margin: 20px 0;
+}
+.account-card input:not([type="checkbox"]),
+.account-card select {
+  width: 100%;
+  margin-top: 8px;
+}
+.account-card .primary {
+  width: 100%;
+  justify-content: center;
+}
+.account-password {
+  position: relative;
+}
+.account-password input {
+  padding-right: 48px;
+}
+.account-password .icon-button {
+  position: absolute;
+  right: 8px;
+  top: 13px;
+}
+.account-card label small {
+  display: block;
+  color: #777788;
+  font-size: 12px;
+  margin-top: 7px;
+}
+.account-switch {
+  text-align: center;
+  font-size: 14px;
+  margin: 24px 0;
+}
+.account-google {
+  width: 100%;
+  justify-content: center;
+  margin-top: 24px;
+  gap: 12px;
+}
+.account-google > span {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4285f4;
+}
+.account-divider {
+  border-top: 1px solid #e7e5ec;
+  text-align: center;
+  margin: 28px 0 20px;
+  line-height: 0;
+}
+.account-divider span {
+  background: white;
+  padding: 0 12px;
+  color: #898594;
+  font-size: 12px;
+}
+.account-signed-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e7e5ec;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.account-information {
+  font-size: 12px;
+  color: #737080;
+  line-height: 1.65;
+  margin: 24px 0;
+}
+.account-information summary {
+  font-weight: 600;
+  color: #393644;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .account-card {
+    padding: 25px 20px;
+  }
+  .account-signed-in {
+    flex-wrap: wrap;
+  }
+  .account-page {
+    padding: 26px 14px 50px;
+  }
+}

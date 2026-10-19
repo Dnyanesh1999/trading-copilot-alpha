@@ -27,6 +27,7 @@ import {
 } from "./protocol";
 import { useToast } from "../workspace/Toasts";
 import "./study.css";
+import { AccountEntry, signOutAccount, type EntryConfig } from "./AccountEntry";
 function download(name: string, text: string) {
   const url = URL.createObjectURL(
     new Blob([text], { type: "text/csv;charset=utf-8" }),
@@ -72,6 +73,19 @@ export function StudyShell() {
     () => (screen === "app" ? startStudyRecording() : undefined),
     [screen],
   );
+  async function logout() {
+    setBusy(true);
+    setError("");
+    try {
+      await study.stop();
+      await signOutAccount();
+      setScreen("join");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function stop() {
     setBusy(true);
     setError("");
@@ -126,7 +140,7 @@ export function StudyShell() {
           <Check size={28} />
         </div>
         <p>
-          {state.session?.participantId} ·{" "}
+          {state.session?.displayName ?? state.session?.participantId} ·{" "}
           {screen === "done"
             ? "The recording service confirmed your questionnaire and task responses were saved."
             : "Your earlier consented activity remains recorded; no questionnaire was submitted."}
@@ -153,7 +167,9 @@ export function StudyShell() {
       <div className="study-session-bar">
         <span>
           <ShieldCheck size={16} />
-          <strong>{state.session?.participantId}</strong>
+          <strong>
+            {state.session?.displayName ?? state.session?.participantId}
+          </strong>
           <span>
             {state.session?.mode === "participant"
               ? "Review session"
@@ -175,6 +191,16 @@ export function StudyShell() {
           >
             Stop session
           </button>
+          {state.session?.displayName && (
+            <button
+              className="icon-button"
+              aria-label="Sign out"
+              disabled={busy}
+              onClick={() => void logout()}
+            >
+              <LogOut size={16} />
+            </button>
+          )}
           <button
             className="secondary"
             onClick={() => {
@@ -238,11 +264,7 @@ function StudyPage({
   );
 }
 function Join({ onJoin }: { onJoin: () => void }) {
-  const [config, setConfig] = useState<{
-    mode: string;
-    consentVersion: string;
-    information: string | null;
-  } | null>(null);
+  const [config, setConfig] = useState<EntryConfig | null>(null);
   useEffect(() => {
     study
       .request("/config")
@@ -277,6 +299,15 @@ function Join({ onJoin }: { onJoin: () => void }) {
       setBusy(false);
     }
   }
+  if (!config)
+    return (
+      <StudyPage title="Welcome to Trading Copilot">
+        <p role="status">Connecting…</p>
+        {error && <p role="alert">{error}</p>}
+      </StudyPage>
+    );
+  if (config?.accountLogin)
+    return <AccountEntry config={config} onJoin={onJoin} />;
   return (
     <StudyPage title="Join a review session.">
       <p className="muted">
@@ -656,9 +687,10 @@ export function ResearcherDesk() {
     ["127.0.0.1", "localhost"].includes(location.hostname);
   const adminPath = cloudDesk ? "/study-cloud-admin" : "/study-admin";
   const [mode, setMode] = useState("rehearsal");
+  const [accountNames, setAccountNames] = useState<Record<string, string>>({});
   useEffect(() => {
-    study
-      .request("/config")
+    fetch(cloudDesk ? "/study-cloud-config" : "/study-api/config")
+      .then((r) => r.json())
       .then((c) => {
         setMode(c.mode);
         if (c.mode === "participant") setLabel("T01");
@@ -683,6 +715,20 @@ export function ResearcherDesk() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Researcher access unavailable.");
       setData(d);
+      const namesResponse = await fetch(adminPath + "/accounts", {
+        headers: adminKey ? { Authorization: `Bearer ${adminKey}` } : {},
+      });
+      if (namesResponse.ok) {
+        const names = await namesResponse.json();
+        setAccountNames(
+          Object.fromEntries(
+            names.accounts.map((a: { participantId: string; name: string }) => [
+              a.participantId,
+              a.name,
+            ]),
+          ),
+        );
+      }
     } catch (e) {
       setError((e as Error).message);
     }
@@ -815,7 +861,7 @@ export function ResearcherDesk() {
         <table>
           <thead>
             <tr>
-              <th>Code</th>
+              <th>Trader</th>
               <th>Session</th>
               <th>Started</th>
               <th>Status</th>
@@ -824,7 +870,15 @@ export function ResearcherDesk() {
           <tbody>
             {data?.sessions.map((s) => (
               <tr key={String(s.session_id)}>
-                <td>{String(s.participant_id)}</td>
+                <td>
+                  {accountNames[String(s.participant_id)] ||
+                    String(s.participant_id)}
+                  {accountNames[String(s.participant_id)] && (
+                    <small className="muted" style={{ display: "block" }}>
+                      {String(s.participant_id)}
+                    </small>
+                  )}
+                </td>
                 <td>{String(s.session_id).slice(0, 8)}</td>
                 <td>{String(s.started_at)}</td>
                 <td>{String(s.status)}</td>

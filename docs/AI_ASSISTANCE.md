@@ -1,3 +1,9 @@
+# 19 October 2026 — account sign-in
+
+Codex implemented Better Auth 1.7.11 email/password and conditional Google OAuth on existing Cloudflare Worker, separate private AUTH_DB and account-to-coded-study mapping, normal account/profile UI and protected researcher names. User chose email/password plus Google and authorised existing Google support email; owner accepted Google policy and created OAuth client. Codex downloaded credentials privately, uploaded server secrets without printing values and verified Google return to owner profile. No external AI reviewer or participant outcome claimed.201 existing tests/build/Worker checks and50 live synthetic account integration checks passed. Browser QA verified synthetic signup/profile/app/sign-out, researcher name mapping and mobile entry. Two automation locator timeouts were corrected; password accessible name clarified. Account identity changes require final participant materials/ethics before external collection. Email/password ownership verification, recovery and cloud review sync remain pending.
+
+---
+
 # 18 October 2026 — owner-reported navigation and notification fixes
 
 Codex (exact deployed model version not exposed) implemented screenshot-based owner feedback: strategy back navigation, filled-first CSV downloads and animated viewport notifications using Motion14.3.0. Official Motion installation/AnimatePresence/reduced-motion docs checked. No image generation, new external AI inference, participant data or external review.191tests/build/Worker checks and local Playwright journeys pass, including simulated persistence failure. Initial browser script failed because it measured scroll before Playwright brought the save button into view; corrected measurement verified unchanged scroll on save. Second run used an outdated confirm-button name for already-confirmed state; locator corrected. These were QA script issues, not claimed app defects. Local only; no deployment/submission.

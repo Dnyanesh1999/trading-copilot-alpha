@@ -19,7 +19,8 @@
     "STUDY_MODE": "rehearsal",
     "GEMINI_MODEL": "gemini-3.5-flash-lite",
     "ETHICS_APPROVED": "no",
-    "PUBLIC_ORIGIN": "https://trading-copilot-study.dnyanesh-copilot.workers.dev"
+    "PUBLIC_ORIGIN": "https://trading-copilot-study.dnyanesh-copilot.workers.dev",
+    "ACCOUNT_LOGIN": "on"
   },
   "d1_databases": [
     {
@@ -27,6 +28,15 @@
       "database_name": "trading-copilot-study",
       "database_id": "d53daa10-4332-4909-8a91-0a678f8ca899",
       "migrations_dir": "participant-migrations"
+    },
+    {
+      "binding": "AUTH_DB",
+      "database_name": "trading-copilot-accounts",
+      "database_id": "3340250b-dfb7-4ac7-9c61-1c7e856b3a93",
+      "migrations_dir": "auth-migrations"
     }
+  ],
+  "compatibility_flags": [
+    "nodejs_compat"
   ]
 }

@@ -1,4 +1,5 @@
 import studyWorker, { hash } from "./study";
+import { accounts } from "./accounts";
 import {
   schema,
   instruction,
@@ -6,6 +7,11 @@ import {
 } from "../server/strategy-policy.mjs";
 interface Env {
   DB: D1Database;
+  AUTH_DB?: D1Database;
+  AUTH_SECRET?: string;
+  ACCOUNT_LOGIN?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   ASSETS: Fetcher;
   STUDY_MODE: string;
   STUDY_ADMIN_TOKEN?: string;
@@ -21,6 +27,8 @@ const response = (error: string, status: number) =>
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const accountResponse = await accounts(request, env);
+    if (accountResponse) return accountResponse;
     if (url.pathname.startsWith("/study-api/")) {
       const internal = new URL(url);
       internal.pathname = url.pathname.replace("/study-api", "");
@@ -45,7 +53,7 @@ export default {
         "",
       );
       if (!auth)
-        return response("Enter your session code before using AI.", 401);
+        return response("Sign in and start your review before using AI.", 401);
       const session = await env.DB.prepare(
         "SELECT session_id FROM sessions WHERE token_hash=? AND status='active'",
       )

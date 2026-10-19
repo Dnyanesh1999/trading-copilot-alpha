@@ -1,3 +1,11 @@
+# 19 October 2026 — account sign-in live
+
+Normal email/password and Google sign-in are live on the Cloudflare rehearsal app. Better Auth 1.7.11 stores private account/security records in a separate EU-jurisdiction D1 database. Study recording starts only after profile/information agreement; the trader sees their name, protected researcher rows show name plus code, and study exports exclude account identity. Google OAuth creation/terms completed by owner; actual owner Google sign-in returned successfully to the profile. Private secrets remain outside git/frontend. Final Worker 1c107fd6-a7bd-4d57-a1b6-2135bfcf4545, asset index-CnzekyOl.js.
+
+201 tests/build/Worker check/dry run and 50 live synthetic account integration checks passed. Browser synthetic signup/profile/app header/sign-out and researcher name lookup verified; mobile entry checked. No participant study results. Review contents remain browser-session data, not account cloud sync; password email verification/recovery and automatic provider linking are not configured. Rehearsal/ethics-off gate retained. See verification/ACCOUNT_LOGIN.md. Owner is signed in at the profile step for sequential walkthrough.
+
+---
+
 # 18 October 2026 — full-flow audit follow-up
 
 Fresh live fictional review and supported-flow audit completed. Repaired session isolation for manual trade drafts, failed-outbox Stop handling, stale invitation visibility and trader-facing AI outage copy.201tests/build/Worker type-check pass; live manual/CSV/all-three-presets/history/action/feedback-reload/mobile/Stop/export checks pass. Final Worker9067e354-049a-4a5a-86b2-5107db6bbf88, assetindex-YUhCztzU.js. Extra QA visits/unused invitations are synthetic only. Private evidence retained outside the repo; no participant or physical-device performance claim. Rehearsal remains enabled; ethics/participant-information gate unchanged.

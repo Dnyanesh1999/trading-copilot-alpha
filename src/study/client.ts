@@ -9,6 +9,7 @@ import {
 export type StudySession = {
   sessionId: string;
   participantId: string;
+  displayName?: string;
   sessionToken: string;
   mode: "rehearsal" | "participant";
 };
