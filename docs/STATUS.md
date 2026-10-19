@@ -1,3 +1,11 @@
+# 19 October 2026 — Brevo configured; inbox test pending
+
+Owner authorised restricted recovery key creation; credentials are private and outside source control. API verified free plan, enabled transactional relay and active selected sender. Uploaded BREVO_API_KEY and ACCOUNT_MAIL_FROM through protected stdin. Live config now confirms emailRecovery true, Google sign-in true, rehearsal mode; no emails sent yet. Secret-change Worker66c62647-dbe2-4bf7-934b-2a462fddbaf5 retains built assetindex-DLBKySRk.js. Live recovery request page visibly renders email and Send reset link. Owner Google session remains signed in and unchanged.
+
+Setup helper initially reported readiness false immediately after successful upload; a subsequent bounded config fetch confirmed true (deployment propagation). Updated helper with bounded readiness polling; syntax/diff checks passed. Do not repeat credential upload for this. User was asked to authorise one plain test email to the owner inbox; confirmation pending. Real password reset/verification link delivery remains unverified and password entry is owner-only. Existing210 tests and57/27 live checks remain previous verified evidence, not rerun after live email activation; synthetic.invalid-address signup scripts must not run now. Local implementation commit1cb1fe6; no push. Provider/identity/optional review storage/retention/withdrawal disclosures and ethics remain prerequisites for external participant collection.
+
+---
+
 # 19 October 2026 — optional private review backups live
 
 Explicit Save to account, encrypted owner-isolated storage, History restore across browsers, account-copy removal and completion backup/export are deployed. Researcher View session exposes task details and response counts without private review payloads. Account-backed recording/AI now require both session bearer and owner sign-in cookie. Final Worker 07ad66f4-7846-48ca-aeb8-c44e275dfc28, asset index-DLBKySRk.js.

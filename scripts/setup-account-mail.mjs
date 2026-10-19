@@ -68,13 +68,20 @@ assert.equal(
   0,
   "Server secret upload failed. No credentials were printed.",
 );
-const config = await (
-  await fetch(
+// A secret deployment can take a few seconds to reach every edge location.
+let ready = false;
+for (let attempt = 0; attempt < 8; attempt++) {
+  const response = await fetch(
     "https://trading-copilot-study.dnyanesh-copilot.workers.dev/study-api/config",
-    { signal: AbortSignal.timeout(15000) },
-  )
-).json();
-assert(config.emailRecovery === true, "Server mail readiness not confirmed.");
+    { signal: AbortSignal.timeout(15000), cache: "no-store" },
+  );
+  if (response.ok && (await response.json()).emailRecovery === true) {
+    ready = true;
+    break;
+  }
+  if (attempt < 7) await new Promise((resolve) => setTimeout(resolve, 1500));
+}
+assert(ready, "Server mail readiness not confirmed; secret deployment may still be propagating. Check live config before repeating the upload.");
 console.log(
   "Free plan and active sender verified. Server mail enabled. No emails sent; owner must verify actual inbox delivery through the app. Never run invalid-address signup QA with live mail enabled.",
 );
