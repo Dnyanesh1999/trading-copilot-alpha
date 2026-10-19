@@ -369,3 +369,32 @@
     padding: 26px 14px 50px;
   }
 }
+
+.account-completed-backup {
+  margin: 24px 0;
+  text-align: left;
+}
+.account-completed-backup summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.account-completed-backup select {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+}
+.account-completed-backup .account-review-save {
+  padding: 20px;
+}
+.study-session-details {
+  padding: 24px;
+  margin: 24px 0;
+}
+.account-recovery-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}

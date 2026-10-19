@@ -1,3 +1,7 @@
+import {
+  AccountReviewSave,
+  AccountReviewLibrary,
+} from "./workspace/AccountReviews";
 import { study } from "./study/client";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
@@ -369,16 +373,25 @@ export default function App() {
           )}
           {page === "trades" &&
             (active ? (
-              <ReviewView
-                key={active.id}
-                entry={active}
-                onSave={save}
-                onBack={() => {
-                  setActive(null);
-                  setMessage("");
-                }}
-                saved={history.some((h) => h.id === active.id)}
-              />
+              <>
+                <ReviewView
+                  key={active.id}
+                  entry={active}
+                  onSave={save}
+                  onBack={() => {
+                    setActive(null);
+                    setMessage("");
+                  }}
+                  saved={history.some((h) => h.id === active.id)}
+                />
+                {study.session()?.displayName && (
+                  <AccountReviewSave
+                    key={active.id}
+                    entry={active}
+                    saved={history.some((h) => h.id === active.id)}
+                  />
+                )}
+              </>
             ) : (
               <TradeWorkspace
                 rules={confirmed}
@@ -393,14 +406,35 @@ export default function App() {
               />
             ))}
           {page === "history" && (
-            <HistoryTable
-              history={history}
-              onOpen={(e) => {
-                setActive(e);
-                setPage("trades");
-              }}
-              onSample={() => go("trades")}
-            />
+            <>
+              <HistoryTable
+                history={history}
+                onOpen={(e) => {
+                  setActive(e);
+                  setPage("trades");
+                }}
+                onSample={() => go("trades")}
+              />
+              {study.session()?.displayName && (
+                <AccountReviewLibrary
+                  onOpen={(entry) => {
+                    const next = [
+                      entry,
+                      ...history.filter((h) => h.id !== entry.id),
+                    ].slice(0, 50);
+                    if (!persist(strategy, confirmed, next)) return;
+                    setHistory(next);
+                    setActive(entry);
+                    setPage("trades");
+                    notify({
+                      title: "Account review opened",
+                      description:
+                        "This review keeps its original confirmed rules and next focus.",
+                    });
+                  }}
+                />
+              )}
+            </>
           )}
           {!study.session() && import.meta.env.DEV && (
             <p className="field-note">

@@ -1,3 +1,5 @@
+import { CompletedReviewBackups } from "../workspace/AccountReviews";
+import { readWorkspace } from "../workspace/persistence";
 import {
   useEffect,
   useState,
@@ -42,12 +44,17 @@ export function StudyShell() {
   const state = useSyncExternalStore(study.subscribe, study.snapshot);
   const [screen, setScreen] = useState<
     "join" | "app" | "questionnaire" | "done" | "stopped" | "checking"
-  >(state.session ? "checking" : "join");
+  >(
+    state.session && !new URLSearchParams(location.search).has("reset")
+      ? "checking"
+      : "join",
+  );
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const notify = useToast();
   useEffect(() => {
-    if (!state.session) return;
+    if (!state.session || new URLSearchParams(location.search).has("reset"))
+      return;
     let live = true;
     study
       .request("/session")
@@ -123,7 +130,7 @@ export function StudyShell() {
             setError("");
           }}
         >
-          Use a new access code
+          Return to sign in
         </button>
       </StudyPage>
     );
@@ -150,6 +157,9 @@ export function StudyShell() {
           request removal of a real study record, contact the researcher using
           the agreed study procedure.
         </p>
+        {state.session?.displayName && (
+          <CompletedReviewBackups entries={readWorkspace()?.history ?? []} />
+        )}
         <button
           className="primary"
           onClick={() => {
@@ -688,6 +698,7 @@ export function ResearcherDesk() {
   const adminPath = cloudDesk ? "/study-cloud-admin" : "/study-admin";
   const [mode, setMode] = useState("rehearsal");
   const [accountNames, setAccountNames] = useState<Record<string, string>>({});
+  const [selectedSession, setSelectedSession] = useState("");
   useEffect(() => {
     fetch(cloudDesk ? "/study-cloud-config" : "/study-api/config")
       .then((r) => r.json())
@@ -798,7 +809,13 @@ export function ResearcherDesk() {
           enabled.
         </p>
       </div>
-      <section className="study-invitation">
+      <p className="field-note">
+        Account sign-in links each trader to a private coded record
+        automatically. Share the app link; account users do not need access
+        codes.
+      </p>
+      <details className="study-invitation">
+        <summary>Legacy rehearsal access codes (optional)</summary>
         <h2>Create a private access code</h2>
         <label>
           Rehearsal label
@@ -844,7 +861,7 @@ export function ResearcherDesk() {
             </button>
           </div>
         )}
-      </section>
+      </details>
       {error && (
         <p role="alert" className="notice error-notice">
           {error}
@@ -865,6 +882,7 @@ export function ResearcherDesk() {
               <th>Session</th>
               <th>Started</th>
               <th>Status</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -882,6 +900,21 @@ export function ResearcherDesk() {
                 <td>{String(s.session_id).slice(0, 8)}</td>
                 <td>{String(s.started_at)}</td>
                 <td>{String(s.status)}</td>
+                <td>
+                  <button
+                    className="text-button"
+                    aria-expanded={selectedSession === s.session_id}
+                    onClick={() =>
+                      setSelectedSession(
+                        selectedSession === s.session_id
+                          ? ""
+                          : String(s.session_id),
+                      )
+                    }
+                  >
+                    View session
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -892,6 +925,78 @@ export function ResearcherDesk() {
           No sessions recorded yet. Invitation creation does not count as
           participation.
         </p>
+      )}
+      {selectedSession && data && (
+        <section
+          className="panel study-session-details"
+          aria-label="Selected session details"
+        >
+          <h2>Session {selectedSession.slice(0, 8)}</h2>
+          <p className="field-note">
+            Task completion and help are self-reported. Duration is app-visible
+            time, not independently observed attention. These records are
+            separate from private account review copies.
+          </p>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Completed</th>
+                  <th>Visible seconds</th>
+                  <th>Needed help</th>
+                  <th>Evidence opened</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.tasks
+                  .filter((t) => t.session_id === selectedSession)
+                  .map((t) => (
+                    <tr key={String(t.task_id)}>
+                      <td>
+                        {TASKS.find((task) => task.id === t.task_id)?.label ??
+                          String(t.task_id)}
+                      </td>
+                      <td>{String(t.completed ?? "Not submitted")}</td>
+                      <td>{String(t.time_seconds ?? "—")}</td>
+                      <td>{String(t.needed_help ?? "Not submitted")}</td>
+                      <td>{String(t.evidence_opened ?? "—")}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          {!data.tasks.some((t) => t.session_id === selectedSession) && (
+            <p>No final task responses submitted for this session.</p>
+          )}
+          <p>
+            {
+              data.ratings.filter(
+                (r) => r.session_id === selectedSession && r.score !== null,
+              ).length
+            }{" "}
+            scored questionnaire items ·{" "}
+            {
+              data.ratings.filter(
+                (r) => r.session_id === selectedSession && r.score === null,
+              ).length
+            }{" "}
+            skipped ·{" "}
+            {
+              data.comments.filter((c) => c.session_id === selectedSession)
+                .length
+            }{" "}
+            comments ·{" "}
+            {data.events.filter((e) => e.session_id === selectedSession).length}{" "}
+            activity records
+          </p>
+          <button
+            className="text-button"
+            onClick={() => setSelectedSession("")}
+          >
+            Close details
+          </button>
+        </section>
       )}
       <h2>Export for analysis</h2>
       <p className="field-note">

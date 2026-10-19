@@ -1,3 +1,9 @@
+# 19 October 2026 — private account copies and recovery preparation
+
+Codex implemented optional encrypted account review storage, explicit consent controls, fresh-browser restore, private researcher task details, current-cookie binding for study/AI and conditional Brevo verification/recovery. No subagents or external AI reviewer used for this change. Existing Gemini model/config unchanged. Nine new tests cover encryption integrity/binding and actual Better Auth verification/reset semantics with captured delivery; 210 total tests and live synthetic checks passed. Browser mock recovery is separate from real inbox delivery, which is still pending provider key setup. Fixed a real persistent-toast overlap of Finish. No participant collection, paid upgrade, supervisor send or research outcome claimed. Private QA preserves automation interruptions and synthetic-data provenance.
+
+---
+
 # 19 October 2026 — account sign-in
 
 Codex implemented Better Auth 1.7.11 email/password and conditional Google OAuth on existing Cloudflare Worker, separate private AUTH_DB and account-to-coded-study mapping, normal account/profile UI and protected researcher names. User chose email/password plus Google and authorised existing Google support email; owner accepted Google policy and created OAuth client. Codex downloaded credentials privately, uploaded server secrets without printing values and verified Google return to owner profile. No external AI reviewer or participant outcome claimed.201 existing tests/build/Worker checks and50 live synthetic account integration checks passed. Browser QA verified synthetic signup/profile/app/sign-out, researcher name mapping and mobile entry. Two automation locator timeouts were corrected; password accessible name clarified. Account identity changes require final participant materials/ethics before external collection. Email/password ownership verification, recovery and cloud review sync remain pending.

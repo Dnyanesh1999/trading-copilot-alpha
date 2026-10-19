@@ -2085,3 +2085,67 @@ input[type="number"] {
     min-width: 32px;
   }
 }
+
+.account-review-save,
+.account-review-library {
+  margin-top: 24px;
+  padding: 26px;
+}
+.account-review-save h2,
+.account-review-library h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.account-review-save .muted {
+  max-width: 850px;
+  line-height: 1.65;
+}
+.account-review-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border, #e6e5ef);
+}
+.account-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.account-review-confirm {
+  flex-basis: 100%;
+  background: #faf7f5;
+  padding: 16px;
+  border-radius: 10px;
+}
+.account-review-confirm button {
+  margin-right: 12px;
+}
+@media (max-width: 600px) {
+  .account-review-save,
+  .account-review-library {
+    padding: 20px;
+  }
+  .account-review-library .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .account-review-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Keep recording controls reachable while persistent notices are visible. */
+body:has(.study-session-bar) .toast-stack {
+  top: max(80px, env(safe-area-inset-top));
+}
+@media (max-width: 600px) {
+  body:has(.study-session-bar) .toast-stack {
+    top: max(150px, env(safe-area-inset-top));
+  }
+}

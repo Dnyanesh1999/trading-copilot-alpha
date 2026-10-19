@@ -1,5 +1,5 @@
 import studyWorker, { hash } from "./study";
-import { accounts } from "./accounts";
+import { accounts, hasStudyAccountAccess } from "./accounts";
 import {
   schema,
   instruction,
@@ -9,7 +9,10 @@ interface Env {
   DB: D1Database;
   AUTH_DB?: D1Database;
   AUTH_SECRET?: string;
+  REVIEW_ENCRYPTION_KEY?: string;
   ACCOUNT_LOGIN?: string;
+  BREVO_API_KEY?: string;
+  ACCOUNT_MAIL_FROM?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   ASSETS: Fetcher;
@@ -30,6 +33,25 @@ export default {
     const accountResponse = await accounts(request, env);
     if (accountResponse) return accountResponse;
     if (url.pathname.startsWith("/study-api/")) {
+      const bearer = (request.headers.get("Authorization") ?? "").replace(
+        /^Bearer /,
+        "",
+      );
+      if (bearer) {
+        const linked = await env.DB.prepare(
+          "SELECT participant_id FROM sessions WHERE token_hash=?",
+        )
+          .bind(await hash(bearer))
+          .first<{ participant_id: string }>();
+        if (
+          linked &&
+          !(await hasStudyAccountAccess(request, env, linked.participant_id))
+        )
+          return response(
+            "Sign in to the account that started this review.",
+            401,
+          );
+      }
       const internal = new URL(url);
       internal.pathname = url.pathname.replace("/study-api", "");
       return studyWorker.fetch(new Request(internal, request), env);
@@ -55,11 +77,16 @@ export default {
       if (!auth)
         return response("Sign in and start your review before using AI.", 401);
       const session = await env.DB.prepare(
-        "SELECT session_id FROM sessions WHERE token_hash=? AND status='active'",
+        "SELECT session_id,participant_id FROM sessions WHERE token_hash=? AND status='active'",
       )
         .bind(await hash(auth))
-        .first<{ session_id: string }>();
+        .first<{ session_id: string; participant_id: string }>();
       if (!session) return response("Session access required.", 401);
+      if (!(await hasStudyAccountAccess(request, env, session.participant_id)))
+        return response(
+          "Sign in to the account that started this review.",
+          401,
+        );
       if (!env.GEMINI_API_KEY) return response("AI is not configured.", 503);
       const model = env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
       if (!/^gemini-[A-Za-z0-9._-]+$/.test(model))

@@ -7,11 +7,16 @@ export type EntryConfig = {
   information: string | null;
   googleSignIn?: boolean;
   accountLogin?: boolean;
+  emailRecovery?: boolean;
 };
 type Account = { id: string; name: string; email: string };
-export async function accountRequest(path: string, body?: unknown) {
+export async function accountRequest(
+  path: string,
+  body?: unknown,
+  method: "POST" | "DELETE" = "POST",
+) {
   const r = await fetch(path, {
-    method: body === undefined ? "GET" : "POST",
+    method: body === undefined ? "GET" : method,
     credentials: "same-origin",
     headers: body === undefined ? {} : { "Content-Type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -54,7 +59,8 @@ export function AccountEntry({
     [style, setStyle] = useState(""),
     [experience, setExperience] = useState(""),
     [device, setDevice] = useState(""),
-    [consent, setConsent] = useState(false);
+    [consent, setConsent] = useState(false),
+    [notice, setNotice] = useState("");
   useEffect(() => {
     let live = true;
     accountRequest("/account-api/me")
@@ -87,9 +93,19 @@ export function AccountEntry({
         {
           email: email.trim(),
           password,
-          ...(creating ? { name: name.trim() } : {}),
+          ...(creating
+            ? { name: name.trim(), callbackURL: location.origin + "/?study=1" }
+            : {}),
         },
       );
+      if (creating && config.emailRecovery) {
+        setPassword("");
+        setCreating(false);
+        setNotice(
+          "Check your inbox to verify your email, then return to sign in.",
+        );
+        return;
+      }
       const d = await accountRequest("/account-api/me");
       if (!d.user) throw Error("Sign-in could not be confirmed. Please retry.");
       setUser(d.user);
@@ -157,6 +173,8 @@ export function AccountEntry({
       setBusy(false);
     }
   }
+  const reset = new URLSearchParams(location.search).has("reset");
+  if (reset) return <PasswordRecovery enabled={!!config.emailRecovery} />;
   return (
     <main className="study-page account-page">
       <a className="study-brand" href="?study=1">
@@ -254,10 +272,13 @@ export function AccountEntry({
                       exclude your account name and email.
                     </p>
                     <p>
-                      Your trade CSV and saved review stay in this browser
-                      session. AI clarification sends your strategy text and
-                      answers to Google through our server. Please leave
-                      identifying details out.
+                      Your original CSV and unsaved work stay in this browser
+                      session. You can separately choose Save to account to
+                      store an encrypted private review copy, including its
+                      trade records, rules and next focus. Account copies can be
+                      removed in History. AI clarification sends your strategy
+                      text and answers to Google through our server. Please
+                      leave identifying details out.
                     </p>
                     <p>
                       You can stop a review at any time. Final participant
@@ -375,6 +396,37 @@ export function AccountEntry({
                 <ArrowRight size={16} />
               </button>
             </form>
+            {config.emailRecovery && !creating && (
+              <div className="account-recovery-links">
+                <a href="?study=1&reset=1">Forgot password?</a>
+                <button
+                  className="text-button"
+                  disabled={busy || !email.includes("@")}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError("");
+                    try {
+                      await accountRequest(
+                        "/api/auth/send-verification-email",
+                        {
+                          email: email.trim(),
+                          callbackURL: location.origin + "/?study=1",
+                        },
+                      );
+                      setNotice(
+                        "If this account needs verification, check your email for a link.",
+                      );
+                    } catch (e) {
+                      setError((e as Error).message);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Resend verification email
+                </button>
+              </div>
+            )}
             <p className="account-switch">
               {creating ? "Already have an account?" : "New here?"}{" "}
               <button
@@ -393,14 +445,171 @@ export function AccountEntry({
               Your name and email are used for your private account. Sign-in
               also uses security session information. Study activity recording
               starts after you agree on the next screen.
+              {config.emailRecovery &&
+                " Verification and password recovery emails are delivered by Brevo; your recipient email and secure account link are sent to Brevo. Trade records are not included."}
             </p>
           </>
+        )}
+        {notice && (
+          <p role="status" className="notice">
+            {notice}
+          </p>
         )}
         {error && (
           <p role="alert" className="notice error-notice">
             {error}
           </p>
         )}
+      </section>
+    </main>
+  );
+}
+
+function PasswordRecovery({ enabled }: { enabled: boolean }) {
+  const [token] = useState(
+    () => new URLSearchParams(location.search).get("token") ?? "",
+  );
+  const [invalid] = useState(
+    () => new URLSearchParams(location.search).get("error") ?? "",
+  );
+  const [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
+    [again, setAgain] = useState(""),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [done, setDone] = useState(false);
+  useEffect(() => {
+    const clean = new URL(location.href);
+    clean.searchParams.delete("token");
+    clean.searchParams.delete("error");
+    history.replaceState(null, "", clean);
+  }, []);
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+    try {
+      if (token) {
+        if (password !== again) throw Error("Passwords do not match.");
+        await accountRequest("/api/auth/reset-password", {
+          token,
+          newPassword: password,
+        });
+        setPassword("");
+        setAgain("");
+        setDone(true);
+        setNotice(
+          "Password updated. Sign in with your new password; previous sessions have been signed out.",
+        );
+      } else {
+        await accountRequest("/api/auth/request-password-reset", {
+          email: email.trim(),
+          redirectTo: location.origin + "/?study=1&reset=1",
+        });
+        setNotice(
+          "If an account exists for this email, a reset link has been requested. Check your inbox and spam folder.",
+        );
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <main className="study-page account-page">
+      <a className="study-brand" href="?study=1">
+        ◩ Trading Copilot
+      </a>
+      <section className="panel study-card account-card">
+        <h1>{token ? "Choose a new password." : "Reset your password."}</h1>
+        {!enabled ? (
+          <p>
+            Email recovery is not enabled yet. If you use Google sign-in,
+            recover access through your Google account.
+          </p>
+        ) : done ? null : invalid ? (
+          <p role="alert">
+            This reset link is invalid or expired.{" "}
+            <a href="?study=1&reset=1">Request another link</a>.
+          </p>
+        ) : (
+          <form onSubmit={(e) => void submit(e)}>
+            {token ? (
+              <>
+                <label>
+                  New password
+                  <input
+                    aria-label="New password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    maxLength={128}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Confirm new password
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    maxLength={128}
+                    value={again}
+                    onChange={(e) => setAgain(e.target.value)}
+                    required
+                  />
+                </label>
+                <p className="field-note">
+                  At least 12 characters. A successful reset signs out previous
+                  sessions.
+                </p>
+              </>
+            ) : (
+              <label>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </label>
+            )}
+            <button className="primary" disabled={busy}>
+              {busy
+                ? "Please wait…"
+                : token
+                  ? "Update password"
+                  : "Send reset link"}
+            </button>
+          </form>
+        )}
+        {notice && (
+          <p role="status" className="notice">
+            {notice}
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="notice error-notice">
+            {error}
+          </p>
+        )}
+        <p>
+          <a
+            href="?study=1"
+            onClick={() => {
+              if (done) study.clear();
+            }}
+          >
+            Back to sign in
+          </a>
+        </p>
       </section>
     </main>
   );

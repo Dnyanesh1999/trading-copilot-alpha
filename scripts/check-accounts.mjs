@@ -7,6 +7,20 @@ const root = "https://trading-copilot-study.dnyanesh-copilot.workers.dev";
 const admin = parseEnv(
   readFileSync(new URL("../worker/.dev.vars", import.meta.url), "utf8"),
 ).STUDY_ADMIN_TOKEN;
+const config = await (
+  await fetch(root + "/study-api/config", {
+    signal: AbortSignal.timeout(15000),
+  })
+).json();
+assert.equal(
+  config.mode,
+  "rehearsal",
+  "Synthetic checks require rehearsal mode",
+);
+assert(
+  !config.emailRecovery,
+  "Stop: live mail delivery is enabled. Synthetic .invalid signup tests must not send real mail.",
+);
 let count = 0;
 async function call(path, body, cookie = "", extra = {}) {
   return fetch(root + path, {
@@ -111,7 +125,26 @@ for (let i = 0; i < 2; i++) {
     401,
   );
   await status(
-    await call("/study-api/stop", {}, "", {
+    await call("/study-api/session", undefined, "", {
+      Authorization: "Bearer " + visit.sessionToken,
+    }),
+    401,
+  );
+  await status(
+    await call("/study-api/session", undefined, cookies, {
+      Authorization: "Bearer " + visit.sessionToken,
+    }),
+    200,
+  );
+  if (profiles.length)
+    await status(
+      await call("/study-api/session", undefined, cookies, {
+        Authorization: "Bearer " + profiles[0].token,
+      }),
+      401,
+    );
+  await status(
+    await call("/study-api/stop", {}, cookies, {
       Authorization: "Bearer " + visit.sessionToken,
     }),
     200,
@@ -139,7 +172,18 @@ for (let i = 0; i < 2; i++) {
     .filter((c) => c.startsWith("__Secure-better-auth.session_token="))
     .join("; ");
   await status(await call("/api/auth/sign-out", {}, loginCookies), 200);
-  profiles.push({ email, name, participantId: visit.participantId });
+  await status(
+    await call("/study-api/session", undefined, cookies, {
+      Authorization: "Bearer " + visit.sessionToken,
+    }),
+    401,
+  );
+  profiles.push({
+    email,
+    name,
+    participantId: visit.participantId,
+    token: visit.sessionToken,
+  });
 }
 assert.notEqual(profiles[0].participantId, profiles[1].participantId);
 count++;

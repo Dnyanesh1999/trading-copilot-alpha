@@ -1,3 +1,11 @@
+# 19 October 2026 — optional private review backups live
+
+Explicit Save to account, encrypted owner-isolated storage, History restore across browsers, account-copy removal and completion backup/export are deployed. Researcher View session exposes task details and response counts without private review payloads. Account-backed recording/AI now require both session bearer and owner sign-in cookie. Final Worker 07ad66f4-7846-48ca-aeb8-c44e275dfc28, asset index-DLBKySRk.js.
+
+210 tests/build/Worker checks passed; 57 live synthetic account and 27 vault checks passed. Browser save failure/retry, fresh-context restore, mobile completion, researcher details and error-toast/Finish interaction verified. Recovery and verification implementation passed isolated Better Auth/SQLite tests; live delivery remains pending Brevo key and owner inbox test. Brevo free signup/sender verified, phone verification owner-reported; key creation pending. Study remains rehearsal/ethics-off. These checks and owner rehearsals are not participant results. See verification/PRIVATE_ACCOUNT_REVIEWS.md.
+
+---
+
 # 19 October 2026 — account sign-in live
 
 Normal email/password and Google sign-in are live on the Cloudflare rehearsal app. Better Auth 1.7.11 stores private account/security records in a separate EU-jurisdiction D1 database. Study recording starts only after profile/information agreement; the trader sees their name, protected researcher rows show name plus code, and study exports exclude account identity. Google OAuth creation/terms completed by owner; actual owner Google sign-in returned successfully to the profile. Private secrets remain outside git/frontend. Final Worker 1c107fd6-a7bd-4d57-a1b6-2135bfcf4545, asset index-CnzekyOl.js.

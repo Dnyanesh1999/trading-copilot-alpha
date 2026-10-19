@@ -1,8 +1,11 @@
 import { createAuth, type AccountEnv } from "./auth";
+import { validateReviewEntry } from "../src/core/saved-review";
+import { sealReview, openReview } from "./review-vault";
 import studyWorker, { hash } from "./study";
 import { CONSENT_VERSION } from "../src/study/protocol";
 interface Env extends Partial<AccountEnv> {
   DB: D1Database;
+  REVIEW_ENCRYPTION_KEY?: string;
   STUDY_MODE: string;
   STUDY_ADMIN_TOKEN?: string;
   ACCOUNT_LOGIN?: string;
@@ -30,7 +33,7 @@ export async function accounts(
     url.pathname !== "/study-admin/accounts"
   )
     return null;
-  if (request.method === "POST") {
+  if (["POST", "DELETE"].includes(request.method)) {
     const reader = request.body?.getReader();
     if (!reader) return reply({ error: "Request body required." }, 400);
     const parts: Uint8Array[] = [];
@@ -39,7 +42,7 @@ export async function accounts(
       const { done, value } = await reader.read();
       if (done) break;
       size += value.length;
-      if (size > 32768) {
+      if (size > (url.pathname === "/account-api/reviews" ? 262144 : 32768)) {
         await reader.cancel();
         return reply({ error: "Request too large." }, 413);
       }
@@ -101,6 +104,126 @@ export async function accounts(
       });
     }
     if (!session) return reply({ error: "Please sign in to continue." }, 401);
+    if (url.pathname === "/account-api/reviews") {
+      if (!env.REVIEW_ENCRYPTION_KEY)
+        return reply(
+          { error: "Account review storage is not configured." },
+          503,
+        );
+      const now = Date.now();
+      const rate = await env.AUTH_DB.prepare(
+        "INSERT INTO auth_rate_limit(id,key,count,lastRequest) VALUES(?,?,1,?) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN lastRequest>? THEN count+1 ELSE 1 END,lastRequest=CASE WHEN lastRequest>? THEN lastRequest ELSE excluded.lastRequest END RETURNING count",
+      )
+        .bind(
+          crypto.randomUUID(),
+          "account-reviews:" + session.user.id,
+          now,
+          now - 60000,
+          now - 60000,
+        )
+        .first<{ count: number }>();
+      if (!rate || rate.count > 60)
+        return reply(
+          {
+            error:
+              "Too many account review requests. Please wait a minute and retry.",
+          },
+          429,
+        );
+      if (request.method === "GET") {
+        const rows = await env.AUTH_DB.prepare(
+          "SELECT review_id,payload FROM account_reviews WHERE user_id=? ORDER BY updated_at DESC LIMIT 50",
+        )
+          .bind(session.user.id)
+          .all<{ review_id: string; payload: string }>();
+        const entries = [];
+        for (const row of rows.results)
+          entries.push(
+            await openReview(
+              env.REVIEW_ENCRYPTION_KEY,
+              session.user.id,
+              row.review_id,
+              row.payload,
+            ),
+          );
+        return reply({ entries });
+      }
+      if (!["POST", "DELETE"].includes(request.method))
+        return reply({ error: "Method not allowed." }, 405);
+      if (request.headers.get("Origin") !== env.PUBLIC_ORIGIN)
+        return reply({ error: "Origin denied." }, 403);
+      if (
+        request.headers.get("Content-Type")?.split(";")[0] !==
+        "application/json"
+      )
+        return reply({ error: "JSON required." }, 415);
+      let body;
+      try {
+        body = (await request.json()) as Record<string, unknown>;
+      } catch {
+        return reply({ error: "Invalid JSON." }, 400);
+      }
+      if (!body || typeof body !== "object")
+        return reply({ error: "Invalid request." }, 400);
+      if (request.method === "DELETE") {
+        if (
+          Object.keys(body).join(",") !== "id" ||
+          typeof body.id !== "string" ||
+          !body.id ||
+          body.id.length > 200
+        )
+          return reply({ error: "Review ID required." }, 400);
+        await env.AUTH_DB.prepare(
+          "DELETE FROM account_reviews WHERE user_id=? AND review_id=?",
+        )
+          .bind(session.user.id, body.id)
+          .run();
+        return reply({ removed: true });
+      }
+      if (
+        Object.keys(body).sort().join(",") !== "disclosureVersion,entry" ||
+        body.disclosureVersion !== "account-review-v1"
+      )
+        return reply(
+          { error: "Confirm the account storage information first." },
+          400,
+        );
+      const entry = validateReviewEntry(body.entry);
+      if (!entry || !entry.focus)
+        return reply(
+          { error: "Save a valid review and next focus first." },
+          400,
+        );
+      const payload = await sealReview(
+        env.REVIEW_ENCRYPTION_KEY,
+        session.user.id,
+        entry.id,
+        entry,
+      );
+      const result = await env.AUTH_DB.prepare(
+        "INSERT INTO account_reviews(user_id,review_id,payload,updated_at,disclosure_version) SELECT ?,?,?,?,? WHERE (SELECT COUNT(*) FROM account_reviews WHERE user_id=?)<50 OR EXISTS(SELECT 1 FROM account_reviews WHERE user_id=? AND review_id=?) ON CONFLICT(user_id,review_id) DO UPDATE SET payload=excluded.payload,updated_at=excluded.updated_at,disclosure_version=excluded.disclosure_version",
+      )
+        .bind(
+          session.user.id,
+          entry.id,
+          payload,
+          new Date().toISOString(),
+          body.disclosureVersion,
+          session.user.id,
+          session.user.id,
+          entry.id,
+        )
+        .run();
+      if (!result.meta.changes)
+        return reply(
+          {
+            error:
+              "Your account holds 50 reviews. Remove one before adding another.",
+          },
+          409,
+        );
+      return reply({ saved: true, id: entry.id });
+    }
     if (
       url.pathname === "/account-api/start-review" &&
       request.method === "POST"
@@ -198,4 +321,29 @@ export async function accounts(
       500,
     );
   }
+}
+
+// Account-backed rehearsal tokens also require the owner's current sign-in.
+// Legacy code-only invitations retain their original separate access flow.
+export async function hasStudyAccountAccess(
+  request: Request,
+  env: Env,
+  label: string,
+) {
+  if (!/^[RT]\d{4,}$/.test(label)) return true;
+  if (!ready(env)) return false;
+  const signedIn = await createAuth(env).api.getSession({
+    headers: request.headers,
+  });
+  if (!signedIn) return false;
+  const link = await env.AUTH_DB.prepare(
+    "SELECT id FROM auth_study_link WHERE id=? AND user_id=? AND mode=?",
+  )
+    .bind(
+      Number(label.slice(1)),
+      signedIn.user.id,
+      label[0] === "T" ? "participant" : "rehearsal",
+    )
+    .first();
+  return !!link;
 }

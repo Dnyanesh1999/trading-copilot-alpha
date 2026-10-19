@@ -1,8 +1,12 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import { betterAuth } from "better-auth";
+import { mailReady, sendAccountMail } from "./account-mail";
 export interface AccountEnv {
   AUTH_DB: D1Database;
   AUTH_SECRET: string;
   PUBLIC_ORIGIN: string;
+  BREVO_API_KEY?: string;
+  ACCOUNT_MAIL_FROM?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
 }
@@ -19,7 +23,31 @@ export function authOptions(env: AccountEnv) {
       enabled: true,
       minPasswordLength: 12,
       maxPasswordLength: 128,
+      requireEmailVerification: mailReady(env),
+      resetPasswordTokenExpiresIn: 1800,
+      revokeSessionsOnPasswordReset: true,
+      ...(mailReady(env)
+        ? {
+            sendResetPassword: async (data: {
+              user: { email: string };
+              url: string;
+            }) => sendAccountMail(env, data.user.email, data.url, "reset"),
+          }
+        : {}),
     },
+    ...(mailReady(env)
+      ? {
+          emailVerification: {
+            sendOnSignUp: true,
+            autoSignInAfterVerification: true,
+            expiresIn: 3600,
+            sendVerificationEmail: async (data: {
+              user: { email: string };
+              url: string;
+            }) => sendAccountMail(env, data.user.email, data.url, "verify"),
+          },
+        }
+      : {}),
     user: { modelName: "auth_user" },
     session: { modelName: "auth_session", expiresIn: 60 * 60 * 24 * 7 },
     account: { modelName: "auth_account", accountLinking: { enabled: false } },

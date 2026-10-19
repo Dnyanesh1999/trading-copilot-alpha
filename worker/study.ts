@@ -1,3 +1,4 @@
+import { mailReady } from "./account-mail";
 import {
   CONSENT_VERSION,
   STUDY_BUILD,
@@ -12,6 +13,8 @@ interface Env {
   DB: D1Database;
   ACCOUNT_PARTICIPANT?: string;
   ACCOUNT_LOGIN?: string;
+  BREVO_API_KEY?: string;
+  ACCOUNT_MAIL_FROM?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   STUDY_MODE: string;
@@ -106,6 +109,9 @@ export default {
           information: participantMode ? env.APPROVED_INFO_TEXT : null,
           build: STUDY_BUILD,
           accountLogin: env.ACCOUNT_LOGIN === "on",
+          emailRecovery:
+            !!env.PUBLIC_ORIGIN &&
+            mailReady({ ...env, PUBLIC_ORIGIN: env.PUBLIC_ORIGIN }),
           googleSignIn: !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET,
         });
       if (url.pathname.startsWith("/admin/")) {
