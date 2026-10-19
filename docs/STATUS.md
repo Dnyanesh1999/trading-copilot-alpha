@@ -1,3 +1,9 @@
+# 19 October 2026 — test email received
+
+Owner confirmed receipt of the single authorised plain test email. Brevo email delivery to the owner inbox is verified. Actual app signup-verification and password-reset link journeys still await an owner-controlled live test; isolated auth semantics passed previously. No further sends or external participant collection.
+
+---
+
 # 19 October 2026 — Brevo configured; inbox test pending
 
 Owner authorised restricted recovery key creation; credentials are private and outside source control. API verified free plan, enabled transactional relay and active selected sender. Uploaded BREVO_API_KEY and ACCOUNT_MAIL_FROM through protected stdin. Live config now confirms emailRecovery true, Google sign-in true, rehearsal mode; no emails sent yet. Secret-change Worker66c62647-dbe2-4bf7-934b-2a462fddbaf5 retains built assetindex-DLBKySRk.js. Live recovery request page visibly renders email and Send reset link. Owner Google session remains signed in and unchanged.
