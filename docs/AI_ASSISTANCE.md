@@ -63,4 +63,6 @@ Codex subagent core_validation independently authored 50 regression/edge-case te
 
 OpenAI Codex (exact deployed model version not exposed) implemented the user-approved first-stage repair from Dnyanesh's product audit. The fictional four-trade regression is derived from the user-supplied test scenario; no real market data, participant outcome or external Claude/Gemini review is claimed. Codex independently ran 216 tests, frontend build, Worker type-check and local Playwright desktop/mobile checks. Existing Gemini model/prompt and account secrets were not changed. No AI inference cost was incurred for this implementation; Codex tool usage cost is not available. The audit-session cleanup remains unperformed pending exact identification. See `verification/STAGE1_REVIEW_CORRECTNESS.md`.
 
+21 October 2026 — Claude (Anthropic; exact model/version not supplied) independently QA-tested the live study build and reviewed local Stage 1/1.1; its findings informed Stage 1.1 items 1–4. This was developer QA, not participant evidence.
+
 ---
