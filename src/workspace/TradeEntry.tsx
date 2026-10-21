@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Plus, Trash2, FlaskConical } from "lucide-react";
 import {
   defaultTrade,
@@ -64,6 +64,7 @@ export function TradeEntry({
   onSession: (s: Session) => void;
   onSample: () => void;
 }) {
+  const formRef = useRef<HTMLElement>(null);
   const [initial] = useState(readDraft);
   const [trades, setTrades] = useState<TradeDraft[]>(initial.trades);
   const [complete, setComplete] = useState(initial.complete);
@@ -83,10 +84,28 @@ export function TradeEntry({
   }, [trades, complete]);
   const [error, setError] = useState("");
   const [fieldError, setFieldError] = useState<TradeInputError | null>(null);
-  const edit = (index: number, key: keyof TradeDraft, value: string) =>
+  useEffect(() => {
+    if (!fieldError) return;
+    const field = formRef.current?.querySelector<
+      HTMLInputElement | HTMLSelectElement
+    >('[aria-invalid="true"]');
+    field?.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "center",
+    });
+    field?.focus({ preventScroll: true });
+  }, [fieldError]);
+  const edit = (index: number, key: keyof TradeDraft, value: string) => {
+    if (fieldError?.tradeIndex === index && fieldError.field === key) {
+      setFieldError(null);
+      setError("");
+    }
     setTrades((items) =>
       items.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
     );
+  };
   const fields: [keyof TradeDraft, string, string][] = [
     ["instrument", "Instrument", "text"],
     ["quantity", "Quantity", "number"],
@@ -99,7 +118,7 @@ export function TradeEntry({
     ["exitedAt", "Full exit time (IST) · optional", "datetime-local"],
   ];
   return (
-    <section className="panel">
+    <section className="panel" ref={formRef}>
       <div className="section-title">
         <div>
           <h2>Add the trades you want to review.</h2>

@@ -558,6 +558,19 @@ input[type="number"] {
 .trade-grid label {
   margin: 9px 0;
 }
+.trade-form [aria-invalid="true"] {
+  border-color: #b75149;
+  background: #fffafa;
+  box-shadow: 0 0 0 2px rgba(183, 81, 73, 0.13);
+}
+.trade-form small[role="alert"] {
+  display: block;
+  color: #a9433c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-top: 6px;
+}
 .trade-footer {
   display: flex;
   justify-content: space-between;

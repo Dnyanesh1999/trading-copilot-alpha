@@ -243,6 +243,33 @@ describe("Stage 1 fictional four-trade audit regression", () => {
     ).toBe("insufficient_evidence");
   });
 
+  it("points the form to the invalid stop on the correct trade", () => {
+    const first = {
+      ...defaultTrade,
+      instrument: "FICTIONAL-CLEAN",
+      quantity: "10",
+      entryPrice: "100",
+      enteredAt: "2026-10-16T09:20",
+      stopDeclaration: "had-stop" as const,
+      stopPrice: "95",
+      planRecordedAt: "2026-10-16T09:10",
+    };
+    const second = {
+      ...first,
+      instrument: "FICTIONAL-INVALID",
+      stopPrice: "105",
+    };
+    try {
+      tradesToSession([first, second], true);
+      throw new Error("Expected the second trade to fail validation.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(TradeInputError);
+      expect(error).toMatchObject({ tradeIndex: 1, field: "stopPrice" });
+      expect(first.stopPrice).toBe("95");
+      expect(second.stopPrice).toBe("105");
+    }
+  });
+
   it("corrects a review in memory, then exports identical counts without rewriting legacy date or rules", () => {
     const original = position("HDFCBANK", 100, 10, null, null, null);
     const before = reviewSession(rules(), session([original]));
