@@ -9,7 +9,7 @@ import type {
 } from "./types";
 import { initialLevelErrors, stopDeclaration } from "./stop-record";
 
-export const REVIEW_LOGIC_VERSION = 2;
+export const REVIEW_LOGIC_VERSION = 3;
 
 export function validRules(maxPositions: number, cutoff: string): boolean {
   return (
@@ -110,7 +110,11 @@ function groupPositions(positions: Position[]): Position[] {
 }
 const ordinal = (n: number) =>
   `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
-export function reviewSession(rules: ConfirmedRules, input: Session): Review {
+export function reviewSession(
+  rules: ConfirmedRules,
+  input: Session,
+  source?: "sample" | "manual" | "csv",
+): Review {
   if (
     (rules.setup !== undefined &&
       (!rules.setup ||
@@ -176,71 +180,82 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
         ...extra,
       });
     if (rules.setup) {
-      const signal = position.signal;
-      const signalTime = timestampInfo(signal?.at ?? null);
-      const rangeEnd = timestampInfo(signal?.rangeEnd ?? null);
-      const priced =
-        signal &&
-        validPrice(signal.close ?? undefined) &&
-        validPrice(signal.reference ?? undefined);
-      const prior =
-        signal &&
-        validPrice(signal.previousClose ?? undefined) &&
-        validPrice(signal.previousReference ?? undefined);
-      const rangeValid =
-        rules.setup.kind !== "opening-range" ||
-        (signalTime &&
-          rangeEnd &&
-          rangeEnd.day === signalTime.day &&
+      if (source === "manual") {
+        make(
+          "setup-entry",
+          "not_checked",
+          "Not checked (manual entry has no signal data)",
+          "This manual form records trades and risk plans, but has no signal fields. The documented entry setup was not assessed.",
+          "No signal comparison was run",
+          [],
+        );
+      } else {
+        const signal = position.signal;
+        const signalTime = timestampInfo(signal?.at ?? null);
+        const rangeEnd = timestampInfo(signal?.rangeEnd ?? null);
+        const priced =
+          signal &&
+          validPrice(signal.close ?? undefined) &&
+          validPrice(signal.reference ?? undefined);
+        const prior =
+          signal &&
+          validPrice(signal.previousClose ?? undefined) &&
+          validPrice(signal.previousReference ?? undefined);
+        const rangeValid =
+          rules.setup.kind !== "opening-range" ||
+          (signalTime &&
+            rangeEnd &&
+            rangeEnd.day === signalTime.day &&
+            entry &&
+            entry.day === signalTime.day &&
+            rangeEnd.seconds === 9 * 3600 + 30 * 60 &&
+            signalTime.epoch >= rangeEnd.epoch);
+        const available =
+          position.direction === "long" &&
           entry &&
-          entry.day === signalTime.day &&
-          rangeEnd.seconds === 9 * 3600 + 30 * 60 &&
-          signalTime.epoch >= rangeEnd.epoch);
-      const available =
-        position.direction === "long" &&
-        entry &&
-        signalTime &&
-        signalTime.epoch < entry.epoch &&
-        priced &&
-        (rules.setup.kind !== "ma-reclaim" || prior) &&
-        rangeValid;
-      const matched =
-        available &&
-        signal!.close! > signal!.reference! &&
-        (rules.setup.kind !== "ma-reclaim" ||
-          signal!.previousClose! <= signal!.previousReference!);
-      make(
-        "setup-entry",
-        !available
-          ? "insufficient_evidence"
-          : matched
-            ? "followed"
-            : "deviated",
-        !available
-          ? "Setup: evidence missing or timing unclear"
-          : matched
-            ? "Documented signal matches the setup"
-            : "Documented signal did not match the setup",
-        !available
-          ? "A long position, valid documented signal before entry, and the setup's required reference values are needed. Opening-range examples require a same-day 09:30 IST range end. Late signals cannot establish the entry setup."
-          : "Compared only with the supplied signal and reference values. Market prices and indicator calculations have not been independently verified.",
-        !available
-          ? "Entry setup cannot be verified from the supplied records"
-          : `${signal!.close} ${signal!.close! > signal!.reference! ? ">" : "≤"} ${signal!.reference}` +
-              (rules.setup.kind === "ma-reclaim"
-                ? `; prior close ${signal!.previousClose} ${signal!.previousClose! <= signal!.previousReference! ? "≤" : ">"} prior reference ${signal!.previousReference}`
-                : "") +
-              (rules.setup.kind === "opening-range"
-                ? "; documented 09:15–09:30 IST range"
-                : "") +
-              "; signal precedes entry",
-        [
-          ...(signal ? [`${position.id}-signal`] : []),
-          ...position.executions
-            .filter((e) => e.side === "entry")
-            .map((e) => e.id),
-        ],
-      );
+          signalTime &&
+          signalTime.epoch < entry.epoch &&
+          priced &&
+          (rules.setup.kind !== "ma-reclaim" || prior) &&
+          rangeValid;
+        const matched =
+          available &&
+          signal!.close! > signal!.reference! &&
+          (rules.setup.kind !== "ma-reclaim" ||
+            signal!.previousClose! <= signal!.previousReference!);
+        make(
+          "setup-entry",
+          !available
+            ? "insufficient_evidence"
+            : matched
+              ? "followed"
+              : "deviated",
+          !available
+            ? "Setup: evidence missing or timing unclear"
+            : matched
+              ? "Documented signal matches the setup"
+              : "Documented signal did not match the setup",
+          !available
+            ? "A long position, valid documented signal before entry, and the setup's required reference values are needed. Opening-range examples require a same-day 09:30 IST range end. Late signals cannot establish the entry setup."
+            : "Compared only with the supplied signal and reference values. Market prices and indicator calculations have not been independently verified.",
+          !available
+            ? "Entry setup cannot be verified from the supplied records"
+            : `${signal!.close} ${signal!.close! > signal!.reference! ? ">" : "≤"} ${signal!.reference}` +
+                (rules.setup.kind === "ma-reclaim"
+                  ? `; prior close ${signal!.previousClose} ${signal!.previousClose! <= signal!.previousReference! ? "≤" : ">"} prior reference ${signal!.previousReference}`
+                  : "") +
+                (rules.setup.kind === "opening-range"
+                  ? "; documented 09:15–09:30 IST range"
+                  : "") +
+                "; signal precedes entry",
+          [
+            ...(signal ? [`${position.id}-signal`] : []),
+            ...position.executions
+              .filter((e) => e.side === "entry")
+              .map((e) => e.id),
+          ],
+        );
+      }
     }
     const entries = position.executions.filter((e) => e.side === "entry");
     if (!countCovered || !entry) {
@@ -481,7 +496,9 @@ export function positionStatus(
   review: Review,
   positionId: string,
 ): FindingStatus {
-  const findings = review.findings.filter((f) => f.positionId === positionId);
+  const findings = review.findings.filter(
+    (f) => f.positionId === positionId && f.status !== "not_checked",
+  );
   if (!findings.length) return "insufficient_evidence";
   return findings.some((f) => f.status === "deviated")
     ? "deviated"
@@ -572,7 +589,7 @@ export function reviewCounts(review: Review) {
   ).length;
   const attention = new Set(
     review.findings
-      .filter((f) => f.status !== "followed")
+      .filter((f) => f.status !== "followed" && f.status !== "not_checked")
       .map((f) => f.positionId),
   );
   const noStop = review.session.positions.filter(

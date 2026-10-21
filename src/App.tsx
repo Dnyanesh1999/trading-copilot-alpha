@@ -171,7 +171,7 @@ export default function App() {
         source,
         strategyName: strategy.name,
         focus: "",
-        review: reviewSession(confirmed, session),
+        review: reviewSession(confirmed, session, source),
       });
       setPage("trades");
       setError("");
@@ -216,12 +216,16 @@ export default function App() {
             ...current,
             reviewLogicVersion: REVIEW_LOGIC_VERSION,
             recomputed: false,
-            review: reviewSession(current.review.rules, {
-              ...current.review.session,
-              positions: current.review.session.positions.map((p) =>
-                p.id === position.id ? position : p,
-              ),
-            }),
+            review: reviewSession(
+              current.review.rules,
+              {
+                ...current.review.session,
+                positions: current.review.session.positions.map((p) =>
+                  p.id === position.id ? position : p,
+                ),
+              },
+              current.source,
+            ),
           }
         : current,
     );

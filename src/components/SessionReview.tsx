@@ -35,6 +35,7 @@ const statusLabel = {
   followed: "Followed",
   deviated: "Deviated",
   insufficient_evidence: "Insufficient evidence",
+  not_checked: "Not checked",
 };
 const examples: { id: ExampleMode; label: string }[] = [
   { id: "full", label: "Full execution record" },

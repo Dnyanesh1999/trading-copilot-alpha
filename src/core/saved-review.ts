@@ -110,6 +110,7 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
     const computed = reviewSession(
       value.review.rules as unknown as ConfirmedRules,
       session as unknown as Review["session"],
+      value.source as ReviewEntry["source"],
     );
     return {
       id: value.id,

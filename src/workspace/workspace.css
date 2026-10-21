@@ -707,6 +707,9 @@ input[type="number"] {
 .status.insufficient_evidence {
   color: #88859b;
 }
+.status.not_checked {
+  color: #737783;
+}
 .result-number {
   text-align: right;
   white-space: nowrap;

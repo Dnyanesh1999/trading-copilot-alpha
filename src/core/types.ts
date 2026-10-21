@@ -1,4 +1,5 @@
-export type FindingStatus = "followed" | "deviated" | "insufficient_evidence";
+export type FindingStatus =
+  "followed" | "deviated" | "insufficient_evidence" | "not_checked";
 export type RuleId =
   | "daily-limit"
   | "entry-cutoff"

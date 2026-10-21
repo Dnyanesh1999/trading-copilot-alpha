@@ -126,9 +126,9 @@ export function improvementsFor(review: Review): Improvement[] {
       id: "maintain",
       title: "Keep the checklist for your next review",
       reason:
-        "The supplied evidence follows every selected check. A profit or loss does not change that conclusion.",
+        "Every assessed check was followed. Checks marked Not checked were not assessed; a profit or loss does not change the result.",
       steps: [
-        "Keep recording the same entry, plan and signal evidence.",
+        "Keep recording the same entry and plan information.",
         "Review the next session against the same confirmed rules before deciding what to change.",
       ],
       findings: [],

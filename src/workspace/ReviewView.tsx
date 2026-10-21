@@ -23,6 +23,7 @@ const statusText = {
   followed: "Followed",
   deviated: "Broke rule",
   insufficient_evidence: "Not enough data",
+  not_checked: "Not checked",
 };
 function istLocal(value: string | null | undefined) {
   const epoch = value ? Date.parse(value) : NaN;
@@ -199,7 +200,7 @@ export function ReviewView({
       </section>
       {entry.recomputed && (
         <p className="review-alert" role="status">
-          This older review has been recalculated with review logic version 2.
+          This older review has been recalculated with review logic version 3.
           Your original trade inputs, confirmed rules and saved date have not
           changed. Save explicitly to keep these results.
         </p>
