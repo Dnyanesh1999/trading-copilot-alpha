@@ -155,12 +155,13 @@ export default {
         if (url.pathname === "/admin/export" && request.method === "GET") {
           const statements = [
             "SELECT * FROM participants ORDER BY participant_id",
-            "SELECT session_id,participant_id,mode,consent_version,consented_at,app_version,started_at,ended_at,status FROM sessions ORDER BY started_at",
-            "SELECT * FROM tasks ORDER BY session_id,task_id",
-            "SELECT * FROM ratings ORDER BY session_id,item_id",
-            "SELECT * FROM comments ORDER BY session_id,comment_id",
-            "SELECT event_id,session_id,sequence,payload,received_at FROM usage_events ORDER BY session_id,sequence",
+            "SELECT session_id,participant_id,mode,consent_version,consented_at,app_version,started_at,ended_at,status FROM sessions WHERE session_id NOT IN (SELECT session_id FROM study_exclusions) ORDER BY started_at",
+            "SELECT * FROM tasks WHERE session_id NOT IN (SELECT session_id FROM study_exclusions) ORDER BY session_id,task_id",
+            "SELECT * FROM ratings WHERE session_id NOT IN (SELECT session_id FROM study_exclusions) ORDER BY session_id,item_id",
+            "SELECT * FROM comments WHERE session_id NOT IN (SELECT session_id FROM study_exclusions) ORDER BY session_id,comment_id",
+            "SELECT event_id,session_id,sequence,payload,received_at FROM usage_events WHERE session_id NOT IN (SELECT session_id FROM study_exclusions) ORDER BY session_id,sequence",
             "SELECT participant_id,created_at FROM study_invites ORDER BY participant_id",
+            "SELECT session_id,classification,reason,requested_by,event_count_at_mark,excluded_at FROM study_exclusions ORDER BY excluded_at",
           ];
           const result = await env.DB.batch(
             statements.map((s) => env.DB.prepare(s)),
@@ -175,6 +176,7 @@ export default {
                 "comments",
                 "events",
                 "invites",
+                "exclusions",
               ].map((key, i) => [key, result[i].results]),
             ),
           );

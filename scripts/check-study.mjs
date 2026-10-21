@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {parseEnv} from 'node:util';
 const secret=parseEnv(readFileSync(new URL('../worker/.dev.vars',import.meta.url),'utf8')).STUDY_ADMIN_TOKEN;
 const root=process.env.STUDY_CHECK_URL || 'http://127.0.0.1:8789';
@@ -50,4 +51,21 @@ assert.equal(after.ratings.filter(t=>t.session_id===s.sessionId).length,13);asse
 assert.equal(after.comments.filter(t=>t.session_id===s.sessionId).length,1);checks++;
 assert(!JSON.stringify(after).includes(invite.accessCode));assert(!JSON.stringify(after).includes(s.sessionToken));checks+=2;
 assert(after.sessions.find(t=>t.session_id===s.sessionId).status==='finished');checks++;
+if(!remote){
+  const beforeParticipants=after.participants.length;
+  const beforeOtherSessions=after.sessions.filter(t=>t.session_id!==s.sessionId).map(t=>t.session_id);
+  execFileSync('node_modules/.bin/wrangler',['d1','execute','DB','--local','--config','worker/study.wrangler.jsonc','--command',`INSERT INTO study_exclusions(session_id,classification,reason,requested_by,event_count_at_mark) SELECT '${s.sessionId}','developer_qa','Synthetic integration check','test harness',(SELECT COUNT(*) FROM usage_events WHERE session_id='${s.sessionId}') WHERE EXISTS (SELECT 1 FROM sessions WHERE session_id='${s.sessionId}')`],{stdio:'pipe'});
+  const excluded=await(await status(await req('/admin/export'),200)).json();
+  assert(!excluded.sessions.some(t=>t.session_id===s.sessionId));
+  assert(!excluded.events.some(t=>t.session_id===s.sessionId));
+  assert(!excluded.tasks.some(t=>t.session_id===s.sessionId));
+  assert(!excluded.ratings.some(t=>t.session_id===s.sessionId));
+  assert(!excluded.comments.some(t=>t.session_id===s.sessionId));
+  assert.equal(excluded.participants.length,beforeParticipants);
+  assert.deepEqual(excluded.sessions.map(t=>t.session_id),beforeOtherSessions);
+  assert.equal(excluded.exclusions.find(t=>t.session_id===s.sessionId)?.event_count_at_mark,3);
+  checks+=8;
+  const raw=JSON.parse(execFileSync('node_modules/.bin/wrangler',['d1','execute','DB','--local','--config','worker/study.wrangler.jsonc','--command',`SELECT (SELECT COUNT(*) FROM sessions WHERE session_id='${s.sessionId}') AS session_count,(SELECT COUNT(*) FROM usage_events WHERE session_id='${s.sessionId}') AS event_count`,'--json'],{encoding:'utf8'}));
+  assert.deepEqual(raw[0].results[0],{session_count:1,event_count:3});checks++;
+}
 console.log(`${checks} study integration checks passed. Synthetic rehearsal records only; no credentials printed.`);
