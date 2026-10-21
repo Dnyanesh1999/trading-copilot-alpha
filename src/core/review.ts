@@ -231,7 +231,7 @@ export function reviewSession(
               ? "followed"
               : "deviated",
           !available
-            ? "Setup: evidence missing or timing unclear"
+            ? "Entry setup: not enough data"
             : matched
               ? "Documented signal matches the setup"
               : "Documented signal did not match the setup",
@@ -359,7 +359,9 @@ export function reviewSession(
               ? "Invalid initial stop"
               : available
                 ? `Stop recorded ${stopTime.clock} · entry ${entry.clock} IST`
-                : "Pre-entry stop: evidence missing",
+                : stopDeclaration(position) === "not-recorded"
+                  ? "Stop not recorded"
+                  : "Pre-entry stop: not enough data",
           noStop
             ? "Your confirmed rule requires a stop before entry. You explicitly reported no stop; this is a rule break, not missing data."
             : invalidStop
@@ -524,7 +526,7 @@ function legacySummary(review: Review) {
         : unknown.length
           ? "Some checks need more information."
           : "Every checked rule was followed.",
-      description: `${deviations.length} confirmed ${deviations.length === 1 ? "deviation" : "deviations"} · ${unknown.length} ${unknown.length === 1 ? "check needs" : "checks need"} more evidence. Select a position to connect its outcome with its plan.`,
+      description: `${deviations.length} confirmed ${deviations.length === 1 ? "deviation" : "deviations"} · ${unknown.length} ${unknown.length === 1 ? "check needs" : "checks need"} more data. Select a position to connect its outcome with its plan.`,
     };
   if (unknown.length)
     return {
@@ -533,7 +535,7 @@ function legacySummary(review: Review) {
         : deviations.length
           ? "A limit crossed. Some checks need more information."
           : "Some checks need more information.",
-      description: `${deviations.length} confirmed rule ${deviations.length === 1 ? "deviation" : "deviations"}; ${unknown.length} ${unknown.length === 1 ? "check is" : "checks are"} unresolved. Missing evidence is never treated as following a rule.`,
+      description: `${deviations.length} confirmed rule ${deviations.length === 1 ? "deviation" : "deviations"}; ${unknown.length} ${unknown.length === 1 ? "check is" : "checks are"} unresolved. Not enough data is never treated as following a rule.`,
     };
   if (
     count === 1 &&
@@ -622,7 +624,7 @@ export function reviewSummary(review: Review) {
   const counts = reviewCounts(review);
   const title = review.rules.checks
     ? counts.tradesNeedingAttention
-      ? `${counts.tradesNeedingAttention} of ${counts.trades} ${counts.trades === 1 ? "trade needs" : "trades need"} attention.`
+      ? `${counts.tradesNeedingAttention} of ${counts.trades} ${counts.trades === 1 ? "trade" : "trades"} ${counts.tradesNeedingAttention === 1 ? "needs" : "need"} attention.`
       : counts.trades === 1
         ? "This trade followed the checked rules."
         : `All ${counts.trades} trades followed the checked rules.`

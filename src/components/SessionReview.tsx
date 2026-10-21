@@ -34,7 +34,7 @@ import { Arrow, Modal } from "./Chrome";
 const statusLabel = {
   followed: "Followed",
   deviated: "Deviated",
-  insufficient_evidence: "Insufficient evidence",
+  insufficient_evidence: "Not enough data",
   not_checked: "Not checked",
 };
 const examples: { id: ExampleMode; label: string }[] = [
@@ -235,7 +235,7 @@ function Evidence({
         )}
       </div>
       <p className="fine-print">
-        Checks use your confirmed rule snapshot. Missing evidence cannot
+        Checks use your confirmed rule snapshot. Not enough data cannot
         establish adherence. Plan records do not prove a protective broker order
         was placed or honoured. All instruments, prices and executions are
         invented.
