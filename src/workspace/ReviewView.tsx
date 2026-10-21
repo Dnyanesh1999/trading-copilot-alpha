@@ -15,6 +15,7 @@ import {
   positionStatus,
   needsReview,
   initialPositionErrors,
+  stopRecordNeedsCorrection,
   reviewSummary,
   rupees,
   RULE_LABELS,
@@ -49,6 +50,19 @@ function StopRecordEditor({
   );
   const [timeUnknown, setTimeUnknown] = useState(!position.stop?.recordedAt);
   const [error, setError] = useState("");
+  const [expanded, setExpanded] = useState(() =>
+    stopRecordNeedsCorrection(position),
+  );
+  if (!expanded)
+    return (
+      <button
+        className="text-button stop-edit-toggle"
+        aria-expanded="false"
+        onClick={() => setExpanded(true)}
+      >
+        Edit stop record
+      </button>
+    );
   return (
     <section className="stop-record-editor" aria-label="Correct stop record">
       <div>

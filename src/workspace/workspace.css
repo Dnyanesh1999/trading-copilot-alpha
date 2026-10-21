@@ -611,6 +611,10 @@ input[type="number"] {
   margin: 16px 0 20px;
   background: #fcfbfd;
 }
+.stop-edit-toggle {
+  margin: 5px 0 15px;
+  font-size: 12px;
+}
 .stop-record-editor > div:first-child strong {
   font-size: 13px;
 }

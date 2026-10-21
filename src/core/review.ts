@@ -573,6 +573,14 @@ export function initialPositionErrors(position: Position) {
       )
     : {};
 }
+export function stopRecordNeedsCorrection(position: Position) {
+  return (
+    stopDeclaration(position) !== "had-stop" ||
+    !position.stop ||
+    !timestampInfo(position.stop.recordedAt) ||
+    !!initialPositionErrors(position).stop
+  );
+}
 export function needsReview(finding: Finding) {
   return (
     finding.status === "insufficient_evidence" &&
