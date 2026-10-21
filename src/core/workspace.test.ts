@@ -13,6 +13,7 @@ const trade = {
   quantity: "10",
   entryPrice: "100",
   stopPrice: "95",
+  stopDeclaration: "had-stop" as const,
   targetPrice: "110",
   enteredAt: "2026-10-16T10:00",
   planRecordedAt: "2026-10-16T09:00",
@@ -38,7 +39,14 @@ describe("strategy workspace", () => {
   });
   it("treats overflowing derived metrics as missing evidence", () => {
     const session = tradesToSession(
-      [{ ...trade, quantity: "1e200", entryPrice: "1e200" }],
+      [
+        {
+          ...trade,
+          quantity: "1e200",
+          entryPrice: "1e200",
+          targetPrice: "1e201",
+        },
+      ],
       true,
     );
     const findings = reviewSession(
@@ -52,7 +60,15 @@ describe("strategy workspace", () => {
       "insufficient_evidence",
     );
     const riskOverflow = tradesToSession(
-      [{ ...trade, quantity: "1e100", entryPrice: "1e207", stopPrice: "1" }],
+      [
+        {
+          ...trade,
+          quantity: "1e100",
+          entryPrice: "1e207",
+          stopPrice: "1",
+          targetPrice: "1e208",
+        },
+      ],
       true,
     );
     expect(
@@ -102,7 +118,10 @@ describe("strategy workspace", () => {
     );
   });
   it("never infers pre-entry plan timing", () => {
-    const session = tradesToSession([{ ...trade, planRecordedAt: "" }], true);
+    const session = tradesToSession(
+      [{ ...trade, planRecordedAt: "", planTimeUnknown: "yes" }],
+      true,
+    );
     expect(session.positions[0].stop?.recordedAt).toBeNull();
     expect(session.positions[0].executions[0].timestamp).toBe(
       "2026-10-16T10:00:00+05:30",

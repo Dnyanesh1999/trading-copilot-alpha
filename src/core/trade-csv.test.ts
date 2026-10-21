@@ -49,6 +49,7 @@ describe("browser-only app trade CSV", () => {
       "150",
       "2026-10-16T09:15:00+05:30",
       "fictional",
+      "had-stop",
     ].join(",");
     const original = parseTradeCsv(csv(row, CSV_COLUMNS.join(","))).session;
     const output = sessionToCsv(original);

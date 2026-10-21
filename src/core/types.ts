@@ -36,6 +36,7 @@ export interface Execution {
   price: number;
 }
 export interface Position {
+  stopDeclaration?: "had-stop" | "no-stop" | "not-recorded";
   signal?: {
     at: string | null;
     close: number | null;
@@ -65,6 +66,18 @@ export interface Session {
   positions: Position[];
 }
 export interface Finding {
+  comparisonBasis?:
+    | "pre-entry"
+    | "late-plan"
+    | "timing-unknown"
+    | "user-declared"
+    | "invalid-record";
+  reportedComparison?: {
+    value: number;
+    limit: number;
+    unit: "INR" | "R";
+    breached: boolean;
+  };
   positionId: string;
   ruleId: RuleId;
   rulesId: string;

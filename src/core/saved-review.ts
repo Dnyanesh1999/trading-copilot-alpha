@@ -1,10 +1,13 @@
 import type { ConfirmedRules, Review } from "./types";
-import { reviewSession } from "./review";
+import { reviewSession, REVIEW_LOGIC_VERSION, reviewCounts } from "./review";
+import { stopDeclarations } from "./stop-record";
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
 const text = (value: unknown, max: number): value is string =>
   typeof value === "string" && value.length <= max;
 export interface ReviewEntry {
+  reviewLogicVersion?: number;
+  recomputed?: boolean;
   id: string;
   name: string;
   savedAt: string;
@@ -67,6 +70,18 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
     !(session.positions as unknown[]).every(
       (position) =>
         record(position) &&
+        (position.stopDeclaration === undefined ||
+          stopDeclarations.includes(
+            position.stopDeclaration as NonNullable<
+              Review["session"]["positions"][number]["stopDeclaration"]
+            >,
+          )) &&
+        (position.stopDeclaration !== "had-stop" || position.stop != null) &&
+        (!(
+          position.stopDeclaration === "no-stop" ||
+          position.stopDeclaration === "not-recorded"
+        ) ||
+          position.stop == null) &&
         text(position.id, 200) &&
         text(position.instrument, 200) &&
         signal(position.signal) &&
@@ -103,9 +118,21 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
       source: value.source as ReviewEntry["source"],
       strategyName: value.strategyName,
       focus: value.focus,
+      reviewLogicVersion:
+        typeof value.reviewLogicVersion === "number"
+          ? value.reviewLogicVersion
+          : 1,
+      recomputed: value.reviewLogicVersion !== REVIEW_LOGIC_VERSION,
       review: computed,
     };
   } catch {
     return null;
   }
+}
+export function exportReview(entry: ReviewEntry) {
+  return {
+    ...entry,
+    evaluatedWithLogicVersion: REVIEW_LOGIC_VERSION,
+    summary: reviewCounts(entry.review),
+  };
 }

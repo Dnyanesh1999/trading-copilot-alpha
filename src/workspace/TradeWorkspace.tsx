@@ -224,7 +224,10 @@ export function TradeWorkspace({
                 before uploading. One complete entry and optional full exit per
                 row. Timestamps include an offset, for example
                 2026-10-15T09:40:00+05:30. Stop/target and signal evidence are
-                optional; missing fields remain unknown.
+                optional; missing fields remain unknown. Use
+                stop_declaration=no-stop only when you explicitly know there
+                was no initial stop. A blank stop in an older file stays
+                unresolved.
               </p>
               <details className="csv-help">
                 <summary>What about my broker tradebook?</summary>

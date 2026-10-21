@@ -1,5 +1,5 @@
 export const CONSENT_VERSION = "rehearsal-2026-10-18-v1";
-export const STUDY_BUILD = "study-rehearsal-v1";
+export const STUDY_BUILD = "study-rehearsal-stage1-v2";
 export const TASKS = [
   {
     id: "strategy",

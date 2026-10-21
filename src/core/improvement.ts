@@ -1,12 +1,12 @@
 import type { Finding, Review, RuleId } from "./types";
-import { planMetrics, rupees } from "./review";
+import { needsReview, planMetrics, rupees } from "./review";
 export interface Improvement {
   id: string;
   title: string;
   reason: string;
   steps: string[];
   findings: Finding[];
-  kind: "deviation" | "evidence" | "maintain";
+  kind: "deviation" | "reported" | "evidence" | "maintain";
 }
 const order: RuleId[] = [
   "stop-before-entry",
@@ -93,8 +93,21 @@ export function improvementsFor(review: Review): Improvement[] {
       });
     }
   }
+  const reported = review.findings.filter(needsReview);
+  if (reported.length)
+    result.push({
+      id: "reported-plan",
+      title: "Check the reported risk and target",
+      reason: `${reported.map((f) => f.label).join("; ")}. These figures come from a supplied plan whose original entry-time state is unverified.`,
+      steps: [
+        "Check when the original stop and target were recorded; keep later changes separate.",
+        "Before your next entry, compare planned risk and reward-to-risk with your confirmed limits.",
+      ],
+      findings: reported,
+      kind: "reported",
+    });
   const missing = review.findings.filter(
-    (f) => f.status === "insufficient_evidence",
+    (f) => f.status === "insufficient_evidence" && !needsReview(f),
   );
   if (missing.length)
     result.push({

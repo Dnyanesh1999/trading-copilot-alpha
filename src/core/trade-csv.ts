@@ -1,4 +1,9 @@
 import type { Position, Session } from "./types";
+import {
+  initialLevelErrors,
+  stopDeclaration,
+  stopDeclarations,
+} from "./stop-record";
 
 /** App template: one complete initial entry and optional full exit per row, not a broker export. */
 export const CSV_COLUMNS = [
@@ -19,6 +24,7 @@ export const CSV_COLUMNS = [
   "previous_reference",
   "range_end",
   "data_source",
+  "stop_declaration",
 ] as const;
 export type CsvProvenance = "fictional" | "user-supplied";
 type Column = (typeof CSV_COLUMNS)[number];
@@ -223,6 +229,29 @@ export function parseTradeCsv(text: string): {
       error(row, "exit_at must be after entry_at.");
     const stop = positive(read("stop_price"), row, "stop_price");
     const target = positive(read("target_price"), row, "target_price");
+    const declaration =
+      read("stop_declaration") || (stop === null ? "not-recorded" : "had-stop");
+    if (
+      !stopDeclarations.includes(
+        declaration as NonNullable<Position["stopDeclaration"]>,
+      )
+    )
+      error(row, "stop_declaration must be had-stop, no-stop or not-recorded.");
+    if (declaration !== "had-stop" && stop !== null)
+      error(
+        row,
+        "stop_price conflicts with stop_declaration; a price requires had-stop.",
+      );
+    if (declaration === "had-stop" && stop === null)
+      error(row, "stop_price is required when stop_declaration is had-stop.");
+    const levelErrors = initialLevelErrors(
+      direction as "long" | "short",
+      entry,
+      stop,
+      target,
+    );
+    if (levelErrors.stop) error(row, `stop_price: ${levelErrors.stop}`);
+    if (levelErrors.target) error(row, `target_price: ${levelErrors.target}`);
     const planAt = timestamp(read("plan_recorded_at"), row, "plan_recorded_at");
     if (planAt && stop === null && target === null)
       error(row, "plan_recorded_at needs a stop_price or target_price.");
@@ -243,6 +272,7 @@ export function parseTradeCsv(text: string): {
       id,
       instrument,
       direction: direction as "long" | "short",
+      stopDeclaration: declaration as NonNullable<Position["stopDeclaration"]>,
       firstEntryCovered: true,
       allEntriesCovered: true,
       executionsComplete: exit !== null,
@@ -354,6 +384,7 @@ export function sessionToCsv(
       p.signal?.previousReference,
       p.signal?.rangeEnd,
       provenance,
+      stopDeclaration(p),
     ];
     return values.map(quote).join(",");
   });

@@ -85,3 +85,8 @@ Minimal dashboard, strategy input/manual confirmation, optional checks, manual t
 
 Repository: https://github.com/Dnyanesh1999/trading-copilot-alpha
 Live page: https://dnyanesh1999.github.io/trading-copilot-alpha/
+# 21 October 2026 — Stage 1 review correctness, local checkpoint
+
+Approved first-stage repair implemented on `codex/stage1-review-correctness`. Explicit stop declarations, late-plan reported comparisons, initial level validation, review correction and shared counts are in place. Four-trade fictional regression, 216 tests, build/Worker check and local desktop/mobile Playwright flow passed. No participant or audit records were deleted, and no research exclusion was guessed. See [Stage 1 verification](verification/STAGE1_REVIEW_CORRECTNESS.md). Stage 2–5 remain separate. Deployment status is recorded below only after a verified release.
+
+---

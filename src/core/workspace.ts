@@ -1,5 +1,11 @@
-import type { ConfirmedRules, RuleId, Session } from "./types";
-import { reviewSession, timestampInfo, validRules } from "./review";
+import type { ConfirmedRules, Position, RuleId, Session } from "./types";
+import {
+  priceMetrics,
+  reviewSession,
+  timestampInfo,
+  validRules,
+} from "./review";
+import { initialLevelErrors, stopDeclarations } from "./stop-record";
 
 export interface StrategyDraft {
   setup?: ConfirmedRules["setup"];
@@ -66,6 +72,8 @@ export function confirmStrategy(draft: StrategyDraft): ConfirmedRules {
   return rules;
 }
 export interface TradeDraft {
+  stopDeclaration: "" | NonNullable<Position["stopDeclaration"]>;
+  planTimeUnknown: string;
   instrument: string;
   direction: "long" | "short";
   quantity: string;
@@ -78,6 +86,8 @@ export interface TradeDraft {
   planRecordedAt: string;
 }
 export const defaultTrade: TradeDraft = {
+  stopDeclaration: "",
+  planTimeUnknown: "",
   instrument: "",
   direction: "long",
   quantity: "",
@@ -103,6 +113,56 @@ function ist(value: string, label: string): string {
     throw new Error(`${label} needs a valid date and time in IST.`);
   return timestamp;
 }
+export class TradeInputError extends Error {
+  constructor(
+    message: string,
+    public tradeIndex: number,
+    public field: keyof TradeDraft,
+  ) {
+    super(message);
+  }
+}
+export function correctStopRecord(
+  position: Position,
+  declaration: TradeDraft["stopDeclaration"],
+  price: string,
+  recordedAt: string,
+  timeUnknown: boolean,
+): Position {
+  if (
+    !stopDeclarations.includes(
+      declaration as NonNullable<Position["stopDeclaration"]>,
+    )
+  )
+    throw new Error("Choose Had a stop, No stop or Not recorded.");
+  if (declaration !== "had-stop")
+    return {
+      ...position,
+      stopDeclaration: declaration,
+      stop: null,
+    } as Position;
+  const stop = positive(price, "Initial stop price");
+  const filled = priceMetrics(position);
+  if (!filled || !position.direction)
+    throw new Error(
+      "Complete initial entry records are needed to correct the stop.",
+    );
+  const issue = initialLevelErrors(position.direction, filled.price, stop).stop;
+  if (issue) throw new Error(issue);
+  if (!recordedAt && !timeUnknown)
+    throw new Error(
+      "Enter the stop recording time or explicitly mark it unknown.",
+    );
+  return {
+    ...position,
+    stopDeclaration: "had-stop",
+    stop: {
+      id: position.stop?.id ?? `${position.id}-stop`,
+      price: stop,
+      recordedAt: timeUnknown ? null : ist(recordedAt, "Stop recording"),
+    },
+  };
+}
 export function tradesToSession(
   trades: TradeDraft[],
   recordsComplete: boolean,
@@ -118,6 +178,52 @@ export function tradesToSession(
       throw new Error(`${prefix}: choose long or short.`);
     const quantity = positive(trade.quantity, `${prefix} quantity`);
     const price = positive(trade.entryPrice, `${prefix} entry price`);
+    const fail = (field: keyof TradeDraft, message: string): never => {
+      throw new TradeInputError(`${prefix}: ${message}`, index, field);
+    };
+    if (
+      !stopDeclarations.includes(
+        trade.stopDeclaration as NonNullable<Position["stopDeclaration"]>,
+      )
+    )
+      fail("stopDeclaration", "choose Had a stop, No stop or Not recorded.");
+    if (trade.stopDeclaration === "had-stop" && !trade.stopPrice.trim())
+      fail("stopPrice", "enter the initial stop price.");
+    if (trade.stopDeclaration !== "had-stop" && trade.stopPrice.trim())
+      fail("stopPrice", "a stop price requires Had a stop.");
+    let stopPrice: number | null = null;
+    let targetPrice: number | null = null;
+    if (trade.stopPrice.trim()) {
+      try {
+        stopPrice = positive(trade.stopPrice, `${prefix} stop price`);
+      } catch {
+        fail("stopPrice", "initial stop price must be a positive number.");
+      }
+    }
+    if (trade.targetPrice.trim()) {
+      try {
+        targetPrice = positive(trade.targetPrice, `${prefix} target price`);
+      } catch {
+        fail("targetPrice", "initial target price must be a positive number.");
+      }
+    }
+    const levels = initialLevelErrors(
+      trade.direction,
+      price,
+      stopPrice,
+      targetPrice,
+    );
+    if (levels.stop) fail("stopPrice", levels.stop);
+    if (levels.target) fail("targetPrice", levels.target);
+    if (
+      (trade.stopPrice.trim() || trade.targetPrice.trim()) &&
+      !trade.planRecordedAt.trim() &&
+      trade.planTimeUnknown !== "yes"
+    )
+      fail(
+        "planRecordedAt",
+        "enter the plan recording time or explicitly mark it unknown.",
+      );
     const timestamp = ist(trade.enteredAt, `${prefix} entry`);
     const id = crypto.randomUUID();
     const executions: Session["positions"][number]["executions"] = [
@@ -137,12 +243,18 @@ export function tradesToSession(
         timestamp: exitTime,
       });
     }
-    const recordedAt = trade.planRecordedAt.trim()
-      ? ist(trade.planRecordedAt, `${prefix} plan recording`)
-      : null;
+    const recordedAt =
+      trade.planTimeUnknown === "yes"
+        ? null
+        : trade.planRecordedAt.trim()
+          ? ist(trade.planRecordedAt, `${prefix} plan recording`)
+          : null;
     return {
       id,
       instrument,
+      stopDeclaration: trade.stopDeclaration as NonNullable<
+        Position["stopDeclaration"]
+      >,
       direction: trade.direction,
       firstEntryCovered: true,
       allEntriesCovered: true,
@@ -151,14 +263,14 @@ export function tradesToSession(
       stop: trade.stopPrice.trim()
         ? {
             id: `${id}-stop`,
-            price: positive(trade.stopPrice, `${prefix} stop price`),
+            price: stopPrice!,
             recordedAt,
           }
         : null,
       target: trade.targetPrice.trim()
         ? {
             id: `${id}-target`,
-            price: positive(trade.targetPrice, `${prefix} target price`),
+            price: targetPrice!,
             recordedAt,
           }
         : null,

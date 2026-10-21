@@ -85,9 +85,11 @@ export function ImprovementPlan({
               <small>
                 {p.kind === "deviation"
                   ? "Confirmed deviation"
-                  : p.kind === "evidence"
-                    ? "Evidence gap"
-                    : "Keep practising"}
+                  : p.kind === "reported"
+                    ? "Needs review"
+                    : p.kind === "evidence"
+                      ? "Evidence gap"
+                      : "Keep practising"}
               </small>
             </div>
             <strong>{p.title}</strong>

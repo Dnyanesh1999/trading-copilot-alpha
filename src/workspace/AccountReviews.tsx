@@ -2,7 +2,11 @@ import { downloadJson } from "./persistence";
 import { useEffect, useState } from "react";
 import { Cloud, RefreshCw, ArrowRight, Trash2 } from "lucide-react";
 import { accountRequest } from "../study/AccountEntry";
-import { validateReviewEntry, type ReviewEntry } from "../core/saved-review";
+import {
+  exportReview,
+  validateReviewEntry,
+  type ReviewEntry,
+} from "../core/saved-review";
 import { useToast } from "./Toasts";
 
 export function AccountReviewSave({
@@ -250,7 +254,9 @@ export function CompletedReviewBackups({
       <AccountReviewSave key={selected.id} entry={selected} saved />
       <button
         className="text-button"
-        onClick={() => downloadJson("trade-review.json", selected)}
+        onClick={() =>
+          downloadJson("trade-review.json", exportReview(selected))
+        }
       >
         Download review JSON
       </button>

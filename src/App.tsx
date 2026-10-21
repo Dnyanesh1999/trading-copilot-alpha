@@ -22,9 +22,14 @@ import {
   confirmStrategy,
   type StrategyDraft,
 } from "./core/workspace";
-import type { ConfirmedRules, Session } from "./core/types";
+import type { ConfirmedRules, Position, Session } from "./core/types";
 
-import { reviewSession, RULE_LABELS } from "./core/review";
+import {
+  reviewSession,
+  reviewCounts,
+  REVIEW_LOGIC_VERSION,
+  RULE_LABELS,
+} from "./core/review";
 import { StrategyEditor } from "./workspace/StrategyEditor";
 import { TradeWorkspace } from "./workspace/TradeWorkspace";
 import { ReviewView } from "./workspace/ReviewView";
@@ -156,6 +161,8 @@ export default function App() {
       workspaceJourney.stage("session");
       setActive({
         id: crypto.randomUUID(),
+        reviewLogicVersion: REVIEW_LOGIC_VERSION,
+        recomputed: false,
         name:
           source === "sample"
             ? `${confirmed.setup?.label ?? "Fictional"} practice`
@@ -174,7 +181,13 @@ export default function App() {
   }
   function save(focus: string) {
     if (!active) return;
-    const entry = { ...active, focus, savedAt: new Date().toISOString() };
+    const entry = {
+      ...active,
+      focus,
+      savedAt: new Date().toISOString(),
+      reviewLogicVersion: REVIEW_LOGIC_VERSION,
+      recomputed: false,
+    };
     const next = [entry, ...history.filter((h) => h.id !== entry.id)].slice(
       0,
       50,
@@ -195,6 +208,23 @@ export default function App() {
         action: { label: "View history", onClick: () => go("history") },
       });
     }
+  }
+  function correctPosition(position: Position) {
+    setActive((current) =>
+      current
+        ? {
+            ...current,
+            reviewLogicVersion: REVIEW_LOGIC_VERSION,
+            recomputed: false,
+            review: reviewSession(current.review.rules, {
+              ...current.review.session,
+              positions: current.review.session.positions.map((p) =>
+                p.id === position.id ? position : p,
+              ),
+            }),
+          }
+        : current,
+    );
   }
   const title =
     page === "overview"
@@ -378,17 +408,18 @@ export default function App() {
                   key={active.id}
                   entry={active}
                   onSave={save}
+                  onCorrect={correctPosition}
                   onBack={() => {
                     setActive(null);
                     setMessage("");
                   }}
-                  saved={history.some((h) => h.id === active.id)}
+                  saved={history.some((h) => h === active)}
                 />
                 {study.session()?.displayName && (
                   <AccountReviewSave
                     key={active.id}
                     entry={active}
-                    saved={history.some((h) => h.id === active.id)}
+                    saved={history.some((h) => h === active)}
                   />
                 )}
               </>
@@ -488,7 +519,9 @@ function HistoryTable({
             <tr>
               <th>Session</th>
               <th>Trades</th>
-              <th>Checks to revisit</th>
+              <th>Broken rules</th>
+              <th>Needs review</th>
+              <th>Not enough data</th>
               <th>Date</th>
               <th>
                 <span className="sr-only">Action</span>
@@ -504,12 +537,9 @@ function HistoryTable({
                     <small>{e.strategyName}</small>
                   </td>
                   <td>{e.review.session.positions.length}</td>
-                  <td>
-                    {
-                      e.review.findings.filter((f) => f.status === "deviated")
-                        .length
-                    }
-                  </td>
+                  <td>{reviewCounts(e.review).brokenRules}</td>
+                  <td>{reviewCounts(e.review).reportedWarnings}</td>
+                  <td>{reviewCounts(e.review).notEnoughData}</td>
                   <td>
                     {new Date(e.savedAt).toLocaleDateString("en-IN", {
                       day: "numeric",
@@ -531,6 +561,8 @@ function HistoryTable({
                   <small>Explore before adding your trades</small>
                 </td>
                 <td>4</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>Sample data</td>
                 <td>

@@ -7,6 +7,9 @@ import type {
   Session,
   PlanChecks,
 } from "./types";
+import { initialLevelErrors, stopDeclaration } from "./stop-record";
+
+export const REVIEW_LOGIC_VERSION = 2;
 
 export function validRules(maxPositions: number, cutoff: string): boolean {
   return (
@@ -157,6 +160,9 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
       explanation: string,
       calculation: string,
       sourceIds: string[],
+      extra: Partial<
+        Pick<Finding, "comparisonBasis" | "reportedComparison">
+      > = {},
     ) =>
       findings.push({
         positionId: position.id,
@@ -167,6 +173,7 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
         explanation,
         calculation,
         sourceIds,
+        ...extra,
       });
     if (rules.setup) {
       const signal = position.signal;
@@ -312,30 +319,62 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
         ...(position.stop ? [position.stop.id] : []),
       ];
       if (checks.stopBeforeEntry) {
-        const available = entry && stopTime && validPrice(position.stop?.price);
-        const status = !available
-          ? "insufficient_evidence"
-          : stopTime.epoch < entry.epoch
-            ? "followed"
-            : "deviated";
+        const invalidStop = initialPositionErrors(position).stop;
+        const noStop = stopDeclaration(position) === "no-stop";
+        const available =
+          entry &&
+          stopTime &&
+          validPrice(position.stop?.price) &&
+          validDirection(position.direction) &&
+          !!priceMetrics(position) &&
+          !invalidStop;
+        const status = noStop
+          ? "deviated"
+          : !available
+            ? "insufficient_evidence"
+            : stopTime.epoch < entry.epoch
+              ? "followed"
+              : "deviated";
         make(
           "stop-before-entry",
           status,
-          available
-            ? `Stop recorded ${stopTime.clock} · entry ${entry.clock} IST`
-            : "Pre-entry stop: evidence missing",
-          !available
-            ? "A valid stop plan and its recording time, plus the first entry time, are needed."
-            : status === "deviated"
-              ? "The available stop plan was recorded at or after the first entry. It cannot establish an original pre-entry stop."
-              : "The stop plan was recorded before the first entry. This does not prove a protective order was placed or honoured.",
-          available
-            ? `${stopTime.clock} IST ${status === "followed" ? "<" : "≥"} ${entry.clock} IST (comparison includes seconds)`
-            : "Pre-entry stop recording cannot be verified",
+          noStop
+            ? "You reported entering without a stop plan"
+            : invalidStop
+              ? "Invalid initial stop"
+              : available
+                ? `Stop recorded ${stopTime.clock} · entry ${entry.clock} IST`
+                : "Pre-entry stop: evidence missing",
+          noStop
+            ? "Your confirmed rule requires a stop before entry. You explicitly reported no stop; this is a rule break, not missing data."
+            : invalidStop
+              ? invalidStop
+              : !available
+                ? "A valid stop plan and its recording time, plus the first entry time, are needed."
+                : status === "deviated"
+                  ? "The available stop plan was recorded at or after the first entry. It cannot establish an original pre-entry stop."
+                  : "The stop plan was recorded before the first entry. This does not prove a protective order was placed or honoured.",
+          noStop
+            ? "No stop plan declared"
+            : available
+              ? `${stopTime.clock} IST ${status === "followed" ? "<" : "≥"} ${entry.clock} IST (comparison includes seconds)`
+              : "Pre-entry stop recording cannot be verified",
           stopSources,
+          {
+            comparisonBasis: noStop
+              ? "user-declared"
+              : invalidStop
+                ? "invalid-record"
+                : available
+                  ? status === "followed"
+                    ? "pre-entry"
+                    : "late-plan"
+                  : "timing-unknown",
+          },
         );
       }
       const metrics = planMetrics(position);
+      const reported = reportedPlanMetrics(position);
       if (checks.maxRisk !== null) {
         const status =
           metrics.risk === null
@@ -343,19 +382,39 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
             : metrics.risk <= checks.maxRisk
               ? "followed"
               : "deviated";
+        const comparison =
+          reported.risk === null
+            ? undefined
+            : {
+                value: reported.risk,
+                limit: checks.maxRisk,
+                unit: "INR" as const,
+                breached: reported.risk > checks.maxRisk,
+              };
         make(
           "planned-risk",
           status,
           metrics.risk === null
-            ? "Planned risk: evidence missing"
+            ? reported.risk === null
+              ? "Planned risk: not enough data"
+              : `${rupees(reported.risk)} reported risk · maximum ${rupees(checks.maxRisk)}${comparison?.breached ? ` · ${(reported.risk / checks.maxRisk).toFixed(2).replace(/0$/, "")}× limit` : ""}`
             : `${rupees(metrics.risk)} risk · maximum ${rupees(checks.maxRisk)}`,
           metrics.risk === null
-            ? metrics.riskReason
+            ? reported.risk === null
+              ? metrics.riskReason
+              : `${reported.basisText} ${reported.quantity} units × ${rupees(reported.stopDistance!)} = ${rupees(reported.risk)}. This does not verify the original pre-entry risk.`
             : "Initial filled quantity × distance from weighted entry to the pre-entry planned stop. This is a planned price risk, excluding fees, slippage and gaps.",
           metrics.risk === null
-            ? "Original planned risk cannot be verified"
+            ? reported.risk === null
+              ? "Original planned risk cannot be verified"
+              : `${reported.quantity} × ${rupees(reported.stopDistance!)} = ${rupees(reported.risk)}; maximum ${rupees(checks.maxRisk)}`
             : `${metrics.quantity} × ${rupees(metrics.stopDistance!)} = ${rupees(metrics.risk)}; maximum ${rupees(checks.maxRisk)}`,
           stopSources,
+          {
+            comparisonBasis:
+              metrics.risk !== null ? "pre-entry" : reported.basis,
+            reportedComparison: comparison,
+          },
         );
       }
       if (checks.minRewardRisk !== null) {
@@ -366,19 +425,42 @@ export function reviewSession(rules: ConfirmedRules, input: Session): Review {
                 checks.minRewardRisk
               ? "followed"
               : "deviated";
+        const comparison =
+          reported.rewardRisk === null
+            ? undefined
+            : {
+                value: reported.rewardRisk,
+                limit: checks.minRewardRisk,
+                unit: "R" as const,
+                breached:
+                  reported.rewardRisk +
+                    1e-10 * Math.max(1, checks.minRewardRisk) <
+                  checks.minRewardRisk,
+              };
         make(
           "reward-risk",
           status,
           metrics.rewardRisk === null
-            ? "Planned reward-to-risk: evidence missing"
+            ? reported.rewardRisk === null
+              ? "Planned reward-to-risk: not enough data"
+              : `${reported.rewardRisk.toFixed(2)}R reported · minimum ${checks.minRewardRisk}R`
             : `${metrics.rewardRisk.toFixed(2)}R · minimum ${checks.minRewardRisk}R`,
           metrics.rewardRisk === null
-            ? metrics.rewardReason
+            ? reported.rewardRisk === null
+              ? metrics.rewardReason
+              : `${reported.rewardBasisText} Reported reward-to-risk is ${reported.rewardRisk.toFixed(2)}R. This does not verify the original pre-entry reward-to-risk.`
             : "The original planned target distance divided by the original planned stop distance. It does not predict the realised result.",
           metrics.rewardRisk === null
-            ? "Original planned reward-to-risk cannot be verified"
+            ? reported.rewardRisk === null
+              ? "Original planned reward-to-risk cannot be verified"
+              : `${rupees(reported.targetDistance!)} ÷ ${rupees(reported.stopDistance!)} = ${reported.rewardRisk.toFixed(2)}R; minimum ${checks.minRewardRisk}R`
             : `${rupees(metrics.targetDistance!)} ÷ ${rupees(metrics.stopDistance!)} = ${metrics.rewardRisk.toFixed(2)}R; minimum ${checks.minRewardRisk}R`,
           [...stopSources, ...(position.target ? [position.target.id] : [])],
+          {
+            comparisonBasis:
+              metrics.rewardRisk !== null ? "pre-entry" : reported.rewardBasis,
+            reportedComparison: comparison,
+          },
         );
       }
     }
@@ -407,7 +489,7 @@ export function positionStatus(
       ? "insufficient_evidence"
       : "followed";
 }
-export function reviewSummary(review: Review) {
+function legacySummary(review: Review) {
   const deviations = review.findings.filter((f) => f.status === "deviated");
   const unknown = review.findings.filter(
     (f) => f.status === "insufficient_evidence",
@@ -463,11 +545,152 @@ const validDirection = (direction: unknown) =>
   direction === "long" || direction === "short";
 const validPrice = (n: number | undefined): n is number =>
   typeof n === "number" && Number.isFinite(n) && n > 0;
-export function entryMetrics(position: Position) {
+export function initialPositionErrors(position: Position) {
+  const filled = priceMetrics(position);
+  return filled && validDirection(position.direction)
+    ? initialLevelErrors(
+        position.direction!,
+        filled.price,
+        position.stop?.price,
+        position.target?.price,
+      )
+    : {};
+}
+export function needsReview(finding: Finding) {
+  return (
+    finding.status === "insufficient_evidence" &&
+    finding.reportedComparison?.breached === true
+  );
+}
+export function reviewCounts(review: Review) {
+  const brokenRules = review.findings.filter(
+    (f) => f.status === "deviated",
+  ).length;
+  const reportedWarnings = review.findings.filter(needsReview).length;
+  const notEnoughData = review.findings.filter(
+    (f) => f.status === "insufficient_evidence" && !needsReview(f),
+  ).length;
+  const attention = new Set(
+    review.findings
+      .filter((f) => f.status !== "followed")
+      .map((f) => f.positionId),
+  );
+  const noStop = review.session.positions.filter(
+    (p) => stopDeclaration(p) === "no-stop",
+  ).length;
+  const unresolvedStopRecords = review.session.positions.filter(
+    (p) => stopDeclaration(p) !== "no-stop" && !p.stop,
+  ).length;
+  return {
+    trades: review.session.positions.length,
+    tradesNeedingAttention: attention.size,
+    brokenRules,
+    reportedWarnings,
+    notEnoughData,
+    noStop,
+    unresolvedStopRecords,
+    noStopRecord: noStop + unresolvedStopRecords,
+  };
+}
+export function reviewSummary(review: Review) {
+  const legacy = legacySummary(review);
+  const counts = reviewCounts(review);
+  const title = review.rules.checks
+    ? counts.tradesNeedingAttention
+      ? `${counts.tradesNeedingAttention} of ${counts.trades} ${counts.trades === 1 ? "trade needs" : "trades need"} attention.`
+      : counts.trades === 1
+        ? "This trade followed the checked rules."
+        : `All ${counts.trades} trades followed the checked rules.`
+    : legacy.title;
+  return {
+    ...legacy,
+    title,
+    counts,
+    description: review.rules.checks
+      ? `${counts.brokenRules} ${counts.brokenRules === 1 ? "broken rule" : "broken rules"} · ${counts.reportedWarnings} ${counts.reportedWarnings === 1 ? "reported-plan warning" : "reported-plan warnings"} · ${counts.notEnoughData} ${counts.notEnoughData === 1 ? "check" : "checks"} with not enough data.`
+      : legacy.description,
+  };
+}
+/** Report available price arithmetic separately from verified pre-entry metrics. */
+export function reportedPlanMetrics(position: Position) {
+  const filled = priceMetrics(position);
+  const entry = entryInfo(position);
+  const stopAt = timestampInfo(position.stop?.recordedAt ?? null);
+  const targetAt = timestampInfo(position.target?.recordedAt ?? null);
+  const basis =
+    entry && stopAt
+      ? stopAt.epoch < entry.epoch
+        ? "pre-entry"
+        : "late-plan"
+      : "timing-unknown";
+  const rewardBasis =
+    basis === "late-plan" ||
+    (entry && targetAt && targetAt.epoch >= entry.epoch)
+      ? "late-plan"
+      : basis === "pre-entry" && targetAt
+        ? "pre-entry"
+        : "timing-unknown";
+  const basisText =
+    basis === "late-plan"
+      ? "Based on a plan added at or after entry; original entry-time plan is unverified."
+      : basis === "timing-unknown"
+        ? "Plan recording time is unknown; original entry-time plan is unverified."
+        : "Based on the supplied pre-entry plan.";
+  const rewardBasisText =
+    rewardBasis === "late-plan"
+      ? "Based on a plan added at or after entry; original entry-time plan is unverified."
+      : rewardBasis === "timing-unknown"
+        ? "Plan recording time is unknown; original entry-time plan is unverified."
+        : "Based on the supplied pre-entry plan.";
+  const result = {
+    quantity: filled?.quantity ?? null,
+    stopDistance: null as number | null,
+    targetDistance: null as number | null,
+    risk: null as number | null,
+    rewardRisk: null as number | null,
+    basis,
+    rewardBasis,
+    basisText,
+    rewardBasisText,
+  } as {
+    quantity: number | null;
+    stopDistance: number | null;
+    targetDistance: number | null;
+    risk: number | null;
+    rewardRisk: number | null;
+    basis: NonNullable<Finding["comparisonBasis"]>;
+    rewardBasis: NonNullable<Finding["comparisonBasis"]>;
+    basisText: string;
+    rewardBasisText: string;
+  };
+  if (
+    !filled ||
+    !validDirection(position.direction) ||
+    !position.stop ||
+    stopDeclaration(position) !== "had-stop" ||
+    initialPositionErrors(position).stop
+  )
+    return result;
+  const sign = position.direction === "long" ? 1 : -1;
+  const distance = sign * (filled.price - position.stop.price);
+  const risk = Math.round(filled.quantity * distance * 100) / 100;
+  if (!Number.isFinite(risk) || distance <= 0) return result;
+  result.stopDistance = distance;
+  result.risk = risk;
+  if (!position.target || initialPositionErrors(position).target) return result;
+  const targetDistance = sign * (position.target.price - filled.price);
+  const ratio = targetDistance / distance;
+  if (Number.isFinite(ratio)) {
+    result.targetDistance = targetDistance;
+    result.rewardRisk = ratio;
+  }
+  return result;
+}
+/** Price arithmetic does not require a recorded entry clock. */
+export function priceMetrics(position: Position) {
   const entries = position.executions.filter((e) => e.side === "entry");
   if (
     !position.allEntriesCovered ||
-    !entryInfo(position) ||
     !entries.length ||
     entries.some((e) => !validPrice(e.price) || !validPrice(e.quantity))
   )
@@ -477,6 +700,9 @@ export function entryMetrics(position: Position) {
     entries.reduce((n, e) => n + e.price * e.quantity, 0) / quantity;
   if (!Number.isFinite(quantity) || !Number.isFinite(price)) return null;
   return { quantity, price };
+}
+export function entryMetrics(position: Position) {
+  return entryInfo(position) ? priceMetrics(position) : null;
 }
 export function planMetrics(position: Position) {
   const filled = entryMetrics(position);
@@ -497,6 +723,7 @@ export function planMetrics(position: Position) {
   };
   if (
     !filled ||
+    stopDeclaration(position) !== "had-stop" ||
     !entry ||
     !validDirection(position.direction) ||
     !stopTime ||

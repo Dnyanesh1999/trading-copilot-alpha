@@ -19,6 +19,7 @@ function fixture(): Workspace {
         {
           ...defaultTrade,
           instrument: "TEST",
+          stopDeclaration: "not-recorded",
           quantity: "1",
           entryPrice: "100",
           enteredAt: "2026-10-16T10:00",

@@ -4,6 +4,7 @@ import {
   defaultTrade,
   tradesToSession,
   type TradeDraft,
+  TradeInputError,
 } from "../core/workspace";
 import type { Session } from "../core/types";
 import { studyWorkspace } from "../study/client";
@@ -34,7 +35,10 @@ function readDraft(): { trades: TradeDraft[]; complete: boolean } {
           trade &&
           typeof trade === "object" &&
           Object.keys(defaultTrade).every(
-            (key) => typeof trade[key] === "string" && trade[key].length <= 200,
+            (key) =>
+              (["stopDeclaration", "planTimeUnknown"].includes(key) &&
+                trade[key] === undefined) ||
+              (typeof trade[key] === "string" && trade[key].length <= 200),
           ) &&
           ["long", "short"].includes(trade.direction),
       )
@@ -44,7 +48,7 @@ function readDraft(): { trades: TradeDraft[]; complete: boolean } {
       trades: value.trades.map(
         (trade) =>
           Object.fromEntries(
-            Object.keys(defaultTrade).map((key) => [key, trade[key]]),
+            Object.keys(defaultTrade).map((key) => [key, trade[key] ?? ""]),
           ) as unknown as TradeDraft,
       ),
       complete: value.complete,
@@ -78,6 +82,7 @@ export function TradeEntry({
     }
   }, [trades, complete]);
   const [error, setError] = useState("");
+  const [fieldError, setFieldError] = useState<TradeInputError | null>(null);
   const edit = (index: number, key: keyof TradeDraft, value: string) =>
     setTrades((items) =>
       items.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
@@ -87,9 +92,9 @@ export function TradeEntry({
     ["quantity", "Quantity", "number"],
     ["entryPrice", "Entry price (₹)", "number"],
     ["enteredAt", "First entry (IST)", "datetime-local"],
-    ["stopPrice", "Planned stop (₹) · optional", "number"],
-    ["targetPrice", "Planned target (₹) · optional", "number"],
-    ["planRecordedAt", "Plan recorded (IST) · optional", "datetime-local"],
+    ["stopPrice", "Initial planned stop (₹)", "number"],
+    ["targetPrice", "Initial planned target (₹) · optional", "number"],
+    ["planRecordedAt", "Plan recorded (IST)", "datetime-local"],
     ["exitPrice", "Full exit price (₹) · optional", "number"],
     ["exitedAt", "Full exit time (IST) · optional", "datetime-local"],
   ];
@@ -123,23 +128,67 @@ export function TradeEntry({
       {trades.map((trade, index) => (
         <fieldset className="trade-form" key={index}>
           <legend>Trade {index + 1}</legend>
+          <label>
+            Stop plan for this trade
+            <select
+              value={trade.stopDeclaration}
+              onChange={(e) => {
+                edit(index, "stopDeclaration", e.target.value);
+                if (e.target.value !== "had-stop") edit(index, "stopPrice", "");
+              }}
+              aria-invalid={
+                fieldError?.tradeIndex === index &&
+                fieldError.field === "stopDeclaration"
+              }
+            >
+              <option value="">Choose a stop status…</option>
+              <option value="had-stop">Had a stop</option>
+              <option value="no-stop">No stop</option>
+              <option value="not-recorded">Not recorded</option>
+            </select>
+            {fieldError?.tradeIndex === index &&
+              fieldError.field === "stopDeclaration" && (
+                <small role="alert">{fieldError.message}</small>
+              )}
+          </label>
           <div className="trade-grid">
-            {fields.map(([key, label, type]) => (
-              <label key={key}>
-                {label}
-                <input
-                  type={type}
-                  step={type === "number" ? "any" : undefined}
-                  min={type === "number" ? "0.000001" : undefined}
-                  maxLength={type === "text" ? 50 : undefined}
-                  value={trade[key]}
-                  onChange={(e) => edit(index, key, e.target.value)}
-                  placeholder={
-                    key === "instrument" ? "e.g. RELIANCE" : undefined
-                  }
-                />
-              </label>
-            ))}
+            {fields
+              .filter(
+                ([key]) =>
+                  (key !== "stopPrice" ||
+                    trade.stopDeclaration === "had-stop") &&
+                  (key !== "planRecordedAt" ||
+                    trade.stopDeclaration === "had-stop" ||
+                    trade.targetPrice.trim()),
+              )
+              .map(([key, label, type]) => (
+                <label key={key}>
+                  {label}
+                  <input
+                    type={type}
+                    step={type === "number" ? "any" : undefined}
+                    min={type === "number" ? "0.000001" : undefined}
+                    maxLength={type === "text" ? 50 : undefined}
+                    value={trade[key]}
+                    disabled={
+                      key === "planRecordedAt" &&
+                      trade.planTimeUnknown === "yes"
+                    }
+                    aria-invalid={
+                      fieldError?.tradeIndex === index &&
+                      fieldError.field === key
+                    }
+                    onChange={(e) => edit(index, key, e.target.value)}
+                    placeholder={
+                      key === "instrument" ? "e.g. RELIANCE" : undefined
+                    }
+                  />
+                  {fieldError?.tradeIndex === index &&
+                    fieldError.field === key && (
+                      <small role="alert">{fieldError.message}</small>
+                    )}
+                </label>
+              ))}
             <label>
               Direction
               <select
@@ -151,6 +200,19 @@ export function TradeEntry({
               </select>
             </label>
           </div>
+          {(trade.stopDeclaration === "had-stop" ||
+            trade.targetPrice.trim()) && (
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={trade.planTimeUnknown === "yes"}
+                onChange={(e) =>
+                  edit(index, "planTimeUnknown", e.target.checked ? "yes" : "")
+                }
+              />
+              I don’t know when this plan was recorded.
+            </label>
+          )}
           {trades.length > 1 && (
             <button
               className="text-button danger"
@@ -200,8 +262,9 @@ export function TradeEntry({
         </span>
       </label>
       <p className="field-note">
-        Missing stop, target or plan timestamps stay unknown. We never infer an
-        earlier plan from a later trade.
+        “No stop” is a rule break when your checklist requires one. “Not
+        recorded” stays unresolved and is highlighted in the review. Initial
+        levels are not later trailing-stop adjustments.
       </p>
       {error && (
         <p className="notice" role="alert">
@@ -212,9 +275,12 @@ export function TradeEntry({
         className="primary"
         onClick={() => {
           try {
+            setFieldError(null);
+            setError("");
             onSession(tradesToSession(trades, complete));
           } catch (e) {
             setError((e as Error).message);
+            setFieldError(e instanceof TradeInputError ? e : null);
           }
         }}
       >

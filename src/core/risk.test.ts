@@ -33,7 +33,7 @@ describe("five evidence-based checks", () => {
     expect(
       review.findings.filter((f) => f.status === "insufficient_evidence"),
     ).toHaveLength(2);
-    expect(reviewSummary(review).title).toBe("2 positions to revisit.");
+    expect(reviewSummary(review).title).toBe("2 of 4 trades need attention.");
     const d = review.findings.filter((f) => f.positionId === "D");
     expect(
       d.filter((f) => f.status === "deviated").map((f) => f.ruleId),

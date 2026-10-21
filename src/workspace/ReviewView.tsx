@@ -2,31 +2,148 @@ import { study } from "../study/client";
 import { useToast } from "./Toasts";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Download } from "lucide-react";
+import type { Position } from "../core/types";
 import type { ReviewEntry } from "./persistence";
 import { downloadJson } from "./persistence";
+import { exportReview } from "../core/saved-review";
+import { correctStopRecord } from "../core/workspace";
+import { stopDeclaration, type StopDeclaration } from "../core/stop-record";
 import { workspaceJourney } from "./InternalJourney";
 import { ImprovementPlan } from "./ImprovementPlan";
 import {
   grossResult,
   positionStatus,
+  needsReview,
+  initialPositionErrors,
   reviewSummary,
   rupees,
   RULE_LABELS,
 } from "../core/review";
 const statusText = {
   followed: "Followed",
-  deviated: "Revisit",
-  insufficient_evidence: "Evidence missing",
+  deviated: "Broke rule",
+  insufficient_evidence: "Not enough data",
 };
+function istLocal(value: string | null | undefined) {
+  const epoch = value ? Date.parse(value) : NaN;
+  return Number.isFinite(epoch)
+    ? new Date(epoch + 330 * 60_000).toISOString().slice(0, 16)
+    : "";
+}
+function StopRecordEditor({
+  position,
+  onCorrect,
+}: {
+  position: Position;
+  onCorrect: (position: Position) => void;
+}) {
+  const [declaration, setDeclaration] = useState<StopDeclaration>(
+    stopDeclaration(position),
+  );
+  const [price, setPrice] = useState(
+    position.stop ? String(position.stop.price) : "",
+  );
+  const [recordedAt, setRecordedAt] = useState(
+    istLocal(position.stop?.recordedAt),
+  );
+  const [timeUnknown, setTimeUnknown] = useState(!position.stop?.recordedAt);
+  const [error, setError] = useState("");
+  return (
+    <section className="stop-record-editor" aria-label="Correct stop record">
+      <div>
+        <strong>Correct this stop record</strong>
+        <p className="field-note">
+          Use the initial stop you had at entry. Later trailing or breakeven
+          levels do not belong here.
+        </p>
+      </div>
+      <div className="stop-record-fields">
+        <label>
+          Stop information
+          <select
+            value={declaration}
+            onChange={(e) => {
+              setDeclaration(e.target.value as StopDeclaration);
+              setError("");
+            }}
+          >
+            <option value="had-stop">Had a stop</option>
+            <option value="no-stop">No stop</option>
+            <option value="not-recorded">Not recorded / unsure</option>
+          </select>
+        </label>
+        {declaration === "had-stop" && (
+          <>
+            <label>
+              Initial stop price
+              <input
+                type="number"
+                min="0.000001"
+                step="any"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </label>
+            <label>
+              Recorded at (IST)
+              <input
+                type="datetime-local"
+                value={recordedAt}
+                disabled={timeUnknown}
+                onChange={(e) => setRecordedAt(e.target.value)}
+              />
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={timeUnknown}
+                onChange={(e) => setTimeUnknown(e.target.checked)}
+              />{" "}
+              Recording time unknown
+            </label>
+          </>
+        )}
+      </div>
+      {error && (
+        <p className="notice" role="alert">
+          {error}
+        </p>
+      )}
+      <button
+        className="secondary"
+        onClick={() => {
+          try {
+            onCorrect(
+              correctStopRecord(
+                position,
+                declaration,
+                price,
+                recordedAt,
+                timeUnknown,
+              ),
+            );
+            setError("");
+          } catch (e) {
+            setError((e as Error).message);
+          }
+        }}
+      >
+        Update findings
+      </button>
+    </section>
+  );
+}
 export function ReviewView({
   entry,
   onSave,
   onBack,
+  onCorrect,
   saved,
 }: {
   entry: ReviewEntry;
   onSave: (focus: string) => void;
   onBack: () => void;
+  onCorrect: (position: Position) => void;
   saved: boolean;
 }) {
   const notify = useToast();
@@ -38,6 +155,14 @@ export function ReviewView({
   const position = review.session.positions.find((p) => p.id === selected);
   const summary = reviewSummary(review);
   const findings = review.findings.filter((f) => f.positionId === selected);
+  const invalidLevels = review.session.positions.flatMap((p) => {
+    const issue = initialPositionErrors(p);
+    return [
+      issue.stop && `${p.instrument}: Invalid initial stop — ${issue.stop}`,
+      issue.target &&
+        `${p.instrument}: Invalid initial target — ${issue.target}`,
+    ].filter((item): item is string => !!item);
+  });
   return (
     <>
       <button className="text-button" onClick={onBack}>
@@ -60,7 +185,7 @@ export function ReviewView({
         <button
           className="secondary"
           onClick={() => {
-            downloadJson("trade-review.json", entry);
+            downloadJson("trade-review.json", exportReview(entry));
             notify({
               title: "Review export ready",
               description: "Your JSON download has started.",
@@ -72,6 +197,38 @@ export function ReviewView({
           Export review
         </button>
       </section>
+      {entry.recomputed && (
+        <p className="review-alert" role="status">
+          This older review has been recalculated with review logic version 2.
+          Your original trade inputs, confirmed rules and saved date have not
+          changed. Save explicitly to keep these results.
+        </p>
+      )}
+      {!saved && (
+        <p className="review-alert" role="status">
+          This review has unsaved changes. Choose a next focus and save below.
+          An existing account copy will change only if you explicitly save it to
+          your account again.
+        </p>
+      )}
+      {summary.counts.noStopRecord > 0 && (
+        <section className="review-alert" aria-label="Missing stop records">
+          <strong>
+            {summary.counts.noStopRecord} of {summary.counts.trades} trades have
+            no stop record.
+          </strong>
+          <p>
+            {summary.counts.noStop} explicitly marked No stop ·{" "}
+            {summary.counts.unresolvedStopRecords} not recorded or unresolved.
+            Open a position below to correct its record.
+          </p>
+        </section>
+      )}
+      {invalidLevels.map((message, i) => (
+        <p className="review-alert" role="alert" key={`${i}-${message}`}>
+          {message}
+        </p>
+      ))}
       <div className="applied-checklist">
         <strong>{entry.strategyName} · confirmed checklist</strong>
         {review.rules.setup && (
@@ -130,7 +287,12 @@ export function ReviewView({
                 </small>
               </span>
               <span className={`status ${positionStatus(review, p.id)}`}>
-                {statusText[positionStatus(review, p.id)]}
+                {positionStatus(review, p.id) === "insufficient_evidence" &&
+                review.findings.some(
+                  (f) => f.positionId === p.id && needsReview(f),
+                )
+                  ? "Needs review"
+                  : statusText[positionStatus(review, p.id)]}
               </span>
             </button>
           ))}
@@ -158,6 +320,13 @@ export function ReviewView({
             Profit or loss is separate from rule adherence. Gross result
             excludes fees, slippage and taxes.
           </p>
+          {position && (
+            <StopRecordEditor
+              key={`${position.id}-${position.stopDeclaration}-${position.stop?.price}-${position.stop?.recordedAt}`}
+              position={position}
+              onCorrect={onCorrect}
+            />
+          )}
           {findings.map((f) => (
             <details
               className="finding"
@@ -175,9 +344,12 @@ export function ReviewView({
                 <span>
                   <strong>{RULE_LABELS[f.ruleId]}</strong>
                   <small>{f.label}</small>
+                  {needsReview(f) && (
+                    <small className="reported-basis">{f.explanation}</small>
+                  )}
                 </span>
                 <span className={`status ${f.status}`}>
-                  {statusText[f.status]}
+                  {needsReview(f) ? "Needs review" : statusText[f.status]}
                 </span>
                 <ChevronDown size={15} />
               </summary>
