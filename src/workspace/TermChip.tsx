@@ -100,10 +100,10 @@ export function TermChip({
             onMouseLeave={hide}
           >
             <strong>{glossary[term].label}</strong>
-            <p>{glossary[term].meaning}</p>
             {term === "reward-risk" && (
               <p>{glossary["reward-risk"].exampleIntro}</p>
             )}
+            <p>{glossary[term].meaning}</p>
             <p className="term-example">{termExample(term, position)}</p>
           </motion.div>,
           trigger.current?.closest("dialog") ?? document.body,
