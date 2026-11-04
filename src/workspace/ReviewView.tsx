@@ -3,7 +3,7 @@ import { recordTime, ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useToast } from "./Toasts";
 import { useState } from "react";
-import { ArrowLeft, ChevronDown, Download } from "lucide-react";
+import { ArrowLeft, Check, X, Clock3, Minus, Download } from "lucide-react";
 import type { Position } from "../core/types";
 import type { ReviewEntry } from "./persistence";
 import { downloadJson } from "./persistence";
@@ -376,7 +376,6 @@ export function ReviewView({
               }}
             >
               <summary>
-                <span className={`finding-dot ${f.status}`} />
                 <span>
                   <strong>
                     {ruleTerm(f.ruleId) ? (
@@ -390,10 +389,42 @@ export function ReviewView({
                   </strong>
                   <small>{f.label}</small>
                 </span>
-                <span className={`status ${f.status}`}>
-                  {needsReview(f) ? "Needs review" : statusText[f.status]}
+                <span
+                  className={`finding-status ${needsReview(f) ? "needs-review" : f.status}`}
+                >
+                  {needsReview(f) ? (
+                    <Clock3 size={14} aria-hidden="true" />
+                  ) : f.status === "followed" ? (
+                    <Check size={14} aria-hidden="true" />
+                  ) : f.status === "deviated" ? (
+                    <X size={14} aria-hidden="true" />
+                  ) : (
+                    <Minus size={14} aria-hidden="true" />
+                  )}
+                  {needsReview(f) ? (
+                    <TermChip term="needs-review" />
+                  ) : f.status === "deviated" ? (
+                    <TermChip term="broke-rule" />
+                  ) : f.status === "insufficient_evidence" ? (
+                    <TermChip term="not-enough-data" />
+                  ) : (
+                    statusText[f.status]
+                  )}
                 </span>
-                <ChevronDown size={15} />
+                <button
+                  className="secondary proof-button"
+                  aria-label={`Show proof for ${RULE_LABELS[f.ruleId]}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const details = e.currentTarget.closest("details")!;
+                    details.open = !details.open;
+                    if (!details.open) setEvidenceRule(null);
+                  }}
+                >
+                  <span className="show-proof">Show proof</span>
+                  <span className="hide-proof">Hide proof</span>
+                </button>
               </summary>
               <div className="finding-detail">
                 <p>{f.explanation}</p>

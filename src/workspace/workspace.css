@@ -2317,3 +2317,55 @@ body:has(.study-session-bar) .toast-stack {
   font-size: 12px;
   margin-right: 12px;
 }
+.finding-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.finding-status.followed {
+  color: #176442;
+  background: #e6f5ec;
+}
+.finding-status.deviated {
+  color: #a22b2b;
+  background: #fff0ef;
+}
+.finding-status.needs-review {
+  color: #785000;
+  background: #fff2cb;
+}
+.finding-status.insufficient_evidence,
+.finding-status.not_checked {
+  color: #555562;
+  background: #eeedf1;
+}
+.proof-button {
+  font-size: 12px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.finding:not([open]) .hide-proof,
+.finding[open] .show-proof {
+  display: none;
+}
+.finding summary {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .finding summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .finding summary > span:first-child {
+    grid-column: 1 / -1;
+  }
+  .finding-status {
+    justify-self: start;
+  }
+}
