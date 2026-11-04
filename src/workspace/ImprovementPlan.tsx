@@ -47,7 +47,7 @@ export function ImprovementPlan({
         {rows.map((row, index) => {
           const expanded = row.id === current.id;
           const term =
-            row.id === "maintain" ? undefined : ruleTerm(row.id as RuleId);
+            ["maintain", "missing-records"].includes(row.id) ? undefined : ruleTerm(row.id as RuleId);
           const before = [...new Set(row.details.map((d) => d.before))];
           if (!before.length)
             before.push(

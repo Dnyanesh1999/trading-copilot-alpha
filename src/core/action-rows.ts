@@ -163,6 +163,17 @@ export function actionRowsFor(review: Review): ActionRow[] {
         .map((p) => p.title),
     });
   }
+  const gaps = rows.flatMap(r=>r.details).filter(d=>d.finding.status === "insufficient_evidence" && !needsReview(d.finding));
+  for(const row of rows) row.details=row.details.filter(d=>!gaps.includes(d));
+  for(let i=rows.length-1;i>=0;i--) if(!rows[i].details.length) rows.splice(i,1);
+  if(gaps.length) {
+    const grouped = [...new Set(gaps.map(d=>d.finding.positionId))].map(id=>{
+      const items=gaps.filter(d=>d.finding.positionId===id);
+      const instrument=review.session.positions.find(p=>p.id===id)!.instrument;
+      return {...items[0], happened:`${instrument} has missing or unverified records for ${[...new Set(items.map(d=>d.finding.ruleId.replaceAll("-"," ")))].join(", ")}.`,emphasis:undefined,before:"Record the original stop, target and entry times before your next trade; keep the full entry history."};
+    });
+    rows.push({id:"missing-records",title:"Fill missing records",status:"insufficient_evidence",details:grouped,next:"Check the missing records; leave anything unverified as unknown.",legacyTitles:[]});
+  }
   rows.sort(
     (a, b) =>
       ({

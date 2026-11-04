@@ -29,11 +29,10 @@ it("groups each rule once and retains every affected trade", () => {
   expect(risk.details.some((d) => d.happened.includes("DEMO-GAMMA"))).toBe(
     true,
   );
-  expect(rows.flatMap((r) => r.details).length).toBe(
-    next.findings.filter(
-      (f) => f.status === "deviated" || f.status === "insufficient_evidence",
-    ).length,
-  );
+  const gaps=rows.find(r=>r.id==="missing-records")!;
+  expect(gaps.status).toBe("insufficient_evidence");
+  expect(new Set(gaps.details.map(d=>d.finding.positionId)).size).toBe(gaps.details.length);
+  expect(rows.filter(r=>r.id!=="missing-records").flatMap(r=>r.details).every(d=>d.finding.status==="deviated"||d.finding.reportedComparison?.breached)).toBe(true);
 });
 it("uses concise numbers once and keeps raw signal comparisons in proof", () => {
   const rows = actionRowsFor(fixture());
