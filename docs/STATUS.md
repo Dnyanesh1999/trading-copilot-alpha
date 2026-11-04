@@ -1,3 +1,11 @@
+# 4 November 2026 — quiet-rail UI polish, local review only
+
+Four frontend items completed on `codex/quiet-rail-polish`: sidebar progress/header actions; one expandable action row per rule with all affected trades; saved focus on Overview/shared status pills/plain R example; consistent spacing, typography and restrained accent colour. Existing sample shortcut preserved. Changing a selected saved focus removes the completion state until saved again. Header action becomes secondary while the coral list Save focus is onscreen, keeping one visible primary action.
+
+258 tests and build pass, including the frozen fixture/12-case engine regression. Desktop1440 and mobile390 Chrome production-preview journeys pass with motion enabled, no horizontal overflow or console errors. Clipboard denial, 1.5-second copied feedback, 56px rows, single expansion, saved-focus restore, header save and reduced-motion handling checked. Existing bundle-size warning remains. Engine, AI policy, backend, login and storage schemas unchanged; no deploy or participant-record operations. Stop for student review.
+
+---
+
 # 4 November 2026 — pilot-informed UI, local review only
 
 Five requested UI items implemented on `codex/pilot-ui-2026-11-04`. Trade-specific action calculations and all deviations remain visible; terms explain the selected trade; status/proof is explicit; guided steps and a two-click sample path replace the static guidance; preset-to-custom clears stale identity. Motion respects reduced motion.

@@ -2838,3 +2838,236 @@ body:has(.study-session-bar) .toast-stack {
 .position-list .finding-status {
   flex: 0 0 auto;
 }
+/* Shared visual scale; quiet rail measurements intentionally follow its spec. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+  --accent: #e86f5a;
+  --muted: #5f6675;
+  --ink: #1d2230;
+}
+.workspace {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.workspace p {
+  line-height: 1.5;
+  max-width: 65ch;
+}
+.workspace .muted,
+.workspace .field-note,
+.workspace .setup-scope,
+.workspace .finding small,
+.workspace .local-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.workspace-main {
+  padding: var(--space-8);
+}
+.sidebar {
+  padding: var(--space-6) var(--space-4);
+}
+.workspace .panel,
+.sample-sheet,
+.term-card,
+.workspace .applied-checklist,
+.workspace .review-alert,
+.workspace .preset-card,
+.workspace .setup-definition,
+.workspace .trade-form,
+.workspace .notice {
+  border-radius: var(--radius-card);
+}
+.workspace .panel {
+  padding: var(--space-6);
+}
+.workspace button,
+.sample-sheet button {
+  border-radius: var(--radius-pill);
+}
+.workspace .focus-row-toggle {
+  border-radius: 0;
+}
+.workspace .term-chip,
+.sample-sheet .term-chip {
+  border-radius: 0;
+}
+.workspace .finding-status,
+.workspace .status {
+  border-radius: var(--radius-pill);
+}
+.workspace .primary,
+.sample-sheet .primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.workspace .primary:hover,
+.sample-sheet .primary:hover {
+  background: #d95f4b;
+}
+.workspace .secondary {
+  background: #fff;
+  color: var(--ink);
+  border-color: #ececf0;
+}
+.workspace .text-button,
+.workspace a,
+.preset-link {
+  color: var(--ink);
+}
+.workspace .text-button:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.workspace .sidebar nav button.active {
+  background: #ececf0;
+  color: var(--ink);
+}
+.workspace .brand-mark {
+  background: #fff;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.workspace .preset-card.is-selected {
+  background: #f7f7fa;
+  border-color: #b9bec8;
+}
+.workspace .recommend-pill {
+  background: #f2f2f5;
+  color: var(--muted);
+}
+.workspace .term-chip:focus-visible,
+.sample-sheet .term-chip:focus-visible {
+  outline-color: #8a8f9c;
+}
+.workspace .overview-columns,
+.workspace .strategy-layout,
+.workspace .review-layout {
+  gap: var(--space-6);
+}
+.workspace .position-list button {
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+}
+.workspace .finding-detail {
+  padding: var(--space-4);
+}
+.workspace .finding-detail p {
+  font-size: 14px;
+}
+.workspace .finding-detail code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.workspace .focus-row-toggle {
+  padding: var(--space-3) var(--space-4);
+}
+.workspace .focus-content {
+  padding: var(--space-2) var(--space-6) var(--space-6) var(--space-6);
+}
+.workspace .focus-content .text-button {
+  color: var(--ink);
+}
+.workspace .current-focus {
+  margin-bottom: var(--space-6);
+}
+.workspace .focus-content .copy-fallback textarea {
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .workspace-main {
+    padding: var(--space-4);
+  }
+  .workspace .panel {
+    padding: var(--space-4);
+  }
+  .workspace .focus-row-toggle {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+  .workspace .focus-content {
+    padding: var(--space-2) var(--space-3) var(--space-4);
+  }
+  .workspace .position-list button {
+    min-width: 180px;
+  }
+  .workspace .focus-save {
+    margin-bottom: calc(-1 * var(--space-4));
+  }
+}
+.workspace input[type="checkbox"] {
+  accent-color: #5f6675;
+}
+.workspace .setup-sketch .reference-line {
+  stroke: #b9bec8;
+}
+.workspace .preset-card.is-selected {
+  box-shadow: none;
+}
+.workspace .text-button:not(:has(svg))::after {
+  content: "→";
+  margin-left: 8px;
+}
+.term-card {
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 12px;
+}
+.workspace .flow-heading,
+.workspace .section-title,
+.workspace .review-heading {
+  margin-bottom: 24px;
+}
+.workspace .dashboard-hero {
+  padding: 32px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.workspace .applied-checklist {
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.workspace .review-alert {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.workspace .rule-row {
+  padding: 16px 0;
+}
+.workspace .finding summary {
+  padding: 16px 0;
+}
+.workspace .finding strong,
+.workspace .focus-row-title,
+.workspace td {
+  font-size: 14px;
+}
+.workspace th {
+  font-size: 13px;
+}
+.workspace .preview-footer {
+  padding: 16px;
+}
+.workspace .guided-header {
+  padding: 16px 32px;
+}
+@media (max-width: 600px) {
+  .workspace .guided-header {
+    padding: 12px 16px;
+  }
+  .workspace .dashboard-hero {
+    padding: 24px 16px;
+  }
+}
