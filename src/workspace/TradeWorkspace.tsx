@@ -196,7 +196,9 @@ export function TradeWorkspace({
                   <Download size={15} />
                   Download filled sample CSV
                 </button>
-                <label className="primary file-button">
+                <label
+                  className={`${uploaded ? "secondary" : "primary"} file-button`}
+                >
                   {loading ? "Reading CSV…" : "Upload CSV file"}
                   <input
                     ref={fileRef}
@@ -225,9 +227,8 @@ export function TradeWorkspace({
                 row. Timestamps include an offset, for example
                 2026-10-15T09:40:00+05:30. Stop/target and signal evidence are
                 optional; missing fields remain unknown. Use
-                stop_declaration=no-stop only when you explicitly know there
-                was no initial stop. A blank stop in an older file stays
-                unresolved.
+                stop_declaration=no-stop only when you explicitly know there was
+                no initial stop. A blank stop in an older file stays unresolved.
               </p>
               <details className="csv-help">
                 <summary>What about my broker tradebook?</summary>
@@ -361,7 +362,9 @@ export function TradeWorkspace({
                   <span>Selection happens before the review.</span>
                 </p>
                 <button
-                  className="primary"
+                  className={
+                    mode === "sample" && !matching ? "secondary" : "primary"
+                  }
                   disabled={
                     ids.length === 0 || (mode === "sample" && !matching)
                   }

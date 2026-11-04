@@ -1,3 +1,6 @@
+import { StepRail } from "./workspace/StepRail";
+import { SampleSheet } from "./workspace/SampleSheet";
+import { createPresetSession } from "./core/strategy-library";
 import {
   AccountReviewSave,
   AccountReviewLibrary,
@@ -71,6 +74,8 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [mobileNav, setMobileNav] = useState(false);
   const [feedback, setFeedback] = useState(false);
+  const [sampleSheet, setSampleSheet] = useState(false);
+  const [focusStep, setFocusStep] = useState(false);
   const feedbackTrigger = useRef<HTMLButtonElement>(null);
   const [mobile, setMobile] = useState(
     () => matchMedia("(max-width: 600px)").matches,
@@ -97,6 +102,7 @@ export default function App() {
       });
   }, [error, notify]);
   function go(next: Page) {
+    setFocusStep(false);
     if (next === "strategy" && page !== "strategy")
       strategyReturn.current = page;
     if (next === "strategy") workspaceJourney.start("rules");
@@ -148,8 +154,14 @@ export default function App() {
       setError((e as Error).message);
     }
   }
-  function startReview(session: Session, source: "sample" | "manual" | "csv") {
-    if (!confirmed) {
+  function startReview(
+    session: Session,
+    source: "sample" | "manual" | "csv",
+    rules = confirmed,
+    strategyName = strategy.name,
+  ) {
+    setFocusStep(false);
+    if (!rules) {
       go("strategy");
       setMessage(
         "Confirm your checklist first. These rules will be used for the review.",
@@ -165,19 +177,53 @@ export default function App() {
         recomputed: false,
         name:
           source === "sample"
-            ? `${confirmed.setup?.label ?? "Fictional"} practice`
+            ? `${rules.setup?.label ?? "Fictional"} practice`
             : `Trade review · ${session.date}`,
         savedAt: new Date().toISOString(),
         source,
-        strategyName: strategy.name,
+        strategyName,
         focus: "",
-        review: reviewSession(confirmed, session, source),
+        review: reviewSession(rules, session, source),
       });
       setPage("trades");
       setError("");
     } catch (e) {
       setError((e as Error).message);
     }
+  }
+  function useSample(draft: StrategyDraft) {
+    try {
+      const rules = confirmStrategy(draft);
+      if (!persist(draft, rules)) return;
+      setStrategy(draft);
+      setConfirmed(rules);
+      workspaceJourney.start("rules");
+      study.outcomes(draft);
+      study.complete("rules");
+      workspaceJourney.action("rules_confirmed");
+      setSampleSheet(false);
+      startReview(
+        createPresetSession(draft.setup!.kind),
+        "sample",
+        rules,
+        draft.name,
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  function nextFocus() {
+    setFocusStep(true);
+    requestAnimationFrame(() => {
+      const node = document.getElementById("next-focus");
+      node?.scrollIntoView({
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+        block: "start",
+      });
+      node?.focus({ preventScroll: true });
+    });
   }
   function save(focus: string) {
     if (!active) return;
@@ -199,6 +245,7 @@ export default function App() {
       workspaceJourney.stage("complete");
       setHistory(next);
       setActive(entry);
+      setFocusStep(true);
       setMessage("");
       notify({
         title: history.some((h) => h.id === entry.id)
@@ -287,7 +334,7 @@ export default function App() {
           </button>
           <h1 tabIndex={-1}>{title}</h1>
           <button
-            className="primary"
+            className="secondary"
             onClick={() => go(confirmed ? "trades" : "strategy")}
           >
             <Plus size={18} />
@@ -307,6 +354,24 @@ export default function App() {
               {message}
             </div>
           )}
+          <StepRail
+            current={
+              active
+                ? focusStep
+                  ? 3
+                  : 2
+                : page === "strategy" || !confirmed
+                  ? 0
+                  : 1
+            }
+            complete={!!active && history.some((h) => h === active)}
+            primary={page === "overview" || page === "history"}
+            onContinue={() =>
+              active
+                ? nextFocus()
+                : go(page === "strategy" || !confirmed ? "strategy" : "trades")
+            }
+          />
           {page === "overview" && (
             <>
               <section className="dashboard-hero">
@@ -320,7 +385,7 @@ export default function App() {
                   <Orbit />
                 </Suspense>
               </section>
-              <div className="overview-columns">
+              <div className="overview-columns single-column">
                 <section className="panel strategy-preview">
                   <h2>Your strategy</h2>
                   <p className="field-note">
@@ -345,33 +410,6 @@ export default function App() {
                     <ArrowRight size={16} />
                   </button>
                 </section>
-                <section className="panel how-panel">
-                  <h2>How a review works</h2>
-                  <ol>
-                    {[
-                      [
-                        "Confirm your rules",
-                        "Use your strategy as a checklist.",
-                      ],
-                      [
-                        "Add a few trades",
-                        "Enter your records or explore a fictional sample.",
-                      ],
-                      [
-                        "Find your next focus",
-                        "See the evidence and choose one useful step.",
-                      ],
-                    ].map(([h, p], i) => (
-                      <li key={h}>
-                        <span>{i + 1}</span>
-                        <div>
-                          <strong>{h}</strong>
-                          <p>{p}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
               </div>
               <HistoryTable
                 history={history.slice(0, 3)}
@@ -379,7 +417,7 @@ export default function App() {
                   setActive(e);
                   setPage("trades");
                 }}
-                onSample={() => go("trades")}
+                onSample={() => setSampleSheet(true)}
               />
             </>
           )}
@@ -448,7 +486,7 @@ export default function App() {
                   setActive(e);
                   setPage("trades");
                 }}
-                onSample={() => go("trades")}
+                onSample={() => setSampleSheet(true)}
               />
               {study.session()?.displayName && (
                 <AccountReviewLibrary
@@ -494,6 +532,9 @@ export default function App() {
           </footer>
         </main>
       </div>
+      {sampleSheet && (
+        <SampleSheet onClose={() => setSampleSheet(false)} onUse={useSample} />
+      )}
       {feedback && (
         <Feedback
           onClose={() => {

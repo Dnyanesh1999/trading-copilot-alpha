@@ -2369,3 +2369,124 @@ body:has(.study-session-bar) .toast-stack {
     justify-self: start;
   }
 }
+.step-rail {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  background: #fff;
+  margin-bottom: 24px;
+  position: relative;
+}
+.step-rail ol {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 10px;
+}
+.step-rail li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #77717f;
+  flex-wrap: wrap;
+}
+.step-rail li > span {
+  border: 1px solid #dedbe3;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+}
+.step-rail li small {
+  font-size: 9px;
+}
+.step-rail .current {
+  color: #a4432e;
+  font-weight: 600;
+}
+.step-rail .done {
+  color: #176442;
+}
+.step-rail .done > span {
+  background: #e6f5ec;
+}
+.step-rail .step-track {
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: #f2edf0;
+  overflow: hidden;
+}
+.step-track > span {
+  display: block;
+  background: #d87b64;
+  height: 100%;
+}
+.mobile-step {
+  display: none;
+}
+.single-column {
+  grid-template-columns: 1fr;
+}
+.sample-sheet {
+  margin: auto;
+  width: min(480px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+  color: var(--ink);
+}
+.sample-sheet::backdrop {
+  background: #24203370;
+}
+.sample-sheet li {
+  margin: 12px 0;
+}
+.sample-sheet .section-title h2 {
+  font-size: 22px;
+}
+.action-options article.action-card {
+  display: block;
+}
+.action-card p {
+  color: #595464;
+}
+.finding summary {
+  display: grid;
+}
+.finding-status {
+  flex: none;
+}
+@media (max-width: 600px) {
+  .step-rail {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 10px;
+  }
+  .step-rail ol {
+    display: none;
+  }
+  .mobile-step {
+    display: block;
+    margin: 0;
+    font-size: 13px;
+    flex: 1;
+  }
+  .step-rail button {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .action-detail {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

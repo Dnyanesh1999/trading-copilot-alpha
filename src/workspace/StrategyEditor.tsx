@@ -61,7 +61,12 @@ export function StrategyEditor({
   }
   function apply() {
     if (!analysis) return;
-    const next = { ...draft, enabledRules: [] as RuleId[] };
+    const next = {
+      ...draft,
+      setup: undefined,
+      name: draft.setup ? "My custom checklist" : draft.name,
+      enabledRules: [] as RuleId[],
+    };
     const unresolved: RuleId[] = [];
     for (const rule of analysis.rules) {
       if (rule.value === null) {
@@ -121,7 +126,11 @@ export function StrategyEditor({
               className="text-button"
               disabled={busy}
               onClick={() => {
-                update({ setup: undefined });
+                update({
+                  setup: undefined,
+                  name: "My custom checklist",
+                  description: "",
+                });
                 setShowPresets(false);
               }}
             >
@@ -184,11 +193,11 @@ export function StrategyEditor({
             />
           </label>
           <p className="field-note">
-            AI sends this text to Google. Use fictional, non-sensitive examples
-            in this local build. Keep names and account details out.
+            AI sends this text to Google. Use fictional, non-sensitive examples.
+            Keep names and account details out.
           </p>
           <button
-            className="primary"
+            className="secondary"
             onClick={ask}
             disabled={busy || !draft.description.trim()}
           >
@@ -242,7 +251,7 @@ export function StrategyEditor({
                 </div>
               )}
               <button
-                className="primary"
+                className="secondary"
                 onClick={apply}
                 disabled={!analysis.rules.some((r) => r.value !== null)}
               >
