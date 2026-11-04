@@ -83,7 +83,7 @@ function specific(
       const stop = timestampInfo(p.stop?.recordedAt ?? null);
       if (entry && stop)
         reason = `${p.instrument}: stop recorded at ${stop.clock} IST, entry at ${entry.clock} IST — ${number((stop.epoch - entry.epoch) / 60000)} minutes after entry.`;
-      before = `For your next ${p.instrument} trade, record the initial stop and its time before entering; keep later changes separate.`;
+      before = `For your next trade, record the initial stop and its time before entering; keep later changes separate.`;
       next =
         "Compare the original stop recording time with the first entry time.";
       break;
@@ -122,7 +122,7 @@ function specific(
       break;
     }
     case "setup-entry":
-      before = `For ${p.instrument}, wait for your confirmed ${review.rules.setup?.label ?? "setup"} condition, then record the signal and later entry.`;
+      before = `For your next trade, wait for your confirmed ${review.rules.setup?.label ?? "setup"} condition, then record the signal and later entry.`;
       next =
         "Check the recorded signal against the confirmed setup; do not infer it from the result.";
   }
@@ -158,7 +158,7 @@ export function improvementsFor(review: Review): Improvement[] {
         title: `${p.instrument}: check the reported plan`,
         reason: `${p.instrument}: ${reported.map((f) => f.label).join("; ")}. ${reported.some((f) => f.ruleId === "reward-risk") ? m.rewardBasisText : m.basisText}`,
         steps: [
-          `Record ${p.instrument}'s original stop and target before the next entry; compare them with your confirmed limits.`,
+          "Record your next trade’s original stop and target before entry; compare them with your confirmed limits.",
           "Check the original recording times; reported figures do not prove an entry-time rule break.",
         ],
         findings: reported,
@@ -172,7 +172,7 @@ export function improvementsFor(review: Review): Improvement[] {
         title: `${p.instrument}: fill the record gaps`,
         reason: `${p.instrument}: ${missing.map((f) => `${f.label}. ${f.explanation}`).join(" ")} Missing evidence means unknown, not a rule violation.`,
         steps: [
-          `Keep ${p.instrument}'s original plan, entry and required signal records; add only missing details you can verify.`,
+          "Keep your next trade’s original plan, entry and required signal records; add only missing details you can verify.",
           "Check the missing records again; leave anything unverified as unknown.",
         ],
         findings: missing,

@@ -1,3 +1,4 @@
+import { CurrentFocus } from "./workspace/CurrentFocus";
 import { StepRail, reviewSteps } from "./workspace/StepRail";
 import { SampleSheet } from "./workspace/SampleSheet";
 import { createPresetSession } from "./core/strategy-library";
@@ -464,6 +465,9 @@ export default function App() {
                   <Orbit />
                 </Suspense>
               </section>
+              {history.find((entry) => !!entry.focus) && (
+                <CurrentFocus entry={history.find((entry) => !!entry.focus)!} />
+              )}
               <div className="overview-columns single-column">
                 <section className="panel strategy-preview">
                   <h2>Your strategy</h2>

@@ -14,6 +14,7 @@ export const glossary = {
   },
   "reward-risk": {
     label: "Reward-to-risk (R)",
+    exampleIntro: "2R means you plan to make ₹2 for every ₹1 you risk.",
     meaning:
       "The distance to your target divided by the distance to your stop.",
     example:

@@ -2821,3 +2821,20 @@ body:has(.study-session-bar) .toast-stack {
   margin-left: 0;
   font-size: 10px;
 }
+.current-focus {
+  margin-bottom: 24px;
+}
+.current-focus h3 {
+  font-size: 16px;
+  margin: 12px 0;
+}
+.current-focus h4 {
+  font-size: 13px;
+  margin: 12px 0 8px;
+}
+.current-focus p {
+  max-width: 65ch;
+}
+.position-list .finding-status {
+  flex: 0 0 auto;
+}

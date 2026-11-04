@@ -1,10 +1,11 @@
+import { StatusPill } from "./StatusPill";
 import { motion, useReducedMotion } from "motion/react";
 import { TermChip } from "./TermChip";
 import { recordTime, ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useToast } from "./Toasts";
 import { useState } from "react";
-import { ArrowLeft, Check, X, Clock3, Minus, Download } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import type { Position } from "../core/types";
 import type { ReviewEntry } from "./persistence";
 import { downloadJson } from "./persistence";
@@ -24,12 +25,6 @@ import {
   rupees,
   RULE_LABELS,
 } from "../core/review";
-const statusText = {
-  followed: "Followed",
-  deviated: "Broke rule",
-  insufficient_evidence: "Not enough data",
-  not_checked: "Not checked",
-};
 function istLocal(value: string | null | undefined) {
   const epoch = value ? Date.parse(value) : NaN;
   return Number.isFinite(epoch)
@@ -316,14 +311,16 @@ export function ReviewView({
                   units
                 </small>
               </span>
-              <span className={`status ${positionStatus(review, p.id)}`}>
-                {positionStatus(review, p.id) === "insufficient_evidence" &&
-                review.findings.some(
-                  (f) => f.positionId === p.id && needsReview(f),
-                )
-                  ? "Needs review"
-                  : statusText[positionStatus(review, p.id)]}
-              </span>
+              <StatusPill
+                status={
+                  positionStatus(review, p.id) === "insufficient_evidence" &&
+                  review.findings.some(
+                    (f) => f.positionId === p.id && needsReview(f),
+                  )
+                    ? "needs-review"
+                    : positionStatus(review, p.id)
+                }
+              />
             </button>
           ))}
         </aside>
@@ -399,28 +396,10 @@ export function ReviewView({
                   </strong>
                   <small>{f.label}</small>
                 </span>
-                <span
-                  className={`finding-status ${needsReview(f) ? "needs-review" : f.status}`}
-                >
-                  {needsReview(f) ? (
-                    <Clock3 size={14} aria-hidden="true" />
-                  ) : f.status === "followed" ? (
-                    <Check size={14} aria-hidden="true" />
-                  ) : f.status === "deviated" ? (
-                    <X size={14} aria-hidden="true" />
-                  ) : (
-                    <Minus size={14} aria-hidden="true" />
-                  )}
-                  {needsReview(f) ? (
-                    <TermChip term="needs-review" />
-                  ) : f.status === "deviated" ? (
-                    <TermChip term="broke-rule" />
-                  ) : f.status === "insufficient_evidence" ? (
-                    <TermChip term="not-enough-data" />
-                  ) : (
-                    statusText[f.status]
-                  )}
-                </span>
+                <StatusPill
+                  status={needsReview(f) ? "needs-review" : f.status}
+                />
+
                 <button
                   className="secondary proof-button"
                   aria-label={`Show proof for ${RULE_LABELS[f.ruleId]}`}
