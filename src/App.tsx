@@ -427,6 +427,8 @@ export default function App() {
             {headerAction}
           </button>
           <button
+            hidden={headerAction === "Start new review"}
+            style={headerAction === "Start new review" ? {display:"none"} : undefined}
             className="secondary new-review"
             onClick={() => go(confirmed ? "trades" : "strategy")}
           >
