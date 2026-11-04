@@ -149,10 +149,11 @@ export function ImprovementPlan({
       <div className="focus-save">
         <button
           id="save-focus"
+          disabled={saved && (current.title === initialFocus || current.legacyTitles.includes(initialFocus))}
           className="primary full"
           onClick={() => onSave(current.title)}
         >
-          Save focus
+          {saved && (current.title === initialFocus || current.legacyTitles.includes(initialFocus)) ? "Focus saved ✓" : "Save focus"}
         </button>
         {saved && (
           <span className="sr-only" role="status">
