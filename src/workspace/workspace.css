@@ -2234,3 +2234,25 @@ body:has(.study-session-bar) .toast-stack {
     top: max(150px, env(safe-area-inset-top));
   }
 }
+
+/* Each action retains its evidence and next step, including overflow cards. */
+.action-card h4 {
+  margin: 16px 0 5px;
+  font-size: 0.82rem;
+}
+.action-card-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.action-options article.action-card {
+  cursor: default;
+  min-width: 0;
+}
+.action-card textarea {
+  width: 100%;
+}
+.action-options {
+  align-items: start;
+}
