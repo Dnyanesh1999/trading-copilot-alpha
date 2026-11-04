@@ -1,82 +1,55 @@
-import { motion, useReducedMotion } from "motion/react";
-import { Check, ArrowRight } from "lucide-react";
-const steps = ["Rules", "Trades", "Review", "Next focus"];
-const actions = [
-  "Review rules",
-  "Add trades",
-  "Choose next focus",
-  "Go to next focus",
-];
+import { useLayoutEffect, useRef, useState } from "react";
+export const reviewSteps = ["Rules", "Trades", "Review", "Next focus"];
 export function StepRail({
   current,
   complete = false,
-  onContinue,
-  primary = false,
 }: {
   current: number;
   complete?: boolean;
-  onContinue: () => void;
-  primary?: boolean;
 }) {
-  const reducedMotion = useReducedMotion();
+  const previous = useRef(current);
+  const [direction, setDirection] = useState("down");
+  useLayoutEffect(() => {
+    setDirection(current < previous.current ? "up" : "down");
+    previous.current = current;
+  }, [current]);
   return (
-    <section className="step-rail" aria-label="Review progress">
-      <ol>
-        {steps.map((step, i) => (
-          <li
+    <section
+      className={`quiet-rail ${complete ? "complete" : ""}`}
+      aria-label={`Review progress: step ${complete ? 4 : current + 1} of 4, ${complete ? "Review complete" : reviewSteps[current]}`}
+    >
+      <div className="quiet-rows">
+        <div
+          aria-hidden="true"
+          className={`quiet-indicator ${direction}`}
+          style={{
+            top: complete ? 0 : current * 28 + 6,
+            bottom: complete ? 0 : 112 - (current * 28 + 22),
+          }}
+        />
+        {reviewSteps.map((step, i) => (
+          <div
             key={step}
-            className={
-              i < current || complete
-                ? "done"
-                : i === current
-                  ? "current"
-                  : "next"
-            }
+            className={`quiet-row ${complete || i < current ? "done" : i === current ? "current" : "upcoming"}`}
             aria-current={!complete && i === current ? "step" : undefined}
           >
-            <span>{i < current || complete ? <Check size={13} /> : i + 1}</span>
-            {step}
-            <small>
-              {i < current || complete
-                ? "Done"
-                : i === current
-                  ? "Current"
-                  : "Next"}
-            </small>
-          </li>
+            <span className="quiet-ghost" aria-hidden="true" />
+            <span className="quiet-label">{step}</span>
+            {(complete || i < current) && (
+              <svg
+                className="quiet-tick"
+                viewBox="0 0 16 16"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path d="M3 8l3 3 7-7" pathLength="1" />
+              </svg>
+            )}
+          </div>
         ))}
-      </ol>
-      <p className="mobile-step">
-        {complete
-          ? "Review saved"
-          : `Step ${current + 1} of ${steps.length} — ${current === 0 ? "Confirm rules" : current === 1 ? "Add trades" : steps[current]}`}
-      </p>
-      <div
-        className="step-track"
-        role="progressbar"
-        aria-label="Review steps completed"
-        aria-valuemin={0}
-        aria-valuemax={steps.length}
-        aria-valuenow={complete ? steps.length : current}
-      >
-        <motion.span
-          initial={false}
-          animate={{ scaleX: complete ? 1 : current / steps.length }}
-          style={{ width: "100%", transformOrigin: "left" }}
-          transition={
-            reducedMotion
-              ? { duration: 0 }
-              : { type: "spring", duration: 0.3, bounce: 0.1 }
-          }
-        />
       </div>
-      <button
-        className={primary ? "primary" : "secondary"}
-        onClick={onContinue}
-      >
-        {complete ? "Review saved focus" : actions[current]}
-        <ArrowRight size={14} />
-      </button>
+      {complete && <p className="quiet-complete">Review complete</p>}
     </section>
   );
 }

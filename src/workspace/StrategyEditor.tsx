@@ -375,7 +375,8 @@ export function StrategyEditor({
             </p>
           )}
           <button
-            className="primary full"
+            id="confirm-rules"
+            className="secondary full"
             disabled={busy || draft.enabledRules.length === 0}
             onClick={onConfirm}
           >

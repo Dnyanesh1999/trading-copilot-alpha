@@ -2490,3 +2490,174 @@ body:has(.study-session-bar) .toast-stack {
     gap: 12px;
   }
 }
+/* Quiet sidebar progress; no progress card in the page flow. */
+.quiet-rail {
+  border-top: 1px solid #ececf0;
+  margin-top: 18px;
+  padding-top: 10px;
+}
+.quiet-rows {
+  height: 112px;
+  position: relative;
+  border-left: 2px solid #ececf0;
+}
+.quiet-row {
+  height: 28px;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  font-size: 13px;
+  color: #b3b8c2;
+}
+.quiet-label {
+  transition: transform 460ms ease-out;
+}
+.quiet-row.current {
+  color: #1d2230;
+  font-weight: 600;
+}
+.quiet-row.current .quiet-label {
+  transform: translateX(6px);
+}
+.quiet-row.done {
+  color: #8a8f9c;
+}
+.quiet-tick {
+  margin-left: auto;
+  margin-right: 12px;
+  color: #2f9e6b;
+}
+.quiet-tick path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: quiet-tick 360ms 260ms both;
+}
+@keyframes quiet-tick {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.quiet-indicator {
+  position: absolute;
+  left: -2px;
+  width: 2px;
+  background: #e86f5a;
+  z-index: 1;
+  transition:
+    bottom 260ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    top 380ms 120ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    background-color 360ms;
+}
+.quiet-indicator.up {
+  transition:
+    top 260ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    bottom 380ms 120ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    background-color 360ms;
+}
+.quiet-rail.complete .quiet-indicator {
+  background: #2f9e6b;
+}
+.quiet-ghost {
+  position: absolute;
+  top: 6px;
+  left: -2px;
+  height: 16px;
+  width: 2px;
+  background: #b9bec8;
+  opacity: 0;
+  transition: opacity 220ms;
+}
+.quiet-row:not(.current):hover .quiet-ghost {
+  opacity: 1;
+}
+.quiet-complete {
+  font-size: 11px;
+  color: #2f7d58;
+  margin: 8px 0 0 12px;
+  animation: quiet-caption 220ms both;
+}
+@keyframes quiet-caption {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.guided-header {
+  position: relative;
+  gap: 12px;
+}
+.header-title {
+  flex: 1;
+  min-width: 0;
+}
+.phone-step,
+.phone-step-name,
+.phone-progress {
+  display: none;
+}
+.header-action {
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .guided-header {
+    padding: 12px 16px;
+  }
+  .guided-header .new-review,
+  .desktop-title {
+    display: none;
+  }
+  .phone-step {
+    display: block;
+    font-size: 11px;
+    color: #5f6675;
+  }
+  .phone-step-name {
+    display: inline;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .guided-header h1 {
+    font-size: 15px;
+    margin: 0;
+  }
+  .header-action {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .phone-progress {
+    display: block;
+    height: 2px;
+    background: #e86f5a;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    transition: width 560ms ease-out;
+  }
+  .quiet-rail {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiet-label,
+  .quiet-indicator,
+  .quiet-indicator.up,
+  .quiet-ghost,
+  .phone-progress {
+    transition: none;
+  }
+  .quiet-tick path,
+  .quiet-complete {
+    animation: none;
+  }
+}

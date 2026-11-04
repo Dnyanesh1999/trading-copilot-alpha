@@ -177,7 +177,11 @@ export function ImprovementPlan({
         <p>
           Selected focus: <strong>{plan.title}</strong>
         </p>
-        <button className="primary" onClick={() => onSave(plan.title)}>
+        <button
+          id="save-focus"
+          className="primary"
+          onClick={() => onSave(plan.title)}
+        >
           {saved ? <Check size={16} /> : <Save size={16} />}{" "}
           {saved ? "Update saved review" : "Save review & action plan"}
         </button>

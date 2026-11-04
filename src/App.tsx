@@ -1,4 +1,4 @@
-import { StepRail } from "./workspace/StepRail";
+import { StepRail, reviewSteps } from "./workspace/StepRail";
 import { SampleSheet } from "./workspace/SampleSheet";
 import { createPresetSession } from "./core/strategy-library";
 import {
@@ -76,6 +76,23 @@ export default function App() {
   const [feedback, setFeedback] = useState(false);
   const [sampleSheet, setSampleSheet] = useState(false);
   const [focusStep, setFocusStep] = useState(false);
+  const [saveVisible, setSaveVisible] = useState(false);
+  const [completedJourney, setCompletedJourney] = useState(
+    !!initial?.history[0]?.focus,
+  );
+  useEffect(() => {
+    const node = document.getElementById("save-focus");
+    if (!node) {
+      setSaveVisible(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setSaveVisible(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [active?.id, page]);
   const feedbackTrigger = useRef<HTMLButtonElement>(null);
   const [mobile, setMobile] = useState(
     () => matchMedia("(max-width: 600px)").matches,
@@ -102,6 +119,7 @@ export default function App() {
       });
   }, [error, notify]);
   function go(next: Page) {
+    if (next === "strategy" || next === "trades") setCompletedJourney(false);
     setFocusStep(false);
     if (next === "strategy" && page !== "strategy")
       strategyReturn.current = page;
@@ -133,6 +151,7 @@ export default function App() {
     }
   }
   function changeStrategy(next: StrategyDraft) {
+    setCompletedJourney(false);
     setStrategy(next);
     setConfirmed(null);
     persist(next, null);
@@ -246,6 +265,7 @@ export default function App() {
       setHistory(next);
       setActive(entry);
       setFocusStep(true);
+      setCompletedJourney(true);
       setMessage("");
       notify({
         title: history.some((h) => h.id === entry.id)
@@ -276,6 +296,57 @@ export default function App() {
           }
         : current,
     );
+  }
+  const reviewComplete = active
+    ? history.some((h) => h === active)
+    : completedJourney;
+  const currentStep = reviewComplete
+    ? 3
+    : active
+      ? focusStep || reviewComplete
+        ? 3
+        : 2
+      : page === "strategy" || !confirmed
+        ? 0
+        : 1;
+  const headerAction = reviewComplete
+    ? "Start new review"
+    : currentStep === 0
+      ? "Add trades"
+      : currentStep === 1
+        ? "See review"
+        : currentStep === 2
+          ? "Choose focus"
+          : "Save focus";
+  function continueStep() {
+    if (reviewComplete) {
+      go("trades");
+      return;
+    }
+    if (currentStep === 0) {
+      if (page === "strategy")
+        document.getElementById("confirm-rules")?.click();
+      else go("strategy");
+      return;
+    }
+    if (currentStep === 1) {
+      if (page !== "trades") go("trades");
+      else {
+        const button =
+          document.querySelector<HTMLButtonElement>("[data-run-review]");
+        if (button && !button.disabled) button.click();
+        else
+          document
+            .querySelector<HTMLElement>(".trade-workspace")
+            ?.scrollIntoView({ block: "start" });
+      }
+      return;
+    }
+    if (currentStep === 2) {
+      nextFocus();
+      return;
+    }
+    document.getElementById("save-focus")?.click();
   }
   const title =
     page === "overview"
@@ -318,13 +389,14 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <StepRail current={currentStep} complete={reviewComplete} />
         <div className="sidebar-bottom">
           <Laptop size={16} />
           <span>Stored on this device</span>
         </div>
       </aside>
       <div className="workspace-body">
-        <header className="workspace-header">
+        <header className="workspace-header guided-header">
           <button
             className="mobile-menu icon-button"
             aria-label={mobileNav ? "Close navigation" : "Open navigation"}
@@ -332,14 +404,35 @@ export default function App() {
           >
             {mobileNav ? <X /> : <Menu />}
           </button>
-          <h1 tabIndex={-1}>{title}</h1>
+          <div className="header-title">
+            <small className="phone-step">Step {currentStep + 1} of 4</small>
+            <h1 tabIndex={-1}>
+              <span className="desktop-title">{title}</span>
+              <span className="phone-step-name">
+                {reviewSteps[currentStep]}
+              </span>
+            </h1>
+          </div>
           <button
-            className="secondary"
+            className={
+              saveVisible ? "secondary header-action" : "primary header-action"
+            }
+            onClick={continueStep}
+          >
+            {headerAction}
+          </button>
+          <button
+            className="secondary new-review"
             onClick={() => go(confirmed ? "trades" : "strategy")}
           >
             <Plus size={18} />
             <span>New review</span>
           </button>
+          <span
+            className="phone-progress"
+            aria-hidden="true"
+            style={{ width: `${((currentStep + 1) / 4) * 100}%` }}
+          />
         </header>
         {!study.session() && <InternalJourney />}
         <main id="workspace-main" className="workspace-main" key={page}>
@@ -354,24 +447,6 @@ export default function App() {
               {message}
             </div>
           )}
-          <StepRail
-            current={
-              active
-                ? focusStep
-                  ? 3
-                  : 2
-                : page === "strategy" || !confirmed
-                  ? 0
-                  : 1
-            }
-            complete={!!active && history.some((h) => h === active)}
-            primary={page === "overview" || page === "history"}
-            onContinue={() =>
-              active
-                ? nextFocus()
-                : go(page === "strategy" || !confirmed ? "strategy" : "trades")
-            }
-          />
           {page === "overview" && (
             <>
               <section className="dashboard-hero">

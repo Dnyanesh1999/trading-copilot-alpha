@@ -291,7 +291,8 @@ export function TradeEntry({
         </p>
       )}
       <button
-        className="primary"
+        data-run-review
+        className="secondary"
         onClick={() => {
           try {
             setFieldError(null);

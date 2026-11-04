@@ -158,7 +158,7 @@ export function TradeWorkspace({
                 </div>
                 {!matching ? (
                   <button
-                    className="primary"
+                    className="secondary"
                     onClick={() => onPreset(presetDraft(preset))}
                   >
                     Use this setup
@@ -196,9 +196,7 @@ export function TradeWorkspace({
                   <Download size={15} />
                   Download filled sample CSV
                 </button>
-                <label
-                  className={`${uploaded ? "secondary" : "primary"} file-button`}
-                >
+                <label className={"secondary file-button"}>
                   {loading ? "Reading CSV…" : "Upload CSV file"}
                   <input
                     ref={fileRef}
@@ -362,9 +360,8 @@ export function TradeWorkspace({
                   <span>Selection happens before the review.</span>
                 </p>
                 <button
-                  className={
-                    mode === "sample" && !matching ? "secondary" : "primary"
-                  }
+                  data-run-review
+                  className="secondary"
                   disabled={
                     ids.length === 0 || (mode === "sample" && !matching)
                   }
