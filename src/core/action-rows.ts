@@ -98,7 +98,7 @@ export function actionRowsFor(review: Review): ActionRow[] {
         const amount =
           c.unit === "INR" ? rupees(c.value) : `${c.value.toFixed(2)}R`;
         const limit = c.unit === "INR" ? rupees(c.limit) : `${c.limit}R`;
-        happened = `${p.instrument} has ${amount} reported ${c.unit === "INR" ? "risk" : "reward-to-risk"} against your ${limit} limit, but the original entry-time plan is unverified.`;
+        happened = `${p.instrument} has ${amount} reported ${c.unit === "INR" ? "risk" : "reward-to-risk"} against your ${limit} ${c.unit === "R" ? "minimum" : "limit"}, but the original entry-time plan is unverified.`;
         emphasis = amount;
       } else if (f.status === "deviated") {
         if (
