@@ -48,7 +48,7 @@ export function ImprovementPlan({
           const expanded = row.id === current.id;
           const term =
             ["maintain", "missing-records"].includes(row.id) ? undefined : ruleTerm(row.id as RuleId);
-          const before = [...new Set(row.details.map((d) => d.before))];
+          const before = [...new Set(row.details.map((d) => d.before))].sort((a,b)=>Number(/₹|\d/.test(b))-Number(/₹|\d/.test(a)));
           if (!before.length)
             before.push(
               "Keep recording the original plan before your next trade.",
