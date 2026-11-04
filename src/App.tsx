@@ -77,6 +77,7 @@ export default function App() {
   const [sampleSheet, setSampleSheet] = useState(false);
   const [focusStep, setFocusStep] = useState(false);
   const [saveVisible, setSaveVisible] = useState(false);
+  const [pendingFocus, setPendingFocus] = useState("");
   const [completedJourney, setCompletedJourney] = useState(
     !!initial?.history[0]?.focus,
   );
@@ -119,6 +120,7 @@ export default function App() {
       });
   }, [error, notify]);
   function go(next: Page) {
+    setPendingFocus("");
     if (next === "strategy" || next === "trades") setCompletedJourney(false);
     setFocusStep(false);
     if (next === "strategy" && page !== "strategy")
@@ -264,6 +266,7 @@ export default function App() {
       workspaceJourney.stage("complete");
       setHistory(next);
       setActive(entry);
+      setPendingFocus("");
       setFocusStep(true);
       setCompletedJourney(true);
       setMessage("");
@@ -298,7 +301,8 @@ export default function App() {
     );
   }
   const reviewComplete = active
-    ? history.some((h) => h === active)
+    ? history.some((h) => h === active) &&
+      (!pendingFocus || pendingFocus === active.focus)
     : completedJourney;
   const currentStep = reviewComplete
     ? 3
@@ -523,11 +527,17 @@ export default function App() {
               <>
                 <ReviewView
                   key={active.id}
+                  onFocusChange={(title) => {
+                    setPendingFocus(title);
+                    setFocusStep(true);
+                  }}
                   entry={active}
                   onSave={save}
                   onCorrect={correctPosition}
                   onBack={() => {
                     setActive(null);
+                    setCompletedJourney(false);
+                    setPendingFocus("");
                     setMessage("");
                   }}
                   saved={history.some((h) => h === active)}

@@ -158,12 +158,14 @@ export function ReviewView({
   onBack,
   onCorrect,
   saved,
+  onFocusChange,
 }: {
   entry: ReviewEntry;
   onSave: (focus: string) => void;
   onBack: () => void;
   onCorrect: (position: Position) => void;
   saved: boolean;
+  onFocusChange?: (title: string) => void;
 }) {
   const notify = useToast();
   const reducedMotion = useReducedMotion();
@@ -468,6 +470,7 @@ export function ReviewView({
         </section>
       </div>
       <ImprovementPlan
+        onFocusChange={onFocusChange}
         review={review}
         initialFocus={entry.focus}
         onSave={onSave}

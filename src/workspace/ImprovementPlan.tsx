@@ -1,55 +1,39 @@
-import { needsReview } from "../core/review";
-import { TermChip } from "./TermChip";
-import { ruleTerm } from "../core/glossary";
-import { study } from "../study/client";
 import { useState } from "react";
-import { ArrowRight, Check, Save, Target, Copy } from "lucide-react";
-import type { Finding, Review } from "../core/types";
-import { improvementsFor } from "../core/improvement";
-async function copyText(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    const previous = document.activeElement as HTMLElement | null;
-    const field = document.createElement("textarea");
-    field.value = text;
-    field.style.position = "fixed";
-    field.style.opacity = "0";
-    document.body.append(field);
-    field.select();
-    let copied = false;
-    try {
-      copied = document.execCommand("copy");
-    } catch {
-      /* Keep manual fallback visible. */
-    }
-    field.remove();
-    previous?.focus();
-    return copied;
-  }
-}
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowRight } from "lucide-react";
+import { study } from "../study/client";
+import type { Finding, Review, RuleId } from "../core/types";
+import { actionRowsFor, focusRowFor } from "../core/action-rows";
+import { ruleTerm } from "../core/glossary";
+import { TermChip } from "./TermChip";
+import { StatusPill } from "./StatusPill";
+import { CopyAction } from "./CopyAction";
 export function ImprovementPlan({
   review,
   initialFocus,
   onSave,
   onEvidence,
   saved,
+  onFocusChange,
 }: {
   review: Review;
   initialFocus: string;
   onSave: (focus: string) => void;
   onEvidence: (finding: Finding) => void;
   saved: boolean;
+  onFocusChange?: (title: string) => void;
 }) {
-  const plans = improvementsFor(review);
+  const rows = actionRowsFor(review);
   const [selected, setSelected] = useState(
-    () => plans.find((p) => p.title === initialFocus)?.id ?? plans[0].id,
+    () => focusRowFor(review, initialFocus)?.id ?? rows[0].id,
   );
-  const [expanded, setExpanded] = useState(false);
-  const [copy, setCopy] = useState<{ id: string; ok: boolean } | null>(null);
-  const plan = plans.find((p) => p.id === selected) ?? plans[0];
-  const visible = expanded ? plans : plans.slice(0, 3);
+  const reduced = useReducedMotion();
+  const choose = (id: string) => {
+    setSelected(id);
+    const row = rows.find((r) => r.id === id);
+    if (row) onFocusChange?.(row.title);
+  };
+  const current = rows.find((r) => r.id === selected) ?? rows[0];
   return (
     <section
       id="next-focus"
@@ -57,141 +41,142 @@ export function ImprovementPlan({
       className="panel improvement-panel"
       onFocusCapture={() => study.start("action")}
     >
-      <div className="improvement-title">
-        <Target size={21} />
-        <h2>Make the next review count.</h2>
-      </div>
-      <p className="muted">
-        Choose one action to practise. These calculations describe your
-        checklist, not a recommendation to place a trade.
-      </p>
-      <div
-        className="action-options"
-        role="group"
-        aria-label="Next review action"
-      >
-        {visible.map((p, i) => (
-          <article
-            key={p.id}
-            className={`action-card ${selected === p.id ? "selected" : ""}`}
-          >
-            <div className="action-top">
-              <small>
-                {p.kind === "deviation"
-                  ? "Broke rule"
-                  : p.kind === "reported"
-                    ? p.findings.some(needsReview)
-                      ? "Needs review"
-                      : "Reported plan"
-                    : p.kind === "evidence"
-                      ? "Not enough data"
-                      : "Keep practising"}
-              </small>
-              {i === 0 && (
-                <span className="recommend-pill">Recommended first</span>
-              )}
-            </div>
-            <h3>{p.title}</h3>
-            {p.findings[0] && ruleTerm(p.findings[0].ruleId) && (
-              <TermChip
-                term={ruleTerm(p.findings[0].ruleId)!}
-                position={review.session.positions.find(
-                  (position) => position.id === p.findings[0].positionId,
-                )}
-              />
-            )}
-            {p.kind !== "maintain" && (
-              <TermChip
-                term={
-                  p.kind === "reported"
-                    ? p.findings.some(needsReview)
-                      ? "needs-review"
-                      : "not-enough-data"
-                    : p.kind === "evidence"
-                      ? "not-enough-data"
-                      : "broke-rule"
-                }
-              />
-            )}
-            <p>{p.reason}</p>
-            <h4>Before your next trade</h4>
-            <p>{p.steps[0]}</p>
-            <button
-              className="text-button"
-              onClick={async () =>
-                setCopy({ id: p.id, ok: await copyText(p.steps[0]) })
-              }
+      <h2>Make the next review count.</h2>
+      <p className="muted">Pick one thing to practise next time.</p>
+      <div className="action-list" role="group" aria-label="Next review action">
+        {rows.map((row, index) => {
+          const expanded = row.id === current.id;
+          const term =
+            row.id === "maintain" ? undefined : ruleTerm(row.id as RuleId);
+          const before = [...new Set(row.details.map((d) => d.before))];
+          if (!before.length)
+            before.push(
+              "Keep recording the original plan before your next trade.",
+            );
+          return (
+            <article
+              className={`focus-row ${expanded ? "selected" : ""}`}
+              key={row.id}
             >
-              <Copy size={14} />
-              Copy
-            </button>
-            {copy?.id === p.id && (
-              <div role="status">
-                {copy.ok
-                  ? "Copied"
-                  : "Copy unavailable. Select and copy the text below."}
-                {!copy.ok && (
-                  <textarea
-                    aria-label="Text to copy"
-                    readOnly
-                    value={p.steps[0]}
-                    onFocus={(e) => e.target.select()}
-                  />
-                )}
-              </div>
-            )}
-            <h4>In your next review</h4>
-            <p>{p.steps[1]}</p>
-            <div className="action-card-controls">
               <button
-                className="secondary"
-                aria-pressed={selected === p.id}
-                onClick={() => setSelected(p.id)}
+                className="focus-row-toggle"
+                aria-expanded={expanded}
+                aria-controls={`focus-${row.id}`}
+                onClick={() => choose(row.id)}
+                onKeyDown={(e) => {
+                  if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+                    e.preventDefault();
+                    const n =
+                      (index + (e.key === "ArrowDown" ? 1 : -1) + rows.length) %
+                      rows.length;
+                    choose(rows[n].id);
+                    e.currentTarget
+                      .closest(".action-list")
+                      ?.querySelectorAll<HTMLButtonElement>(".focus-row-toggle")
+                      [n]?.focus();
+                  }
+                }}
               >
-                {selected === p.id && <Check size={14} />}{" "}
-                {selected === p.id ? "Selected focus" : "Choose this focus"}
+                <span className="focus-radio" aria-hidden="true" />
+                <span className="focus-row-title" title={row.title}>
+                  <span>{row.title}</span>
+                  {index === 0 && <small>Suggested</small>}
+                </span>
+                <StatusPill status={row.status} />
               </button>
-              {p.findings[0] && (
-                <button
-                  className="text-button"
-                  onClick={() => onEvidence(p.findings[0])}
-                >
-                  Show proof
-                  <ArrowRight size={14} />
-                </button>
-              )}
-            </div>
-          </article>
-        ))}
+              <motion.div
+                id={`focus-${row.id}`}
+                initial={false}
+                animate={{
+                  height: expanded ? "auto" : 0,
+                  opacity: expanded ? 1 : 0,
+                }}
+                transition={{ duration: reduced ? 0 : 0.3 }}
+                inert={!expanded}
+                aria-hidden={!expanded}
+                className="focus-expand"
+              >
+                <div className="focus-content">
+                  <h3>What happened</h3>
+                  {row.details.length ? (
+                    row.details.map((d) => (
+                      <p key={d.finding.positionId}>
+                        {d.emphasis && d.happened.includes(d.emphasis) ? (
+                          <>
+                            {d.happened.split(d.emphasis)[0]}
+                            <strong>{d.emphasis}</strong>
+                            {d.happened.slice(
+                              d.happened.indexOf(d.emphasis) +
+                                d.emphasis.length,
+                            )}
+                          </>
+                        ) : (
+                          d.happened
+                        )}
+                      </p>
+                    ))
+                  ) : (
+                    <p>
+                      Every assessed check was followed; unchecked rules were
+                      not assessed.
+                    </p>
+                  )}
+                  <h3>Before your next trade</h3>
+                  <div className="before-focus">
+                    <div>
+                      {before.map((text) => (
+                        <p key={text}>{text}</p>
+                      ))}
+                    </div>
+                    <CopyAction text={before.join("\n")} />
+                  </div>
+                  {term && (
+                    <div className="focus-term">
+                      <TermChip
+                        term={term}
+                        position={review.session.positions.find(
+                          (p) => p.id === row.details[0]?.finding.positionId,
+                        )}
+                      />
+                    </div>
+                  )}
+                  <h3>In your next review</h3>
+                  <p className="muted">{row.next}</p>
+                  <div className="focus-proof">
+                    {row.details.map((d) => (
+                      <button
+                        key={d.finding.positionId}
+                        className="text-button"
+                        onClick={() => onEvidence(d.finding)}
+                      >
+                        Show proof
+                        {row.details.length > 1
+                          ? ` · ${review.session.positions.find((p) => p.id === d.finding.positionId)?.instrument}`
+                          : ""}
+                        <ArrowRight size={14} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </article>
+          );
+        })}
       </div>
-      {plans.length > 3 && (
-        <button
-          className="secondary"
-          aria-expanded={expanded}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? "Show fewer" : `+${plans.length - 3} more`}
-        </button>
-      )}
-      <div className="action-detail">
-        <p>
-          Selected focus: <strong>{plan.title}</strong>
-        </p>
+      <div className="focus-save">
         <button
           id="save-focus"
-          className="primary"
-          onClick={() => onSave(plan.title)}
+          className="primary full"
+          onClick={() => onSave(current.title)}
         >
-          {saved ? <Check size={16} /> : <Save size={16} />}{" "}
-          {saved ? "Update saved review" : "Save review & action plan"}
+          Save focus
         </button>
+        {saved && (
+          <span className="sr-only" role="status">
+            Review saved; choose Save focus to update it.
+          </span>
+        )}
       </div>
-      {initialFocus && !plans.some((p) => p.title === initialFocus) && (
-        <p className="field-note">
-          Previously saved focus: {initialFocus}. Choose a current action to
-          update it.
-        </p>
-      )}
     </section>
   );
 }
