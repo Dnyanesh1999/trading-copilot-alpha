@@ -66,3 +66,5 @@ OpenAI Codex (exact deployed model version not exposed) implemented the user-app
 21 October 2026 — Claude (Anthropic; exact model/version not supplied) independently QA-tested the live study build and reviewed local Stage 1/1.1; its findings informed Stage 1.1 items 1–4. This was developer QA, not participant evidence.
 
 ---
+
+4 November 2026 — OpenAI Codex (exact model version not exposed) implemented the student's bounded T03/T05 UI request: calculated actions, shared glossary, explicit proof/status, guided steps/sample shortcut and reduced-motion-aware transitions. A pre-edit fixture/submitted-case verdict snapshot and engine/policy hash lock were added first. Verification: 254 tests, frontend build, isolated Chrome/Playwright desktop 1440px and mobile 390px journeys, clipboard denial fallback, proof event counts, custom/preset header, and reduced motion. Browser plugin unavailable; installed Chrome used; local logging transport mocked in browser QA. No Gemini requests, deployment, backend/schema changes or participant-record operations. This is developer QA, not new trader feedback or study evidence. Student review pending.

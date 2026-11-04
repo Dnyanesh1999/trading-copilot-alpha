@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "motion/react";
 import { TermChip } from "./TermChip";
 import { recordTime, ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
@@ -165,6 +166,7 @@ export function ReviewView({
   saved: boolean;
 }) {
   const notify = useToast();
+  const reducedMotion = useReducedMotion();
   const [selected, setSelected] = useState(
     entry.review.session.positions[0]?.id ?? "",
   );
@@ -363,8 +365,14 @@ export function ReviewView({
               onCorrect={onCorrect}
             />
           )}
-          {findings.map((f) => (
-            <details
+          {findings.map((f, index) => (
+            <motion.details
+              initial={reducedMotion ? false : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: reducedMotion ? 0 : 0.08,
+                delay: reducedMotion ? 0 : Math.min(index * 0.06, 0.3),
+              }}
               className="finding"
               open={evidenceRule === f.ruleId ? true : undefined}
               key={`${selected}-${f.ruleId}`}
@@ -455,7 +463,7 @@ export function ReviewView({
                   })}
                 </ul>
               </div>
-            </details>
+            </motion.details>
           ))}
         </section>
       </div>

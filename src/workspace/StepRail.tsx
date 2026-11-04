@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "motion/react";
 import { Check, ArrowRight } from "lucide-react";
 const steps = ["Rules", "Trades", "Review", "Next focus"];
 const actions = [
@@ -17,6 +18,7 @@ export function StepRail({
   onContinue: () => void;
   primary?: boolean;
 }) {
+  const reducedMotion = useReducedMotion();
   return (
     <section className="step-rail" aria-label="Review progress">
       <ol>
@@ -57,8 +59,15 @@ export function StepRail({
         aria-valuemax={steps.length}
         aria-valuenow={complete ? steps.length : current}
       >
-        <span
-          style={{ width: `${(complete ? 1 : current / steps.length) * 100}%` }}
+        <motion.span
+          initial={false}
+          animate={{ scaleX: complete ? 1 : current / steps.length }}
+          style={{ width: "100%", transformOrigin: "left" }}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { type: "spring", duration: 0.3, bounce: 0.1 }
+          }
         />
       </div>
       <button

@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { glossary, termExample, type Term } from "../core/glossary";
@@ -11,6 +12,7 @@ export function TermChip({
   position?: Position;
   children?: ReactNode;
 }) {
+  const reducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [point, setPoint] = useState({ top: 0, left: 0 });
   const trigger = useRef<HTMLButtonElement>(null),
@@ -85,7 +87,10 @@ export function TermChip({
       </button>
       {open &&
         createPortal(
-          <div
+          <motion.div
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: reducedMotion ? 0 : 0.15 }}
             ref={card}
             id={id}
             role="tooltip"
@@ -97,7 +102,7 @@ export function TermChip({
             <strong>{glossary[term].label}</strong>
             <p>{glossary[term].meaning}</p>
             <p className="term-example">{termExample(term, position)}</p>
-          </div>,
+          </motion.div>,
           trigger.current?.closest("dialog") ?? document.body,
         )}
     </>

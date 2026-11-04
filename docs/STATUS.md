@@ -1,3 +1,11 @@
+# 4 November 2026 — pilot-informed UI, local review only
+
+Five requested UI items implemented on `codex/pilot-ui-2026-11-04`. Trade-specific action calculations and all deviations remain visible; terms explain the selected trade; status/proof is explicit; guided steps and a two-click sample path replace the static guidance; preset-to-custom clears stale identity. Motion respects reduced motion.
+
+254 tests and build pass. Fixture + 12 submitted-case regression passes; `src/core/review.ts` and `server/strategy-policy.mjs` are byte-identical to the pre-UI baseline. Isolated desktop1440/mobile390 Chrome journeys pass with no console errors; proof event count, clipboard fallback, custom header and reduced motion verified. Production preview smoke passes. Build reports large bundle chunks; no bundle refactor in this bounded change. No Gemini calls, Worker/login/storage-schema changes, deployment or participant-record operations. Stop for student review.
+
+---
+
 # 19 October 2026 — test email received
 
 Owner confirmed receipt of the single authorised plain test email. Brevo email delivery to the owner inbox is verified. Actual app signup-verification and password-reset link journeys still await an owner-controlled live test; isolated auth semantics passed previously. No further sends or external participant collection.
