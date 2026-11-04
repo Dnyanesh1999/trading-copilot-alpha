@@ -3073,3 +3073,5 @@ body:has(.study-session-bar) .toast-stack {
 }
 
 .workspace .combined-notice { width:100%; max-width:none; }
+
+.copy-heading {display:flex;align-items:center;gap:8px;}

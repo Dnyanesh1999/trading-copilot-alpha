@@ -121,27 +121,10 @@ export function ImprovementPlan({
                       not assessed.
                     </p>
                   )}
-                  <h3>Before your next trade</h3>
-                  <div className="before-focus">
-                    <div>
-                      {before.map((text) => (
-                        <p key={text}>{text}</p>
-                      ))}
-                    </div>
-                    <CopyAction text={before.join("\n")} />
-                  </div>
-                  {term && (
-                    <div className="focus-term">
-                      <TermChip
-                        term={term}
-                        position={review.session.positions.find(
-                          (p) => p.id === row.details[0]?.finding.positionId,
-                        )}
-                      />
-                    </div>
-                  )}
+                  <h3 className="copy-heading">Before your next trade <CopyAction text={before.join("\n")} /></h3>
+                  {before.map(text=><p key={text}>{text}</p>)}
                   <h3>In your next review</h3>
-                  <p className="muted">{row.next}</p>
+                  <p className="muted">{(()=>{const word=term==="planned-risk"?"risk cap":term==="reward-risk"?"minimum R":term==="stop-before-entry"?"stop":term==="entry-cutoff"?"cutoff":term==="daily-limit"?"entries":"";const index=word?row.next.indexOf(word):-1;return term&&index>=0?<>{row.next.slice(0,index)}<TermChip term={term} position={review.session.positions.find(p=>p.id===row.details[0]?.finding.positionId)}>{word}</TermChip>{row.next.slice(index+word.length)}</>:row.next;})()}</p>
                   <div className="focus-proof">
                     {row.details.map((d) => (
                       <button
