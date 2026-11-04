@@ -22,7 +22,7 @@ function Sculpture({ reduced }: { reduced: boolean }) {
       <mesh rotation={[0.6, 0.2, 0.4]}>
         <torusGeometry args={[1.18, 0.18, 24, 80]} />
         <meshStandardMaterial
-          color="#b9bec8"
+          color="#ee9a87"
           roughness={0.3}
           metalness={0.05}
         />
@@ -33,7 +33,7 @@ function Sculpture({ reduced }: { reduced: boolean }) {
       </mesh>
       <mesh>
         <sphereGeometry args={[0.27, 32, 32]} />
-        <meshStandardMaterial color="#717b8d" roughness={0.28} />
+        <meshStandardMaterial color="#ed8a72" roughness={0.28} />
       </mesh>
       <mesh position={[-1.4, -0.5, 0.3]}>
         <sphereGeometry args={[0.13, 24, 24]} />
