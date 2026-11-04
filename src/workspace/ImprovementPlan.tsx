@@ -1,4 +1,6 @@
 import { needsReview } from "../core/review";
+import { TermChip } from "./TermChip";
+import { ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useState } from "react";
 import { ArrowRight, Check, Save, Target, Copy } from "lucide-react";
@@ -90,6 +92,27 @@ export function ImprovementPlan({
               )}
             </div>
             <h3>{p.title}</h3>
+            {p.findings[0] && ruleTerm(p.findings[0].ruleId) && (
+              <TermChip
+                term={ruleTerm(p.findings[0].ruleId)!}
+                position={review.session.positions.find(
+                  (position) => position.id === p.findings[0].positionId,
+                )}
+              />
+            )}
+            {p.kind !== "maintain" && (
+              <TermChip
+                term={
+                  p.kind === "reported"
+                    ? p.findings.some(needsReview)
+                      ? "needs-review"
+                      : "not-enough-data"
+                    : p.kind === "evidence"
+                      ? "not-enough-data"
+                      : "broke-rule"
+                }
+              />
+            )}
             <p>{p.reason}</p>
             <h4>Before your next trade</h4>
             <p>{p.steps[0]}</p>

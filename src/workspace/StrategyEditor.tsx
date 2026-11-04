@@ -1,3 +1,5 @@
+import { TermChip } from "./TermChip";
+import { ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useState } from "react";
 import { ArrowRight, Check, Sparkles, AlertCircle } from "lucide-react";
@@ -274,8 +276,9 @@ export function StrategyEditor({
                   disabled={busy}
                   onChange={() => toggle(id)}
                 />
-                <span>{RULE_LABELS[id]}</span>
+                <span className="sr-only">{RULE_LABELS[id]}</span>
               </label>
+              {ruleTerm(id) && <TermChip term={ruleTerm(id)!} />}
               {draft.enabledRules.includes(id) && (
                 <div className="rule-value">
                   {id === "daily-limit" && (

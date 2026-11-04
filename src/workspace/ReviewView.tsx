@@ -1,3 +1,5 @@
+import { TermChip } from "./TermChip";
+import { recordTime, ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useToast } from "./Toasts";
 import { useState } from "react";
@@ -12,6 +14,7 @@ import { workspaceJourney } from "./InternalJourney";
 import { ImprovementPlan } from "./ImprovementPlan";
 import {
   grossResult,
+  planMetrics,
   positionStatus,
   needsReview,
   initialPositionErrors,
@@ -261,19 +264,27 @@ export function ReviewView({
                 ? ["stop-before-entry", "planned-risk", "reward-risk"]
                 : []),
             ]
-          )
-            .map((id) =>
-              id === "planned-risk"
-                ? `Risk ≤ ${rupees(review.rules.checks?.maxRisk ?? 0)}`
+          ).map((id) => (
+            <span className="checklist-term" key={id}>
+              {ruleTerm(id as import("../core/types").RuleId) ? (
+                <TermChip
+                  term={ruleTerm(id as import("../core/types").RuleId)!}
+                  position={position}
+                />
+              ) : (
+                "Documented setup"
+              )}
+              {id === "planned-risk"
+                ? ` ≤ ${rupees(review.rules.checks?.maxRisk ?? 0)}`
                 : id === "reward-risk"
-                  ? `Reward-to-risk ≥ ${review.rules.checks?.minRewardRisk}R`
+                  ? ` ≥ ${review.rules.checks?.minRewardRisk}R`
                   : id === "daily-limit"
-                    ? `≤ ${review.rules.maxPositions} new positions / IST day`
+                    ? `: ${review.rules.maxPositions}`
                     : id === "entry-cutoff"
-                      ? `Entry before ${review.rules.cutoff} IST`
-                      : "Stop recorded before entry",
-            )
-            .join(" · ")}
+                      ? `: ${review.rules.cutoff} IST`
+                      : ""}
+            </span>
+          ))}
         </p>
         <small>
           Saved with this review. Later strategy edits do not change it.
@@ -321,9 +332,19 @@ export function ReviewView({
             <div>
               <h2>{position?.instrument}</h2>
               <p className="muted">Each finding links back to your records.</p>
+              {position && (
+                <p>
+                  <TermChip term="average-entry" />:{" "}
+                  {planMetrics(position).entryPrice !== null
+                    ? rupees(planMetrics(position).entryPrice!)
+                    : "Not available"}
+                </p>
+              )}
             </div>
             <div className="result-number">
-              <small>Gross result</small>
+              <small>
+                <TermChip term="gross-result" />
+              </small>
               <strong>
                 {position && grossResult(position) !== null
                   ? rupees(grossResult(position)!)
@@ -357,11 +378,17 @@ export function ReviewView({
               <summary>
                 <span className={`finding-dot ${f.status}`} />
                 <span>
-                  <strong>{RULE_LABELS[f.ruleId]}</strong>
+                  <strong>
+                    {ruleTerm(f.ruleId) ? (
+                      <TermChip
+                        term={ruleTerm(f.ruleId)!}
+                        position={position}
+                      />
+                    ) : (
+                      RULE_LABELS[f.ruleId]
+                    )}
+                  </strong>
                   <small>{f.label}</small>
-                  {needsReview(f) && (
-                    <small className="reported-basis">{f.explanation}</small>
-                  )}
                 </span>
                 <span className={`status ${f.status}`}>
                   {needsReview(f) ? "Needs review" : statusText[f.status]}
@@ -386,11 +413,11 @@ export function ReviewView({
                     return (
                       <li key={id}>
                         {execution
-                          ? `${execution.side === "entry" ? "Entry" : "Exit"}: ${execution.quantity} × ${rupees(execution.price)} · ${execution.timestamp ?? "time missing"}`
+                          ? `${execution.side === "entry" ? "Entry" : "Exit"}: ${execution.quantity} × ${rupees(execution.price)} · ${recordTime(execution.timestamp)}`
                           : id === `${position?.id}-signal` && position?.signal
-                            ? `Signal close: ${position.signal.close ?? "missing"}; reference: ${position.signal.reference ?? "missing"}; time: ${position.signal.at ?? "missing"}${review.rules.setup?.kind === "ma-reclaim" ? `; previous close/reference: ${position.signal.previousClose ?? "missing"}/${position.signal.previousReference ?? "missing"}` : ""}${position.signal.rangeEnd ? `; range end: ${position.signal.rangeEnd}` : ""}`
+                            ? `Signal close: ${position.signal.close ?? "missing"}; reference: ${position.signal.reference ?? "missing"}; time: ${recordTime(position.signal.at)}${review.rules.setup?.kind === "ma-reclaim" ? `; previous close/reference: ${position.signal.previousClose ?? "missing"}/${position.signal.previousReference ?? "missing"}` : ""}${position.signal.rangeEnd ? `; range end: ${recordTime(position.signal.rangeEnd)}` : ""}`
                             : plan
-                              ? `Plan: ${rupees(plan.price)} · ${plan.recordedAt ?? "recording time missing"}`
+                              ? `Plan: ${rupees(plan.price)} · ${recordTime(plan.recordedAt)}`
                               : `Record ${id}`}
                       </li>
                     );
