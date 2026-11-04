@@ -221,26 +221,10 @@ export function ReviewView({
           changed. Save explicitly to keep these results.
         </p>
       )}
-      {!saved && (
-        <p className="review-alert" role="status">
-          This review has unsaved changes. Choose a next focus and save below.
-          An existing account copy will change only if you explicitly save it to
-          your account again.
-        </p>
-      )}
-      {summary.counts.noStopRecord > 0 && (
-        <section className="review-alert" aria-label="Missing stop records">
-          <strong>
-            {summary.counts.noStopRecord} of {summary.counts.trades} trades have
-            no stop record.
-          </strong>
-          <p>
-            {summary.counts.noStop} explicitly marked No stop ·{" "}
-            {summary.counts.unresolvedStopRecords} not recorded or unresolved.
-            Open a position below to correct its record.
-          </p>
-        </section>
-      )}
+      {(!saved || summary.counts.noStopRecord > 0) && <section className="review-alert combined-notice" role="status">
+        {!saved && <p>Not saved yet</p>}
+        {summary.counts.noStopRecord > 0 && <><strong>{summary.counts.noStopRecord} of {summary.counts.trades} trades have no stop record.</strong><p>{summary.counts.noStop} explicitly marked No stop · {summary.counts.unresolvedStopRecords} not recorded or unresolved. Open a position below to correct its record.</p></>}
+      </section>}
       {invalidLevels.map((message, i) => (
         <p className="review-alert" role="alert" key={`${i}-${message}`}>
           {message}
