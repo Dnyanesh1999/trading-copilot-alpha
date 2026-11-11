@@ -1,4 +1,6 @@
-import type { ConfirmedRules, Review } from "./types";
+import type { ConfirmedRules, DailyBar, Review } from "./types";
+import { isSessionDate, LOOKBACK, replayCoverage } from "./historical-replay";
+import { verifyReplayHash } from "./replay-evidence";
 import { reviewSession, REVIEW_LOGIC_VERSION, reviewCounts } from "./review";
 import { stopDeclarations } from "./stop-record";
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -53,7 +55,65 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
       ![replay.lookbackStart, replay.lookbackEnd, replay.resistanceDate].every(
         (date) => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date),
       )
-    ) return null;
+    )
+      return null;
+    // Old replay reviews have no series and remain readable.
+    if (replay.series !== undefined) {
+      const series = replay.series;
+      if (
+        !record(series) ||
+        !Object.keys(series).every((key) =>
+          ["source", "fetchedAt", "fileName", "bars", "sha256"].includes(key),
+        ) ||
+        (series.source !== "csv" && series.source !== "dhan") ||
+        (series.source === "dhan") !== (replay.priceSource === "dhan") ||
+        !text(series.fetchedAt, 100) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(
+          series.fetchedAt,
+        ) ||
+        !isSessionDate(series.fetchedAt.slice(0, 10)) ||
+        !Number.isFinite(Date.parse(series.fetchedAt)) ||
+        (series.fileName !== undefined &&
+          (!text(series.fileName, 255) || !series.fileName)) ||
+        !text(series.sha256, 64) ||
+        !/^[a-f0-9]{64}$/.test(series.sha256) ||
+        !Array.isArray(series.bars) ||
+        series.bars.length !== LOOKBACK + 2 ||
+        !series.bars.every(
+          (bar) =>
+            record(bar) &&
+            Object.keys(bar).every((key) =>
+              ["date", "open", "high", "low", "close", "volume"].includes(key),
+            ) &&
+            typeof bar.date === "string" &&
+            isSessionDate(bar.date) &&
+            [bar.open, bar.high, bar.low, bar.close].every(
+              (price) => typeof price === "number",
+            ) &&
+            (bar.volume === undefined || typeof bar.volume === "number"),
+        )
+      )
+        return null;
+      const bars = series.bars as DailyBar[];
+      try {
+        if (
+          replay.maxGapDays !== replayCoverage(bars) ||
+          !verifyReplayHash(bars, series.sha256) ||
+          replay.lookbackStart !== bars[0].date ||
+          replay.lookbackEnd !== bars[LOOKBACK - 1].date ||
+          replay.resistanceDate !==
+            bars
+              .slice(0, LOOKBACK)
+              .reduce((highest, bar) =>
+                bar.high > highest.high ? bar : highest,
+              ).date ||
+          session.date !== bars[LOOKBACK + 1].date
+        )
+          return null;
+      } catch {
+        return null;
+      }
+    }
   }
   const signal = (item: unknown) =>
     item == null ||

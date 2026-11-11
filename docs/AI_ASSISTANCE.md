@@ -1,3 +1,9 @@
+# 11 November 2026 — historical replay QA follow-up
+
+OpenAI Codex (GPT-6 family; exact deployed model version not exposed) implemented the user-supplied B1/B2/B5 requirements after making and pushing the requested pre-QA checkpoint. The named Claude QA file was absent from the available project; the task text was used as the specification, without claiming a fresh independent Claude review. No subagents or external AI calls were used. Synthetic weekday fixtures and mocked Dhan responses validate coverage, stable hashes, legacy loading, tamper rejection, volume and token exclusion. Browser QA covers CSV proof/export/save/reload/tamper rejection and mocked Dhan proof/export. See verification/HISTORICAL_REPLAY_QA.md for checks and compatibility choices. No live broker call, trade, participant record operation, merge or deployment.
+
+---
+
 # 19 October 2026 — private account copies and recovery preparation
 
 Codex implemented optional encrypted account review storage, explicit consent controls, fresh-browser restore, private researcher task details, current-cookie binding for study/AI and conditional Brevo verification/recovery. No subagents or external AI reviewer used for this change. Existing Gemini model/config unchanged. Nine new tests cover encryption integrity/binding and actual Better Auth verification/reset semantics with captured delivery; 210 total tests and live synthetic checks passed. Browser mock recovery is separate from real inbox delivery, which is still pending provider key setup. Fixed a real persistent-toast overlap of Finish. No participant collection, paid upgrade, supervisor send or research outcome claimed. Private QA preserves automation interruptions and synthetic-data provenance.

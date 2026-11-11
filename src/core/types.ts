@@ -58,6 +58,21 @@ export interface Position {
   executions: Execution[];
 }
 export type ExampleMode = "full" | "daily-gap" | "plan-gap";
+export interface DailyBar {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+export interface ReplaySeries {
+  source: "dhan" | "csv";
+  fetchedAt: string;
+  fileName?: string;
+  bars: DailyBar[];
+  sha256: string;
+}
 export interface Session {
   dataSource?: "fictional" | "user-supplied";
   historicalReplay?: {
@@ -65,6 +80,8 @@ export interface Session {
     lookbackEnd: string;
     resistanceDate: string;
     priceSource?: "dhan";
+    maxGapDays?: number;
+    series?: ReplaySeries;
   };
   exampleMode?: ExampleMode;
   id: string;

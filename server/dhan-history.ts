@@ -2,6 +2,7 @@ import type { Plugin } from "vite";
 import {
   isSessionDate,
   validDailyPrices,
+  replayCoverage,
   LOOKBACK,
   type DailyBar,
 } from "../src/core/historical-replay";
@@ -77,6 +78,12 @@ export function normalizeDhanBars(
   )
     throw new Error("Invalid candle arrays");
   const [timestamps, opens, highs, lows, closes] = columns;
+  const volumes = payload.volume;
+  if (
+    volumes !== undefined &&
+    (!Array.isArray(volumes) || volumes.length !== timestamps.length)
+  )
+    throw new Error("Invalid volume array");
   const dates = new Set<string>();
   const bars = timestamps.map((value, index) => {
     const epoch = numeric(value);
@@ -89,6 +96,7 @@ export function normalizeDhanBars(
       high: numeric(highs[index]),
       low: numeric(lows[index]),
       close: numeric(closes[index]),
+      ...(volumes === undefined ? {} : { volume: numeric(volumes[index]) }),
     };
     if (
       !validDailyPrices(bar) ||
@@ -110,7 +118,13 @@ export function normalizeDhanBars(
       422,
       "Dhan returned too few earlier trading sessions for the breakout check.",
     );
-  return bars.sort((a, b) => a.date.localeCompare(b.date));
+  bars.sort((a, b) => a.date.localeCompare(b.date));
+  try {
+    replayCoverage(bars.slice(-LOOKBACK - 2));
+  } catch (error) {
+    throw new HistoryError(422, (error as Error).message);
+  }
+  return bars;
 }
 
 export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
@@ -231,7 +245,10 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
               });
             throw new Error("Dhan history unavailable");
           }
-          return reply(200, { bars: normalizeDhanBars(data, from, entry) });
+          return reply(200, {
+            bars: normalizeDhanBars(data, from, entry),
+            fetchedAt: new Date().toISOString(),
+          });
         } catch (error) {
           if (error instanceof HistoryError)
             return reply(error.status, { error: error.message });

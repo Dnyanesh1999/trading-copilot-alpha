@@ -23,6 +23,10 @@ export function HistoricalReplay({
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
   const [bars, setBars] = useState<DailyBar[]>([]);
+  const [csvMetadata, setCsvMetadata] = useState<{
+    fetchedAt: string;
+    fileName: string;
+  }>();
   const [entryDate, setEntryDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -34,11 +38,13 @@ export function HistoricalReplay({
     setSource(next);
     setEntryDate("");
     setBars([]);
+    setCsvMetadata(undefined);
     setError("");
   }
 
   async function load(file: File) {
     setBars([]);
+    setCsvMetadata(undefined);
     setEntryDate("");
     setError("");
     setLoading(true);
@@ -47,6 +53,10 @@ export function HistoricalReplay({
         throw new Error("Use a price CSV smaller than 1 MB.");
       const prices = parseDailyBars(await file.text());
       setBars(prices);
+      setCsvMetadata({
+        fetchedAt: new Date().toISOString(),
+        fileName: file.name,
+      });
       setEntryDate(prices[prices.length - 1].date);
     } catch (err) {
       setError((err as Error).message);
@@ -66,11 +76,12 @@ export function HistoricalReplay({
     const price = (name: string) =>
       fields.get(name) ? Number(fields.get(name)) : null;
     const controller = new AbortController();
+    request.current = controller;
+    setLoading(true);
     let prices = bars;
+    let fetchedAt = csvMetadata?.fetchedAt ?? new Date().toISOString();
     try {
       if (source === "dhan") {
-        request.current = controller;
-        setLoading(true);
         const query = new URLSearchParams({
           symbol: instrument,
           date: entryDate,
@@ -83,19 +94,25 @@ export function HistoricalReplay({
         if (!response.ok)
           throw new Error(data.error ?? "Dhan prices are unavailable.");
         prices = data.bars;
+        fetchedAt = data.fetchedAt;
       }
       if (!controller.signal.aborted) {
-        onReview(
-          createHistoricalReplay(
-            prices,
-            entryDate,
-            instrument,
-            Number(fields.get("quantity")),
-            price("stop"),
-            price("target"),
-            source === "dhan" ? "dhan" : undefined,
-          ),
+        const session = await createHistoricalReplay(
+          prices,
+          entryDate,
+          instrument,
+          Number(fields.get("quantity")),
+          price("stop"),
+          price("target"),
+          {
+            source,
+            fetchedAt,
+            ...(source === "csv" && csvMetadata
+              ? { fileName: csvMetadata.fileName }
+              : {}),
+          },
         );
+        if (!controller.signal.aborted) onReview(session);
       }
     } catch (err) {
       if (!controller.signal.aborted) setError((err as Error).message);
@@ -161,7 +178,8 @@ export function HistoricalReplay({
               <p className="field-note">
                 Use one Indian equity in INR, with at least 22 consecutive
                 trading sessions and a consistent price series across corporate
-                actions. CSV headers: <code>date,open,high,low,close</code>. Use
+                actions. CSV headers: <code>date,open,high,low,close</code>.
+                An optional <code>volume</code> column is preserved. Use
                 YYYY-MM-DD dates and price data you have permission to use for
                 replay.
               </p>
@@ -229,7 +247,7 @@ export function HistoricalReplay({
                 data-run-review
                 disabled={loading || (source === "csv" && !entry)}
               >
-                {loading ? "Fetching Dhan prices…" : "Review historical replay"}{" "}
+                {loading ? "Preparing replay…" : "Review historical replay"}{" "}
                 <ArrowRight size={16} />
               </button>
             </form>

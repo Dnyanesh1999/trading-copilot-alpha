@@ -1,3 +1,11 @@
+# 11 November 2026 — historical replay integrity fixes
+
+On `codex/historical-replay`, the pre-QA implementation was checked (264 tests/build/logging type-check), committed as `110d009` and pushed before edits. Coverage now rejects weekend sessions and gaps over five calendar days in the 22 used rows for CSV and local Dhan. New reviews retain those rows, optional volume, provenance, maximum gap and a canonical CSV SHA-256; restore verifies the hash and accepts legacy reviews without series. Setup proof shows provenance and a short checksum; JSON exports preserve evidence.
+
+277 tests, production build, logging type-check and isolated browser QA passed. Verification and hashing compatibility details: [historical replay QA](verification/HISTORICAL_REPLAY_QA.md). Branch backup only; no PR, merge, deployment or Worker changes. `src/core/review.ts` is unchanged.
+
+---
+
 # 4 November 2026 — quiet-rail UI polish, local review only
 
 Four frontend items completed on `codex/quiet-rail-polish`: sidebar progress/header actions; one expandable action row per rule with all affected trades; saved focus on Overview/shared status pills/plain R example; consistent spacing, typography and restrained accent colour. Existing sample shortcut preserved. Changing a selected saved focus removes the completion state until saved again. Header action becomes secondary while the coral list Save focus is onscreen, keeping one visible primary action.

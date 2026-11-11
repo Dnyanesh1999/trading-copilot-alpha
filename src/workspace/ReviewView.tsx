@@ -413,6 +413,14 @@ export function ReviewView({
               <div className="finding-detail">
                 <p>{f.explanation}</p>
                 <code>{f.calculation}</code>
+                {f.ruleId === "setup-entry" && replay?.series && (
+                  <p className="field-note">
+                    Source: {replay.series.source === "dhan" ? "Dhan" : "CSV"}
+                    {replay.series.fileName && ` (${replay.series.fileName})`}
+                    {" · "}Fetched: {replay.series.fetchedAt}
+                    {" · "}SHA-256: {replay.series.sha256.slice(0, 12)}
+                  </p>
+                )}
                 <h4>Supporting records</h4>
                 <ul>
                   {f.sourceIds.map((id) => {

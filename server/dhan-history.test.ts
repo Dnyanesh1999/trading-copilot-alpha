@@ -2,10 +2,11 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
 import { dhanHistoryPlugin, normalizeDhanBars } from "./dhan-history";
 
-const dates = Array.from(
-  { length: 22 },
-  (_, index) => `2022-12-${String(index + 1).padStart(2, "0")}`,
-);
+const dates = Array.from({ length: 40 }, (_, i) =>
+  new Date(Date.UTC(2022, 10, 23 + i)).toISOString().slice(0, 10),
+)
+  .filter((date) => ![0, 6].includes(new Date(date).getUTCDay()))
+  .slice(0, 22);
 const daily = {
   timestamp: dates.map((date) => Date.parse(`${date}T00:00:00+05:30`) / 1000),
   open: dates.map(() => 99),
@@ -54,6 +55,71 @@ describe("Dhan daily history", () => {
     );
   });
 
+  it("preserves optional non-negative Dhan volume and rejects malformed volume", () => {
+    const volume = dates.map((_, i) => (i === 0 ? "0" : "1234.5"));
+    const bars = normalizeDhanBars(
+      { ...daily, volume },
+      "2022-10-23",
+      "2022-12-22",
+    );
+    expect(bars[0].volume).toBe(0);
+    expect(bars[1].volume).toBe(1234.5);
+    expect(
+      normalizeDhanBars(daily, "2022-10-23", "2022-12-22")[0],
+    ).not.toHaveProperty("volume");
+    expect(() =>
+      normalizeDhanBars(
+        { ...daily, volume: volume.slice(1) },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(/volume array/);
+    expect(() =>
+      normalizeDhanBars(
+        { ...daily, volume: dates.map(() => -1) },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(/daily candle/);
+  });
+
+  it("rejects weekend and suspended-stock gaps in the Dhan replay window", () => {
+    const weekend = [...daily.timestamp];
+    weekend[1] = Date.parse("2022-11-26T00:00:00+05:30") / 1000;
+    expect(() =>
+      normalizeDhanBars(
+        { ...daily, timestamp: weekend },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(/weekend row on 2022-11-26/);
+    const gap = [...daily.timestamp];
+    gap[0] = Date.parse("2022-11-18T00:00:00+05:30") / 1000;
+    expect(() =>
+      normalizeDhanBars(
+        { ...daily, timestamp: gap },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(
+      "Prices are missing between 2022-11-18 and 2022-11-24. Use a complete daily series.",
+    );
+  });
+
+  it("allows a five-calendar-day Dhan gap", () => {
+    const later = Array.from({ length: 40 }, (_, i) =>
+      new Date(Date.UTC(2022, 10, 21 + i)).toISOString().slice(0, 10),
+    )
+      .filter((date) => ![0, 6].includes(new Date(date).getUTCDay()))
+      .slice(0, 21);
+    const timestamp = ["2022-11-16", ...later].map(
+      (date) => Date.parse(`${date}T00:00:00+05:30`) / 1000,
+    );
+    expect(
+      normalizeDhanBars({ ...daily, timestamp }, "2022-10-23", later[20]),
+    ).toHaveLength(22);
+  });
+
   describe("local route", () => {
     let server: ViteDevServer;
     let url: string;
@@ -89,6 +155,9 @@ describe("Dhan daily history", () => {
       expect(accepted.status).toBe(200);
       expect(body).not.toContain("server-only-token");
       expect(JSON.parse(body).bars).toHaveLength(22);
+      expect(new Date(JSON.parse(body).fetchedAt).toISOString()).toBe(
+        JSON.parse(body).fetchedAt,
+      );
       expect(transport.mock.calls[0][0]).toBe(
         "https://api.dhan.co/v2/instrument/NSE_EQ",
       );
