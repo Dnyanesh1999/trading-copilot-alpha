@@ -105,23 +105,33 @@ describe("ReplayChart", () => {
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          title: "Resistance ₹619.80",
+          title: "",
           price: 619.799988,
           lineStyle: 2,
         }),
         expect.objectContaining({
-          title: "Stop ₹610.00",
+          title: "",
           price: 610,
           lineStyle: 2,
         }),
         expect.objectContaining({
-          title: "Target ₹660.00",
+          title: "",
           price: 660,
           lineStyle: 2,
         }),
       ]),
     );
+    expect(
+      mock.candles.createPriceLine.mock.calls.every(
+        ([line]) => line.title === "" && line.axisLabelVisible === true,
+      ),
+    ).toBe(true);
     expect(mock.createSeriesMarkers.mock.calls[0][1]).toHaveLength(3);
+    expect(
+      mock.createSeriesMarkers.mock.calls[0][1].find(
+        (marker: { shape: string }) => marker.shape === "arrowUp",
+      ),
+    ).toMatchObject({ position: "belowBar", time: "2022-12-15" });
     expect(mock.createSeriesMarkers.mock.calls[0][2]).toEqual({
       autoScale: false,
     });
@@ -206,8 +216,8 @@ describe("ReplayChart", () => {
       root.render(<ReplayChart session={await session()} />),
     );
     expect(mock.candles.createPriceLine.mock.calls[0][0]).toMatchObject({
-      title: "Resistance ₹619.80",
-      axisLabelVisible: false,
+      title: "",
+      axisLabelVisible: true,
     });
     expect(
       host.querySelector('[aria-label="Chart price levels"]')?.textContent,

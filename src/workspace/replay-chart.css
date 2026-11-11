@@ -13,7 +13,35 @@
   height: 320px;
 }
 .replay-chart-levels {
-  display: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+.replay-chart-levels li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.replay-chart-levels span {
+  width: 12px;
+  border-top: 2px dashed;
+}
+/* Retain the attribution link, clear of the first volume bar and price data. */
+.replay-chart-plot a#tv-attr-logo {
+  top: 1px;
+  bottom: auto;
+  left: 8px;
+  width: 28px;
+  height: 15px;
+}
+.replay-chart-plot a#tv-attr-logo svg {
+  width: 100%;
+  height: 100%;
 }
 .replay-chart-marker-key {
   display: flex;
@@ -40,25 +68,6 @@
   text-decoration: underline;
 }
 @media (max-width: 600px) {
-  .replay-chart-levels {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-    margin: 0 0 8px;
-    padding: 0;
-    list-style: none;
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .replay-chart-levels li {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .replay-chart-levels span {
-    width: 12px;
-    border-top: 2px dashed;
-  }
   .replay-chart {
     padding: 8px;
   }

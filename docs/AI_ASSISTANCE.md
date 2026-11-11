@@ -1,3 +1,9 @@
+# 11 November 2026 — replay chart labels moved to legend
+
+OpenAI Codex (GPT-6 family; exact deployed model version not exposed) applied the requested layout-only correction after user-reported Claude live feedback. All price lines now have empty titles and visible numeric axis labels; their unchanged names/prices appear in the dashed-swatch legend on desktop and mobile. Framing uses one bar left and three bars right with right-edge clamping disabled to preserve the explicit gap. The retained TradingView logo is positioned at the upper-left clear of candles and volume. Entry arrows remain below their candles. 318 tests, build and logging type-check pass. Isolated Chrome checks for both SBIN dates at 1440px/390px passed; screenshots using previously captured private Dhan fixtures are in canonical `06_Experiments/2026-11-11_Replay_Chart_Label_QA/`. No new fetch/token access, verdict/data-shape/Worker changes, merge, PR or deployment.
+
+---
+
 # 11 November 2026 — replay chart sizing and spacing
 
 OpenAI Codex (GPT-6 family; exact deployed model version not exposed) applied the user-requested layout-only follow-up after user-reported Claude live verification. Chart height is 320px desktop / 240px mobile; candles use 0.08/0.2 margins and volume uses a bottom 15% overlay with 40%-opacity grey. Right-edge framing removes excess empty space, left padding clears the retained TradingView logo, and unchanged marker captions use a compact key to avoid clipping near the axis. Desktop level labels explicitly align; mobile retains its level legend. 318 tests, build and logging type-check pass. Isolated Chrome at 1440px/390px verified both SBIN cases and a near-equal stop/resistance pair (619.70/619.80) using previously captured private Dhan fixtures, with no new market fetch or token access. Screenshots remain private in canonical `06_Experiments/2026-11-11_Replay_Chart_Spacing_QA/`. No engine, saved shape, Worker changes, merge, PR or deployment.

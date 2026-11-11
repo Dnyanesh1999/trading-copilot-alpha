@@ -58,7 +58,7 @@ function PriceChart({
         scaleMargins: { top: 0.08, bottom: 0.2 },
         alignLabels: true,
       },
-      timeScale: { borderColor: "#e7e8ef", rightOffset: 2, timeVisible: false },
+      timeScale: { borderColor: "#e7e8ef", rightOffset: 3, timeVisible: false },
       localization: { locale: "en-GB" },
     });
     const candles = chart.addSeries(CandlestickSeries, {
@@ -85,20 +85,15 @@ function PriceChart({
       },
     });
     candles.setData(model.candles);
-    const priceLines = model.lines.map((line) =>
+    model.lines.forEach((line) =>
       candles.createPriceLine({
         ...line,
+        title: "",
         lineStyle: LineStyle.Dashed,
         lineWidth: 1,
-        axisLabelVisible: !mobile?.matches,
+        axisLabelVisible: true,
       }),
     );
-    // Narrow charts use the legend so pinned level labels cannot cover markers.
-    const updateLabels = () =>
-      priceLines.forEach((line) =>
-        line.applyOptions({ axisLabelVisible: !mobile?.matches }),
-      );
-    mobile?.addEventListener("change", updateLabels);
     if (model.volume.length) {
       const volume = chart.addSeries(HistogramSeries, {
         priceScaleId: "volume",
@@ -125,18 +120,17 @@ function PriceChart({
     chart.timeScale().fitContent();
     const frameBars = () => {
       const scale = chart.timeScale();
-      // Keep the fixed bottom-left attribution clear of volume, also on phones.
+      // One spare bar left; three right separate candles from price-axis labels.
       scale.setVisibleLogicalRange({
-        from: mobile?.matches ? -4 : -1,
-        to: model.candles.length + 1,
+        from: -1,
+        to: model.candles.length + 2,
       });
-      scale.applyOptions({ rightOffset: 2, fixRightEdge: true });
+      scale.applyOptions({ rightOffset: 3, fixRightEdge: false });
     };
     frameBars();
     mobile?.addEventListener("change", frameBars);
     return () => {
       mobile?.removeEventListener("change", frameBars);
-      mobile?.removeEventListener("change", updateLabels);
       markers.detach();
       chart.remove();
     };
