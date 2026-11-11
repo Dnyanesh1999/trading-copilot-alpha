@@ -1,5 +1,17 @@
 # Historical replay integrity verification
 
+## Step 5 — 11 November 2026: live instrument lookup
+
+The owner/Claude reported a repeatable local 502 before candle loading. A token-free public curl check confirmed `GET https://api.dhan.co/v2/instrument/NSE_EQ` returns HTTP 302 (no content type on the redirect), then HTTP 200 with `application/octet-stream` after one redirect to the S3 instrument CSV. The public master contains 10,271 data rows (10,272 including its header), all expected field names, and exactly one NSE/EQUITY/EQ/SBIN match with SECURITY_ID 3045. The full public header is captured as the synthetic regression fixture and private endpoint-check metadata; response bodies and signed redirect URLs are not logged.
+
+Root cause: instrument fetch used `redirect: "error"`. The same pre-fix Node option reproduced `fetch failed`, cause `unexpected redirect`. The existing CSV parser successfully parsed all 10,271 downloaded rows and found ID 3045: the current header, 20,000-row limit and authentication were ruled out as causes for this response. Instrument fetch now follows its token-free public redirect; credentialed candle fetch retains `redirect: "error"`. Instrument parsing has its own 1,000,000-row allowance.
+
+Catch failures emit exactly one development-terminal line `[dhan-history] stage=<stage> reason=<message>` with instrument HTTP/parse, candle HTTP/parse or coverage stage. Reasons redact the configured token and URLs, collapse control characters and omit stacks/headers/bodies. JSON decoding errors become a fixed message because native JSON errors can quote response bodies. UI errors name the failed operation and include a stage field; coverage errors retain their specific explanation. Existing input/auth/access/rate-limit mappings stay intact.
+
+305 tests across 26 files, production build and logging type-check passed. New tests cover the exact real public header with 20,002 synthetic data rows and SBIN after row 20,000, redirect policy/token-free instrument options, each failure stage, malformed JSON body exclusion, token/URL redaction and one-line logging. Existing build warnings remain. The owner's already-running local route on port 5177 then returned HTTP 200, 42 dated candles and the selected 2022-12-15 entry in 3.31 seconds; no candle-stage failure occurred. This was an HTTP route check, not a completed browser replay test. Owner restart and browser retest are requested using the same hidden-token command. Private metadata: canonical `06_Experiments/2026-11-11_Dhan_Instrument_Lookup_QA/endpoint-check.json`.
+
+`src/core/review.ts`, Worker files and deployment workflow are unchanged from `011a837`. No merge, PR or deployment.
+
 ## Step 2 — 11 November 2026
 
 User-reported Claude verification of `a1f0c45` preceded this bounded follow-up. The weekend policy below supersedes Step 1's blanket rejection.

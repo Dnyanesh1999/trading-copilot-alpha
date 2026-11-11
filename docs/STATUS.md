@@ -1,3 +1,11 @@
+# 11 November 2026 — historical replay Step 5
+
+Fixed the live instrument lookup: its unauthenticated public endpoint returns a 302 redirect, which `redirect: "error"` rejected. The downloaded master parses with the expected headers, 10,271 rows and SBIN ID 3045. Instrument requests now follow that public redirect, while candle requests retain redirect rejection. Instrument capacity increased to 1,000,000 rows. Safe one-line terminal errors and stage-specific UI messages identify instrument HTTP/parse, candle HTTP/parse and coverage failures.
+
+305 tests, build and logging type-check pass. The owner’s existing local HTTP route on 5177 returned 200 with 42 dated candles for the 15 December request after the fix; no candle-stage failure. Full owner browser replay retest remains pending after restart. No owner token read or printed; no engine/Worker/workflow changes, merge, PR or deployment. Details: [verification](verification/HISTORICAL_REPLAY_QA.md).
+
+---
+
 # 11 November 2026 — historical replay Step 3
 
 The simulated-plan note now appears only when a replay position is missing its stop or target; a complete plan hides it. Two UI tests cover missing and complete plans (including either single missing level). 296 tests across 26 files, production build and logging type-check pass. `src/core/review.ts`, Worker files and deployment workflow are unchanged from `ac9f94d`. Canonical private CURRENT_STATE.md and NEXT_ACTIONS.md have dated 11 November entries recording the student-supplied ethics/testing status, pending participant results, replay commits and next deadlines; those files sit outside this app Git repository. Live browser-to-Dhan verification is still pending (Step 4); the owner must start the documented hidden-token command on port 5177. No merge, PR or deployment.

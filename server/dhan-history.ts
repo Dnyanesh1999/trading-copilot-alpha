@@ -9,6 +9,24 @@ import {
 import { readRows } from "../src/core/trade-csv";
 
 const DHAN = "https://api.dhan.co/v2";
+// The public master is independent of the small trade-upload row limit.
+const MAX_INSTRUMENT_ROWS = 1_000_000;
+type DhanStage =
+  | "instrument-http"
+  | "instrument-parse"
+  | "candles-http"
+  | "candles-parse"
+  | "coverage";
+const stageMessages: Record<DhanStage, string> = {
+  "instrument-http":
+    "Dhan instrument list could not be downloaded. Retry or use a CSV.",
+  "instrument-parse":
+    "Dhan instrument list could not be read. Retry or use a CSV.",
+  "candles-http": "Dhan candle request failed. Retry or use a CSV.",
+  "candles-parse":
+    "Dhan candle response could not be read. Retry or use a CSV.",
+  coverage: "Dhan coverage check failed.",
+};
 const dayMs = 86_400_000;
 const indianDate = new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Asia/Kolkata",
@@ -26,7 +44,7 @@ class HistoryError extends Error {
 function instruments(csv: string): Map<string, string[]> {
   const [header = [], ...rows] = readRows(
     csv.replace(/^\uFEFF/, ""),
-    20_000,
+    MAX_INSTRUMENT_ROWS,
     "instrument",
   );
   const indexes = [
@@ -176,13 +194,19 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
           });
         busy = true;
         lastRequest = Date.now();
+        let stage: DhanStage = "instrument-http";
         try {
           if (!master || master.expiresAt <= Date.now()) {
             const list = await transport(`${DHAN}/instrument/NSE_EQ`, {
-              redirect: "error",
+              // This token-free endpoint redirects to the public master on S3.
+              redirect: "follow",
               signal: AbortSignal.timeout(12000),
             });
-            if (!list.ok) throw new Error("Instrument lookup unavailable");
+            if (!list.ok)
+              throw new Error(
+                `Instrument endpoint returned HTTP ${list.status}`,
+              );
+            stage = "instrument-parse";
             master = {
               data: instruments(await list.text()),
               expiresAt: Date.now() + 6 * 60 * 60 * 1000,
@@ -198,6 +222,7 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
             .toISOString()
             .slice(0, 10);
           const until = new Date(entryTime + dayMs).toISOString().slice(0, 10);
+          stage = "candles-http";
           const result = await transport(`${DHAN}/charts/historical`, {
             method: "POST",
             headers: {
@@ -215,7 +240,14 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
             redirect: "error",
             signal: AbortSignal.timeout(15000),
           });
-          const data = await result.json();
+          let data;
+          try {
+            data = await result.json();
+          } catch {
+            // Native JSON errors can quote response bodies. Never log those.
+            stage = "candles-parse";
+            throw new Error("Invalid JSON candle response");
+          }
           const code = String(data?.errorCode ?? "");
           if (!result.ok || code) {
             if (["DH-905", "811", "812", "813", "814"].includes(code))
@@ -245,18 +277,33 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
                 error:
                   "Dhan returned no historical candles for this selection.",
               });
-            throw new Error("Dhan history unavailable");
+            throw new Error(`Candle endpoint returned HTTP ${result.status}`);
           }
+          stage = "candles-parse";
           return reply(200, {
             bars: normalizeDhanBars(data, from, entry),
             fetchedAt: new Date().toISOString(),
           });
         } catch (error) {
+          if (error instanceof HistoryError) stage = "coverage";
+          // One line only. Do not include headers, bodies, URLs or stack/cause.
+          const reason = (
+            error instanceof Error ? error.message : "Unknown error"
+          )
+            .split(token)
+            .join("[redacted]")
+            .replace(/https?:\/\/\S+/g, "[URL redacted]")
+            .replace(/[\r\n\t]/g, " ")
+            .slice(0, 240);
+          console.error(`[dhan-history] stage=${stage} reason=${reason}`);
           if (error instanceof HistoryError)
-            return reply(error.status, { error: error.message });
+            return reply(error.status, {
+              error: `${stageMessages.coverage} ${error.message}`,
+              stage,
+            });
           return reply(502, {
-            error:
-              "Could not load a valid price series from Dhan. Retry or use a CSV.",
+            error: stageMessages[stage],
+            stage,
           });
         } finally {
           busy = false;

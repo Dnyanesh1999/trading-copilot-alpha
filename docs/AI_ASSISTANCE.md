@@ -1,3 +1,9 @@
+# 11 November 2026 — historical replay Step 5
+
+OpenAI Codex (GPT-6 family; exact deployed model version not exposed) diagnosed the reported live failure with token-free public HTTP requests and the current parser. Confirmed an actual 302 redirect rejected by the instrument fetch; current row count/header/authentication were not the cause. Implemented public redirect handling, larger instrument capacity and sanitized stage errors. Nine additional regression cases bring the suite to 305 passing tests; build/logging checks pass. A single request through the owner's existing local server returned 200 with 42 dated candles; no owner token was read or printed, no raw credentialed response was logged, and no full browser replay success is claimed. No subagents, external AI reviewer, Worker changes, merge, PR or deployment.
+
+---
+
 # 11 November 2026 — historical replay Step 3
 
 OpenAI Codex (GPT-6 family; exact deployed model version not exposed) made the conditional simulated-plan note change and added two rendered UI tests. 296 tests, build and logging type-check passed. Updated the two canonical private project-control records from the student's explicit status statements; participant count/results and the live browser-to-Dhan check remain pending. No fresh supervisor/portal verification, external AI review or participant results are claimed. The existing documented hidden-token launch command is returned to the owner; no token was requested, read, logged or written to a file. No engine/Worker changes, merge, PR or deployment.
