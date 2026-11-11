@@ -37,6 +37,7 @@ import {
 import { StrategyEditor } from "./workspace/StrategyEditor";
 import { TradeWorkspace } from "./workspace/TradeWorkspace";
 import { ReviewView } from "./workspace/ReviewView";
+import { replayName } from "./workspace/replay-display";
 import {
   readWorkspace,
   writeWorkspace,
@@ -201,9 +202,7 @@ export default function App({ studyMode = false }: { studyMode?: boolean }) {
         name:
           source === "sample"
             ? `${rules.setup?.label ?? "Fictional"} practice`
-            : session.historicalReplay
-              ? `Historical replay · ${session.date}`
-              : `Trade review · ${session.date}`,
+            : replayName(session) ?? `Trade review · ${session.date}`,
         savedAt: new Date().toISOString(),
         source,
         strategyName,
@@ -675,7 +674,7 @@ function HistoryTable({
               history.map((e) => (
                 <tr key={e.id}>
                   <td>
-                    <strong>{e.name}</strong>
+                    <strong>{replayName(e.review.session) ?? e.name}</strong>
                     <small>{e.strategyName}</small>
                   </td>
                   <td>{e.review.session.positions.length}</td>

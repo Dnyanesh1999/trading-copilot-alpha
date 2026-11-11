@@ -1,3 +1,11 @@
+# 11 November 2026 — historical replay Step 2
+
+Supersedes the weekend rejection in the preceding checkpoint. Both sources accept weekend candles; new snapshots audit `weekendDates`, and CSV reviews ask the user to confirm those sessions. Gaps over five calendar days still fail. Saved evidence now cross-checks signal close/reference/date and simulated entry price/date against the hashed bars. Dhan filters valid out-of-window candles and maps input errors to HTTP 400. Replay banner/proof prices use two decimals for display only; stop correction is replaced with simulated-plan guidance, action instructions describe the replay, and history labels include symbol/date/source.
+
+294 tests across 26 files, production build and logging type-check pass. Local isolated Chrome checks and both requested SBIN screenshots passed using simulated Dhan responses backed by the private archived OHLC sample. No live Dhan call. `src/core/review.ts`, Worker files and deployment workflow are byte-identical to `a1f0c45`. One follow-up commit on `codex/historical-replay`; branch backup only, no PR/merge/deployment. Details: [verification](verification/HISTORICAL_REPLAY_QA.md).
+
+---
+
 # 11 November 2026 — historical replay integrity fixes
 
 On `codex/historical-replay`, the pre-QA implementation was checked (264 tests/build/logging type-check), committed as `110d009` and pushed before edits. Coverage now rejects weekend sessions and gaps over five calendar days in the 22 used rows for CSV and local Dhan. New reviews retain those rows, optional volume, provenance, maximum gap and a canonical CSV SHA-256; restore verifies the hash and accepts legacy reviews without series. Setup proof shows provenance and a short checksum; JSON exports preserve evidence.

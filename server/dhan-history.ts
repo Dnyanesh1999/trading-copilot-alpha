@@ -85,29 +85,26 @@ export function normalizeDhanBars(
   )
     throw new Error("Invalid volume array");
   const dates = new Set<string>();
-  const bars = timestamps.map((value, index) => {
-    const epoch = numeric(value);
-    if (!Number.isSafeInteger(epoch) || epoch <= 0 || epoch > 4_102_444_800)
-      throw new Error("Invalid Unix timestamp");
-    const date = indianDate.format(epoch * 1000);
-    const bar = {
-      date,
-      open: numeric(opens[index]),
-      high: numeric(highs[index]),
-      low: numeric(lows[index]),
-      close: numeric(closes[index]),
-      ...(volumes === undefined ? {} : { volume: numeric(volumes[index]) }),
-    };
-    if (
-      !validDailyPrices(bar) ||
-      date < from ||
-      date > entry ||
-      dates.has(date)
-    )
-      throw new Error("Invalid daily candle");
-    dates.add(date);
-    return bar;
-  });
+  const bars = timestamps
+    .map((value, index) => {
+      const epoch = numeric(value);
+      if (!Number.isSafeInteger(epoch) || epoch <= 0 || epoch > 4_102_444_800)
+        throw new Error("Invalid Unix timestamp");
+      const date = indianDate.format(epoch * 1000);
+      const bar = {
+        date,
+        open: numeric(opens[index]),
+        high: numeric(highs[index]),
+        low: numeric(lows[index]),
+        close: numeric(closes[index]),
+        ...(volumes === undefined ? {} : { volume: numeric(volumes[index]) }),
+      };
+      if (!validDailyPrices(bar) || dates.has(date))
+        throw new Error("Invalid daily candle");
+      dates.add(date);
+      return bar;
+    })
+    .filter((bar) => bar.date >= from && bar.date <= entry);
   if (!dates.has(entry))
     throw new HistoryError(
       422,
@@ -221,6 +218,11 @@ export function dhanHistoryPlugin(token: string, transport = fetch): Plugin {
           const data = await result.json();
           const code = String(data?.errorCode ?? "");
           if (!result.ok || code) {
+            if (["DH-905", "811", "812", "813", "814"].includes(code))
+              return reply(400, {
+                error:
+                  "Dhan rejected the request inputs. Check the symbol and date.",
+              });
             if (["806", "DH-902"].includes(code) || result.status === 403)
               return reply(403, {
                 error:

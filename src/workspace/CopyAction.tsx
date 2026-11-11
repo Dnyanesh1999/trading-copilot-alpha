@@ -21,7 +21,13 @@ async function copyText(text: string) {
     return ok;
   }
 }
-export function CopyAction({ text }: { text: string }) {
+export function CopyAction({
+  text,
+  label = "Copy before your next trade",
+}: {
+  text: string;
+  label?: string;
+}) {
   const [status, setStatus] = useState<"idle" | "copied" | "blocked">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -29,7 +35,7 @@ export function CopyAction({ text }: { text: string }) {
     <span className="copy-action">
       <button
         className="icon-button"
-        aria-label="Copy before your next trade"
+        aria-label={label}
         onClick={async () => {
           clearTimeout(timer.current);
           const ok = await copyText(text);

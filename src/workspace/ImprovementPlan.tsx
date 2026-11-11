@@ -24,6 +24,7 @@ export function ImprovementPlan({
   onFocusChange?: (title: string) => void;
 }) {
   const rows = actionRowsFor(review);
+  const replay = !!review.session.historicalReplay;
   const [selected, setSelected] = useState(
     () => focusRowFor(review, initialFocus)?.id ?? rows[0].id,
   );
@@ -41,8 +42,8 @@ export function ImprovementPlan({
       className="panel improvement-panel"
       onFocusCapture={() => study.start("action")}
     >
-      <h2>Make the next review count.</h2>
-      <p className="muted">Pick one thing to practise next time.</p>
+      <h2>{replay ? "Review this replay." : "Make the next review count."}</h2>
+      <p className="muted">{replay ? "Choose one thing to check in this simulation." : "Pick one thing to practise next time."}</p>
       <div className="action-list" role="group" aria-label="Next review action">
         {rows.map((row, index) => {
           const expanded = row.id === current.id;
@@ -51,7 +52,7 @@ export function ImprovementPlan({
           const before = [...new Set(row.details.map((d) => d.before))].sort((a,b)=>Number(/₹|\d/.test(b))-Number(/₹|\d/.test(a)));
           if (!before.length)
             before.push(
-              "Keep recording the original plan before your next trade.",
+              replay ? "In this replay, keep the simulated plan with the historical signal and entry." : "Keep recording the original plan before your next trade.",
             );
           return (
             <article
@@ -121,9 +122,9 @@ export function ImprovementPlan({
                       not assessed.
                     </p>
                   )}
-                  <h3 className="copy-heading">Before your next trade <CopyAction text={before.join("\n")} /></h3>
+                  <h3 className="copy-heading">{replay ? "In this replay" : "Before your next trade"} <CopyAction text={before.join("\n")} label={replay ? "Copy replay check" : undefined} /></h3>
                   {before.map(text=><p key={text}>{text}</p>)}
-                  <h3>In your next review</h3>
+                  <h3>{replay ? "Check the simulation" : "In your next review"}</h3>
                   <p className="muted">{(()=>{const word=term==="planned-risk"?"risk cap":term==="reward-risk"?"minimum R":term==="stop-before-entry"?"stop":term==="entry-cutoff"?"cutoff":term==="daily-limit"?"entries":"";const index=word?row.next.indexOf(word):-1;return term&&index>=0?<>{row.next.slice(0,index)}<TermChip term={term} position={review.session.positions.find(p=>p.id===row.details[0]?.finding.positionId)}>{word}</TermChip>{row.next.slice(index+word.length)}</>:row.next;})()}</p>
                   <div className="focus-proof">
                     {row.details.map((d) => (

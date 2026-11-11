@@ -122,11 +122,60 @@ describe("historical breakout replay", () => {
                 .slice(0, 10),
       }));
 
-  it("rejects a weekend row and names its date", async () => {
+  it("accepts a CSV weekend row and audits its date on save/restore", async () => {
     const bars = parseDailyBars(csv(rows));
     bars[2].date = "2025-01-04";
-    await expect(replay(bars)).rejects.toThrow(/weekend row on 2025-01-04/);
+    const entry = saved(await replay(bars));
+    expect(entry.review.session.historicalReplay?.weekendDates).toEqual([
+      "2025-01-04",
+    ]);
+    expect(validateReviewEntry(entry)).not.toBeNull();
+    entry.review.session.historicalReplay!.weekendDates = [];
+    expect(validateReviewEntry(entry)).toBeNull();
+    delete entry.review.session.historicalReplay!.weekendDates;
+    expect(validateReviewEntry(entry)).toBeNull();
   });
+
+  it("accepts and revalidates Dhan weekend evidence", async () => {
+    const bars = parseDailyBars(csv(rows));
+    bars[2].date = "2025-01-04";
+    const session = await createHistoricalReplay(
+      bars,
+      dates[21],
+      "SBIN",
+      1,
+      null,
+      null,
+      {
+        source: "dhan",
+        fetchedAt: "2026-11-11T10:00:00Z",
+      },
+    );
+    expect(session.historicalReplay?.weekendDates).toEqual(["2025-01-04"]);
+    expect(validateReviewEntry(saved(session))).not.toBeNull();
+  });
+
+  it("loads pre-Step-2 evidence without weekendDates when no weekends exist", async () => {
+    const entry = saved(await replay());
+    delete entry.review.session.historicalReplay!.weekendDates;
+    expect(validateReviewEntry(entry)).not.toBeNull();
+    entry.review.session.historicalReplay!.weekendDates = ["2025-01-04"];
+    expect(validateReviewEntry(entry)).toBeNull();
+  });
+
+  it.each(["signal.close", "signal.reference", "signal.at", "entry.price"])(
+    "rejects tampered %s even when the stored bars and hash are intact",
+    async (field) => {
+      const entry = saved(await replay());
+      const position = entry.review.session.positions[0];
+      if (field === "signal.close") position.signal!.close = 99;
+      if (field === "signal.reference") position.signal!.reference = 111;
+      if (field === "signal.at")
+        position.signal!.at = `${dates[19]}T15:30:00+05:30`;
+      if (field === "entry.price") position.executions[0].price += 1;
+      expect(validateReviewEntry(entry)).toBeNull();
+    },
+  );
 
   it("rejects a six-day gap with a precise coverage message", async () => {
     // Leave the first row on Wed, then start the remaining weekdays next Tue.

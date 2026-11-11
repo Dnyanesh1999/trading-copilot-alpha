@@ -1,7 +1,17 @@
 import type { ConfirmedRules, DailyBar, Review } from "./types";
-import { isSessionDate, LOOKBACK, replayCoverage } from "./historical-replay";
+import {
+  isSessionDate,
+  LOOKBACK,
+  replayCoverage,
+  replayWeekendDates,
+} from "./historical-replay";
 import { verifyReplayHash } from "./replay-evidence";
-import { reviewSession, REVIEW_LOGIC_VERSION, reviewCounts } from "./review";
+import {
+  reviewSession,
+  REVIEW_LOGIC_VERSION,
+  reviewCounts,
+  timestampInfo,
+} from "./review";
 import { stopDeclarations } from "./stop-record";
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -95,9 +105,15 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
       )
         return null;
       const bars = series.bars as DailyBar[];
+      const weekendDates = replayWeekendDates(bars);
       try {
         if (
           replay.maxGapDays !== replayCoverage(bars) ||
+          // Pre-Step-2 snapshots omitted the field and could contain no weekends.
+          (replay.weekendDates === undefined
+            ? weekendDates.length !== 0
+            : JSON.stringify(replay.weekendDates) !==
+              JSON.stringify(weekendDates)) ||
           !verifyReplayHash(bars, series.sha256) ||
           replay.lookbackStart !== bars[0].date ||
           replay.lookbackEnd !== bars[LOOKBACK - 1].date ||
@@ -179,6 +195,29 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
   )
     return null;
   try {
+    const replay =
+      session.historicalReplay as Review["session"]["historicalReplay"];
+    if (replay?.series) {
+      const positions = session.positions as Review["session"]["positions"];
+      const position = positions[0];
+      const bars = replay.series.bars;
+      const reference = Math.max(
+        ...bars.slice(0, LOOKBACK).map((bar) => bar.high),
+      );
+      if (
+        positions.length !== 1 ||
+        position.signal?.close !== bars[LOOKBACK].close ||
+        position.signal?.reference !== reference ||
+        timestampInfo(position.signal?.at ?? null)?.day !==
+          bars[LOOKBACK].date ||
+        position.executions.length !== 1 ||
+        position.executions[0].side !== "entry" ||
+        position.executions[0].price !== bars[LOOKBACK + 1].open ||
+        timestampInfo(position.executions[0].timestamp)?.day !==
+          bars[LOOKBACK + 1].date
+      )
+        return null;
+    }
     const computed = reviewSession(
       value.review.rules as unknown as ConfirmedRules,
       session as unknown as Review["session"],

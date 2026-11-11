@@ -191,7 +191,7 @@ export function actionRowsFor(review: Review): ActionRow[] {
         not_checked: 4,
       }[b.status],
   );
-  return rows.length
+  const result: ActionRow[] = rows.length
     ? rows
     : [
         {
@@ -203,6 +203,28 @@ export function actionRowsFor(review: Review): ActionRow[] {
           legacyTitles: ["Keep the checklist for your next review"],
         },
       ];
+  if (!review.session.historicalReplay) return result;
+  return result.map((row) => ({
+    ...row,
+    next: `In this replay, ${row.next
+      .replace(/the next trade’s|the next trade's/g, "the simulated entry’s")
+      .replace("the next session", "the simulated session")
+      .replace(/^./, (letter) => letter.toLowerCase())}`,
+    details: row.details.map((detail) => ({
+      ...detail,
+      before:
+        row.id === "missing-records"
+          ? "In this replay, add a simulated stop and target in the replay form to check risk and reward."
+          : row.id === "setup-entry"
+            ? "In this replay, compare the signal close with the prior 20-session high; choose another entry date to test a different signal."
+            : row.id === "stop-before-entry"
+              ? "In this replay, the simulated plan is recorded at the signal close; adjust the stop in the replay form."
+              : `In this replay, ${detail.before
+                  .replace(/^For your next trade, /, "")
+                  .replace(/your next trade|the next trade/g, "the simulated entry")
+                  .replace(/^./, (letter) => letter.toLowerCase())}`,
+    })),
+  }));
 }
 export function focusRowFor(review: Review, focus: string) {
   return actionRowsFor(review).find(

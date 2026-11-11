@@ -1,5 +1,19 @@
 # Historical replay integrity verification
 
+## Step 2 — 11 November 2026
+
+User-reported Claude verification of `a1f0c45` preceded this bounded follow-up. The weekend policy below supersedes Step 1's blanket rejection.
+
+- Both sources accept weekend candles. New snapshots retain chronological `weekendDates` for both sources; only CSV reviews display the request to verify the session. Validation recomputes and matches the list. Existing Step 1 evidence without the field remains valid only when its bars contain no weekends; older reviews without series still load. Coverage still rejects gaps over five calendar days.
+- With series present, restore requires one simulated entry whose price/date match bar 21, a signal close/date matching bar 20, and signal reference equal to the maximum high of bars 0–19. Tampered verdict inputs are rejected independently of the evidence hash.
+- Dhan normalisation validates timestamps/prices/volume and duplicate dates, then filters valid candles outside the inclusive requested window. A missing entry still fails. `DH-905`, `811`, `812`, `813` and `814` return HTTP 400 with input-correction guidance.
+- Two-decimal replay banner, setup comparison and supporting records are presentation only. Stored bars, engine inputs, findings and hashes retain their original precision. Replay reviews replace stop correction with simulated-plan guidance; action/focus instructions describe the replay. New and previously saved local history rows display symbol, date and Dhan/CSV source.
+- 294 tests across 26 files pass, including weekend acceptance/audit validation, six-day rejection, signal close/reference/date and entry-price tampering, out-of-window filtering, all five HTTP error mappings, two-decimal rendering and absent replay stop editor with ordinary editor preserved. Production build and logging type-check pass; existing Vite native-loader and bundle-size warnings remain.
+- Isolated local Chrome/Playwright verified both SBIN examples using simulated Dhan responses populated from the private archived CSV. 15 December 2022: signal 625.50 > resistance 619.80, entry 625.55, 10 shares, simulated stop 610/target 660, all assessed checks followed. 30 December 2022: 611.80 ≤ 629.55, entry 615.25, blank stop/target, setup deviated and risk-plan checks insufficient. Banner/proof, no stop editor, replay guidance, export with independently recomputed SHA, save/reload, complete history labels and signal-only tamper rejection passed with no page errors/desktop overflow. Both full-page screenshots visually inspected. No live provider calls. Script, results and images stay private in the canonical `06_Experiments/2026-11-11_Replay_Step_2_QA/` folder, outside this repository.
+- `src/core/review.ts`, Worker files and deployment workflow remain byte-identical to `a1f0c45`. No PR, merge or deployment.
+
+## Step 1 — historical verification
+
 11 November 2026. User-requested follow-up on `codex/historical-replay`.
 
 ## Checkpoint and scope

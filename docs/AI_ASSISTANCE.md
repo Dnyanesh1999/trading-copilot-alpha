@@ -1,3 +1,9 @@
+# 11 November 2026 — historical replay Step 2
+
+OpenAI Codex (GPT-6 family; exact deployed model version not exposed) implemented the user's follow-up requirements after user-reported Claude verification of `a1f0c45`. No new independent Claude review is claimed and no subagents were used. Added automated acceptance, integrity, provider-error and server-rendered UI tests; 294 total tests, build and logging type-check passed. Browser QA used the existing private SBIN archive through intercepted local Dhan responses, with no live provider request or credentials. Both requested screenshots were captured and visually inspected. UI tests initially needed the browser-only journey module mocked for Node rendering; a screenshot file-URL path encoding issue was corrected and its two artifacts moved into the canonical private QA folder. No participant records, verdict engine, Worker files or deployment were changed.
+
+---
+
 # 11 November 2026 — historical replay QA follow-up
 
 OpenAI Codex (GPT-6 family; exact deployed model version not exposed) implemented the user-supplied B1/B2/B5 requirements after making and pushing the requested pre-QA checkpoint. The named Claude QA file was absent from the available project; the task text was used as the specification, without claiming a fresh independent Claude review. No subagents or external AI calls were used. Synthetic weekday fixtures and mocked Dhan responses validate coverage, stable hashes, legacy loading, tamper rejection, volume and token exclusion. Browser QA covers CSV proof/export/save/reload/tamper rejection and mocked Dhan proof/export. See verification/HISTORICAL_REPLAY_QA.md for checks and compatibility choices. No live broker call, trade, participant record operation, merge or deployment.

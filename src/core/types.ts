@@ -81,6 +81,7 @@ export interface Session {
     resistanceDate: string;
     priceSource?: "dhan";
     maxGapDays?: number;
+    weekendDates?: string[];
     series?: ReplaySeries;
   };
   exampleMode?: ExampleMode;

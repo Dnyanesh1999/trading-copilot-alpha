@@ -14,6 +14,7 @@ import { correctStopRecord } from "../core/workspace";
 import { stopDeclaration, type StopDeclaration } from "../core/stop-record";
 import { workspaceJourney } from "./InternalJourney";
 import { ImprovementPlan } from "./ImprovementPlan";
+import { replayBanner, replayCalculation, replayPrice } from "./replay-display";
 import {
   grossResult,
   planMetrics,
@@ -218,13 +219,13 @@ export function ReviewView({
         </button>
       </section>
       {replay && (
-        <p className="review-alert">
-          Resistance is the highest high in the 20 sessions from{" "}
-          {replay.lookbackStart} to {replay.lookbackEnd}. The high occurred on{" "}
-          {replay.resistanceDate}. The signal uses the following close. The simulated
-          entry uses the next session’s open.
-        </p>
+        <p className="review-alert">{replayBanner(review.session)}</p>
       )}
+      {replay && replay.priceSource !== "dhan" && replay.weekendDates?.map((date) => (
+        <p className="review-alert" key={date}>
+          Includes a weekend session on {date}. Check it was a real exchange session.
+        </p>
+      ))}
       {entry.recomputed && (
         <p className="review-alert" role="status">
           This older review has been recalculated with review logic version 3.
@@ -232,9 +233,9 @@ export function ReviewView({
           changed. Save explicitly to keep these results.
         </p>
       )}
-      {(!saved || summary.counts.noStopRecord > 0) && <section className="review-alert combined-notice" role="status">
+      {(!saved || (!replay && summary.counts.noStopRecord > 0)) && <section className="review-alert combined-notice" role="status">
         {!saved && <p>Not saved yet</p>}
-        {summary.counts.noStopRecord > 0 && <><strong>{summary.counts.noStopRecord} of {summary.counts.trades} trades have no stop record.</strong><p>{summary.counts.noStop} explicitly marked No stop · {summary.counts.unresolvedStopRecords} not recorded or unresolved. Open a position below to correct its record.</p></>}
+        {!replay && summary.counts.noStopRecord > 0 && <><strong>{summary.counts.noStopRecord} of {summary.counts.trades} trades have no stop record.</strong><p>{summary.counts.noStop} explicitly marked No stop · {summary.counts.unresolvedStopRecords} not recorded or unresolved. Open a position below to correct its record.</p></>}
       </section>}
       {invalidLevels.map((message, i) => (
         <p className="review-alert" role="alert" key={`${i}-${message}`}>
@@ -352,7 +353,11 @@ export function ReviewView({
             Profit or loss is separate from rule adherence. Gross result
             excludes fees, slippage and taxes.
           </p>
-          {position && (
+          {replay ? (
+            <p className="field-note">
+              Simulated plan: add a stop and target in the replay form to check risk and reward.
+            </p>
+          ) : position && (
             <StopRecordEditor
               key={`${position.id}-${position.stopDeclaration}-${position.stop?.price}-${position.stop?.recordedAt}`}
               position={position}
@@ -412,7 +417,7 @@ export function ReviewView({
               </summary>
               <div className="finding-detail">
                 <p>{f.explanation}</p>
-                <code>{f.calculation}</code>
+                <code>{replay && position ? replayCalculation(f, position) : f.calculation}</code>
                 {f.ruleId === "setup-entry" && replay?.series && (
                   <p className="field-note">
                     Source: {replay.series.source === "dhan" ? "Dhan" : "CSV"}
@@ -438,7 +443,7 @@ export function ReviewView({
                         {execution
                           ? `${execution.side === "entry" ? "Entry" : "Exit"}: ${execution.quantity} × ${rupees(execution.price)} · ${recordTime(execution.timestamp)}`
                           : id === `${position?.id}-signal` && position?.signal
-                            ? `Signal close: ${position.signal.close ?? "missing"}; reference: ${position.signal.reference ?? "missing"}; time: ${recordTime(position.signal.at)}${review.rules.setup?.kind === "ma-reclaim" ? `; previous close/reference: ${position.signal.previousClose ?? "missing"}/${position.signal.previousReference ?? "missing"}` : ""}${position.signal.rangeEnd ? `; range end: ${recordTime(position.signal.rangeEnd)}` : ""}`
+                            ? `Signal close: ${replay ? replayPrice(position.signal.close) : position.signal.close ?? "missing"}; reference: ${replay ? replayPrice(position.signal.reference) : position.signal.reference ?? "missing"}; time: ${recordTime(position.signal.at)}${review.rules.setup?.kind === "ma-reclaim" ? `; previous close/reference: ${position.signal.previousClose ?? "missing"}/${position.signal.previousReference ?? "missing"}` : ""}${position.signal.rangeEnd ? `; range end: ${recordTime(position.signal.rangeEnd)}` : ""}`
                             : plan
                               ? `Plan: ${rupees(plan.price)} · ${recordTime(plan.recordedAt)}`
                               : `Record ${id}`}

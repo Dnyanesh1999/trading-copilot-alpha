@@ -83,16 +83,16 @@ describe("Dhan daily history", () => {
     ).toThrow(/daily candle/);
   });
 
-  it("rejects weekend and suspended-stock gaps in the Dhan replay window", () => {
+  it("accepts weekend candles but rejects suspended-stock gaps in the Dhan replay window", () => {
     const weekend = [...daily.timestamp];
     weekend[1] = Date.parse("2022-11-26T00:00:00+05:30") / 1000;
-    expect(() =>
+    expect(
       normalizeDhanBars(
         { ...daily, timestamp: weekend },
         "2022-10-23",
         "2022-12-22",
       ),
-    ).toThrow(/weekend row on 2022-11-26/);
+    ).toContainEqual(expect.objectContaining({ date: "2022-11-26" }));
     const gap = [...daily.timestamp];
     gap[0] = Date.parse("2022-11-18T00:00:00+05:30") / 1000;
     expect(() =>
@@ -104,6 +104,46 @@ describe("Dhan daily history", () => {
     ).toThrow(
       "Prices are missing between 2022-11-18 and 2022-11-24. Use a complete daily series.",
     );
+  });
+
+  it("filters out-of-window candles but still rejects invalid prices and duplicate dates", () => {
+    const extended = Object.fromEntries(
+      Object.entries(daily).map(([key, values]) => [
+        key,
+        key === "timestamp"
+          ? [
+              Date.parse("2022-10-21T00:00:00+05:30") / 1000,
+              ...values,
+              Date.parse("2022-12-23T00:00:00+05:30") / 1000,
+            ]
+          : [values[0], ...values, values[0]],
+      ]),
+    );
+    const bars = normalizeDhanBars(extended, "2022-10-23", "2022-12-22");
+    expect(bars).toHaveLength(22);
+    expect(bars[0].date).toBe(dates[0]);
+    expect(bars.at(-1)?.date).toBe("2022-12-22");
+    expect(() =>
+      normalizeDhanBars(
+        { ...extended, high: [-1, ...daily.high, 102] },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(/daily candle/);
+    expect(() =>
+      normalizeDhanBars(
+        {
+          ...extended,
+          timestamp: [
+            daily.timestamp[0],
+            ...daily.timestamp,
+            daily.timestamp.at(-1),
+          ],
+        },
+        "2022-10-23",
+        "2022-12-22",
+      ),
+    ).toThrow(/daily candle/);
   });
 
   it("allows a five-calendar-day Dhan gap", () => {
@@ -170,4 +210,35 @@ describe("Dhan daily history", () => {
       });
     });
   });
+
+  it.each(["DH-905", "811", "812", "813", "814"])(
+    "maps Dhan input error %s to HTTP 400 without retry guidance",
+    async (errorCode) => {
+      const transport = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response(instrumentList))
+        .mockResolvedValueOnce(Response.json({ errorCode }, { status: 400 }));
+      const server = await createServer({
+        configFile: false,
+        plugins: [dhanHistoryPlugin("server-only-token", transport)],
+        server: { host: "127.0.0.1", port: 0, ws: false },
+      });
+      try {
+        await server.listen();
+        const address = server.httpServer!.address();
+        if (!address || typeof address === "string")
+          throw new Error("No address");
+        const result = await fetch(
+          `http://127.0.0.1:${address.port}/local-market/history?symbol=SBIN&date=2022-12-22`,
+          { headers: { "X-Trading-Copilot": "replay" } },
+        );
+        expect(result.status).toBe(400);
+        expect(await result.json()).toEqual({
+          error: "Dhan rejected the request inputs. Check the symbol and date.",
+        });
+      } finally {
+        await server.close();
+      }
+    },
+  );
 });

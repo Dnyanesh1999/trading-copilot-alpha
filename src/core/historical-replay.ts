@@ -31,11 +31,6 @@ export function replayCoverage(bars: DailyBar[]): number {
   for (const [index, bar] of bars.entries()) {
     if (!isSessionDate(bar.date) || !validDailyPrices(bar))
       throw new Error(`Invalid daily prices for ${bar.date}.`);
-    const weekday = new Date(bar.date).getUTCDay();
-    if (weekday === 0 || weekday === 6)
-      throw new Error(
-        `Prices include a weekend row on ${bar.date}. Use weekday daily sessions.`,
-      );
     if (index === 0) continue;
     const previous = bars[index - 1].date;
     const gap = (Date.parse(bar.date) - Date.parse(previous)) / 86_400_000;
@@ -47,6 +42,12 @@ export function replayCoverage(bars: DailyBar[]): number {
     maxGapDays = Math.max(maxGapDays, gap);
   }
   return maxGapDays;
+}
+
+export function replayWeekendDates(bars: DailyBar[]): string[] {
+  return bars
+    .filter((bar) => [0, 6].includes(new Date(bar.date).getUTCDay()))
+    .map((bar) => bar.date);
 }
 
 /** A single INR equity series with consistent OHLC prices and ISO session dates. */
@@ -170,6 +171,7 @@ export async function createHistoricalReplay(
       resistanceDate: resistance.date,
       ...(series.source === "dhan" ? { priceSource: "dhan" as const } : {}),
       maxGapDays,
+      weekendDates: replayWeekendDates(usedBars),
       series,
     },
     positions: [

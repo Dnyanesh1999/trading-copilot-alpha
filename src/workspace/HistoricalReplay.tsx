@@ -7,6 +7,7 @@ import {
   type DailyBar,
 } from "../core/historical-replay";
 import type { Session } from "../core/types";
+import { rupees } from "../core/review";
 
 export function HistoricalReplay({
   confirmed,
@@ -240,7 +241,7 @@ export function HistoricalReplay({
               <p className="field-note">
                 Stop and target are simulated as recorded at the signal close.
                 {entry &&
-                  ` The replay uses the ${entry.date} open of ₹${entry.open}.`}
+                  ` The replay uses the ${entry.date} open of ${rupees(entry.open)}.`}
               </p>
               <button
                 className="secondary"
