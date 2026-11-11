@@ -43,6 +43,18 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
     session.dataSource !== "user-supplied"
   )
     return null;
+  if (session.historicalReplay !== undefined) {
+    const replay = session.historicalReplay;
+    if (
+      value.source !== "csv" ||
+      session.dataSource !== "user-supplied" ||
+      !record(replay) ||
+      (replay.priceSource !== undefined && replay.priceSource !== "dhan") ||
+      ![replay.lookbackStart, replay.lookbackEnd, replay.resistanceDate].every(
+        (date) => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date),
+      )
+    ) return null;
+  }
   const signal = (item: unknown) =>
     item == null ||
     (record(item) &&

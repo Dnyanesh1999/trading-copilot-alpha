@@ -58,7 +58,7 @@ const nav = [
   { id: "trades", label: "Trade review", Icon: ChartNoAxesColumnIncreasing },
   { id: "history", label: "History", Icon: Clock3 },
 ] as const;
-export default function App() {
+export default function App({ studyMode = false }: { studyMode?: boolean }) {
   const [initial] = useState(readWorkspace);
   const notify = useToast();
   const strategyReturn = useRef<Page>("overview");
@@ -77,6 +77,7 @@ export default function App() {
   const [feedback, setFeedback] = useState(false);
   const [sampleSheet, setSampleSheet] = useState(false);
   const [focusStep, setFocusStep] = useState(false);
+  const [openReplay, setOpenReplay] = useState(false);
   const [saveVisible, setSaveVisible] = useState(false);
   const [pendingFocus, setPendingFocus] = useState("");
   const [completedJourney, setCompletedJourney] = useState(
@@ -200,7 +201,9 @@ export default function App() {
         name:
           source === "sample"
             ? `${rules.setup?.label ?? "Fictional"} practice`
-            : `Trade review · ${session.date}`,
+            : session.historicalReplay
+              ? `Historical replay · ${session.date}`
+              : `Trade review · ${session.date}`,
         savedAt: new Date().toISOString(),
         source,
         strategyName,
@@ -559,7 +562,10 @@ export default function App() {
             ) : (
               <TradeWorkspace
                 rules={confirmed}
-                onPreset={(next) => {
+                allowHistoricalReplay={!studyMode}
+                openReplay={openReplay}
+                onPreset={(next, forReplay) => {
+                  setOpenReplay(!!forReplay);
                   changeStrategy(next);
                   go("strategy");
                   setMessage(

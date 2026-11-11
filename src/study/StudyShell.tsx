@@ -237,7 +237,7 @@ export function StudyShell() {
         </div>
       )}
       {screen === "app" ? (
-        <App />
+        <App studyMode />
       ) : (
         <Questionnaire
           onSave={async (data) => {

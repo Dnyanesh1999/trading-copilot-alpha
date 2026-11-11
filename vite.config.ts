@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
+import { dhanHistoryPlugin } from "./server/dhan-history";
 export default defineConfig(({ command }) => {
   let token = "";
   let studyToken = "";
@@ -17,7 +18,12 @@ export default defineConfig(({ command }) => {
     }
   }
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      ...(command === "serve"
+        ? [dhanHistoryPlugin(process.env.DHAN_ACCESS_TOKEN?.trim() ?? "")]
+        : []),
+    ],
     base: "/trading-copilot-alpha/",
     server: {
       host: "127.0.0.1",

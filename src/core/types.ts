@@ -60,6 +60,12 @@ export interface Position {
 export type ExampleMode = "full" | "daily-gap" | "plan-gap";
 export interface Session {
   dataSource?: "fictional" | "user-supplied";
+  historicalReplay?: {
+    lookbackStart: string;
+    lookbackEnd: string;
+    resistanceDate: string;
+    priceSource?: "dhan";
+  };
   exampleMode?: ExampleMode;
   id: string;
   date: string;

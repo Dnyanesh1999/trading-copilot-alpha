@@ -169,6 +169,7 @@ export function ReviewView({
   );
   const [evidenceRule, setEvidenceRule] = useState<string | null>(null);
   const review = entry.review;
+  const replay = review.session.historicalReplay;
   const position = review.session.positions.find((p) => p.id === selected);
   const summary = reviewSummary(review);
   const findings = review.findings.filter((f) => f.positionId === selected);
@@ -189,7 +190,9 @@ export function ReviewView({
       <section className="review-heading">
         <div>
           <p className="muted">
-            {entry.source === "sample" ||
+            {replay
+              ? `${replay.priceSource === "dhan" ? "Dhan daily prices" : "Historical prices"} · simulated entry and plan`
+              : entry.source === "sample" ||
             review.session.dataSource === "fictional"
               ? "Fictional sample · hypothetical comparison"
               : entry.source === "csv"
@@ -214,6 +217,14 @@ export function ReviewView({
           Export review
         </button>
       </section>
+      {replay && (
+        <p className="review-alert">
+          Resistance is the highest high in the 20 sessions from{" "}
+          {replay.lookbackStart} to {replay.lookbackEnd}. The high occurred on{" "}
+          {replay.resistanceDate}. The signal uses the following close. The simulated
+          entry uses the next session’s open.
+        </p>
+      )}
       {entry.recomputed && (
         <p className="review-alert" role="status">
           This older review has been recalculated with review logic version 3.

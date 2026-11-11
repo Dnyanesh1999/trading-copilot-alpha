@@ -6,6 +6,7 @@ import { parseTradeCsv, sessionToCsv, CSV_COLUMNS } from "../core/trade-csv";
 import { rupees } from "../core/review";
 import { PresetPicker, presetDraft } from "./PresetPicker";
 import type { StrategyDraft } from "../core/workspace";
+import { HistoricalReplay } from "./HistoricalReplay";
 import { TradeEntry } from "./TradeEntry";
 import { useToast } from "./Toasts";
 function downloadCsv(name: string, text: string) {
@@ -22,9 +23,13 @@ export function TradeWorkspace({
   rules,
   onPreset,
   onReview,
+  allowHistoricalReplay,
+  openReplay,
 }: {
   rules: ConfirmedRules | null;
-  onPreset: (draft: StrategyDraft) => void;
+  onPreset: (draft: StrategyDraft, forReplay?: boolean) => void;
+  allowHistoricalReplay: boolean;
+  openReplay?: boolean;
   onReview: (session: Session, source: "sample" | "manual" | "csv") => void;
 }) {
   const notify = useToast();
@@ -38,7 +43,9 @@ export function TradeWorkspace({
       tone: "info",
     });
   }
-  const [mode, setMode] = useState<"sample" | "upload" | "manual">("sample");
+  const [mode, setMode] = useState<"sample" | "upload" | "manual" | "historical">(
+    allowHistoricalReplay && openReplay ? "historical" : "sample",
+  );
   const [kind, setKind] = useState<SetupKind>(rules?.setup?.kind ?? "breakout");
   const sample = useMemo(() => createPresetSession(kind), [kind]);
   const preset = strategyPresets.find((p) => p.kind === kind)!;
@@ -98,7 +105,7 @@ export function TradeWorkspace({
           <h2>Choose what to review.</h2>
           <p className="muted">
             Start with a practice session, upload a review CSV, or enter your
-            trades.
+            trades.{allowHistoricalReplay ? " Replay a setup with historical prices." : ""}
           </p>
         </div>
         <span className="local-note">
@@ -111,6 +118,7 @@ export function TradeWorkspace({
           ["sample", "Sample library"],
           ["upload", "Upload CSV"],
           ["manual", "Enter manually"],
+          ...(allowHistoricalReplay ? [["historical", "Historical replay"]] : []),
         ].map(([value, label]) => (
           <button
             key={value}
@@ -121,7 +129,7 @@ export function TradeWorkspace({
           </button>
         ))}
       </div>
-      {mode !== "sample" && rules && (
+      {(mode === "manual" || mode === "upload") && rules && (
         <p className="setup-scope">
           <strong>Using {rules.setup?.label ?? "your custom checklist"}</strong>{" "}
           · Change the confirmed rules in My strategy before reviewing a
@@ -131,7 +139,13 @@ export function TradeWorkspace({
             : ""}
         </p>
       )}
-      {mode === "manual" ? (
+      {mode === "historical" ? (
+        <HistoricalReplay
+          confirmed={rules?.setup?.kind === "breakout"}
+          onChooseSetup={() => onPreset(presetDraft(strategyPresets[0]), true)}
+          onReview={(session) => onReview(session, "csv")}
+        />
+      ) : mode === "manual" ? (
         <TradeEntry
           onSession={(s) => onReview(s, "manual")}
           onSample={() => changeMode("sample")}

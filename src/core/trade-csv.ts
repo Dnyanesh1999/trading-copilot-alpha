@@ -49,7 +49,7 @@ const error = (row: number, message: string): never => {
   throw new Error(`CSV row ${row}: ${message}`);
 };
 
-function readRows(text: string): string[][] {
+export function readRows(text: string, maxDataRows = 200, rowKind = "trade"): string[][] {
   const rows: string[][] = [];
   let row: string[] = [],
     field = "",
@@ -90,8 +90,8 @@ function readRows(text: string): string[][] {
         error(rows.length + 1, "unexpected text after a closing quote.");
       field += c;
     }
-    if (rows.length > 201)
-      error(rows.length, "maximum 200 trade rows supported.");
+    if (rows.length > maxDataRows + 1)
+      error(rows.length, `maximum ${maxDataRows} ${rowKind} rows supported.`);
   }
   if (quoted) error(rows.length + 1, "unclosed quoted field.");
   if (field || row.length || closed) finishRow();
