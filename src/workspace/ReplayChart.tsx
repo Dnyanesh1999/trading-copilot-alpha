@@ -55,9 +55,10 @@ function PriceChart({
       },
       rightPriceScale: {
         borderColor: "#e7e8ef",
-        scaleMargins: { top: 0.22, bottom: model.volume.length ? 0.26 : 0.2 },
+        scaleMargins: { top: 0.08, bottom: 0.2 },
+        alignLabels: true,
       },
-      timeScale: { borderColor: "#e7e8ef", rightOffset: 6, timeVisible: false },
+      timeScale: { borderColor: "#e7e8ef", rightOffset: 2, timeVisible: false },
       localization: { locale: "en-GB" },
     });
     const candles = chart.addSeries(CandlestickSeries, {
@@ -108,14 +109,33 @@ function PriceChart({
       volume.setData(model.volume);
       volume
         .priceScale()
-        .applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+        .applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
     }
     // The scale margins already reserve marker/volume space; don't add it twice.
-    const markers = createSeriesMarkers(candles, model.markers, {
-      autoScale: false,
-    });
+    const markers = createSeriesMarkers(
+      candles,
+      model.markers.map(({ text: _text, ...marker }) => ({
+        ...marker,
+        size: 0.5,
+      })),
+      {
+        autoScale: false,
+      },
+    );
     chart.timeScale().fitContent();
+    const frameBars = () => {
+      const scale = chart.timeScale();
+      // Keep the fixed bottom-left attribution clear of volume, also on phones.
+      scale.setVisibleLogicalRange({
+        from: mobile?.matches ? -4 : -1,
+        to: model.candles.length + 1,
+      });
+      scale.applyOptions({ rightOffset: 2, fixRightEdge: true });
+    };
+    frameBars();
+    mobile?.addEventListener("change", frameBars);
     return () => {
+      mobile?.removeEventListener("change", frameBars);
       mobile?.removeEventListener("change", updateLabels);
       markers.detach();
       chart.remove();
@@ -131,6 +151,16 @@ function PriceChart({
   const label = `${position.instrument} daily prices, ${replayChartRange(bars[0].date, model.entry.date, true)}. Signal close ${model.signal.close.toFixed(2)} ${relation} resistance ${model.resistance.toFixed(2)}. Entry at ${model.entry.open.toFixed(2)}.`;
   return (
     <figure className="replay-chart">
+      <ul className="replay-chart-marker-key" aria-label="Chart markers">
+        {model.markers.map((marker) => (
+          <li key={marker.text}>
+            <span aria-hidden="true" style={{ color: marker.color }}>
+              {marker.shape === "arrowUp" ? "↑" : "●"}
+            </span>
+            {marker.text}
+          </li>
+        ))}
+      </ul>
       <ul className="replay-chart-levels" aria-label="Chart price levels">
         {model.lines.map((line) => (
           <li key={line.title}>

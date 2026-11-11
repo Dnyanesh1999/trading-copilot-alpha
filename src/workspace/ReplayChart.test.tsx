@@ -16,7 +16,11 @@ const mock = vi.hoisted(() => {
     addSeries: vi.fn((kind: string, _options?: unknown) =>
       kind === "candle" ? candles : volume,
     ),
-    timeScale: vi.fn(() => ({ fitContent: fitContent })),
+    timeScale: vi.fn(() => ({
+      fitContent,
+      applyOptions: vi.fn(),
+      setVisibleLogicalRange: vi.fn(),
+    })),
     remove: vi.fn(),
   };
   const fitContent = vi.fn();
@@ -176,7 +180,7 @@ describe("ReplayChart", () => {
     );
     expect(mock.volume.setData.mock.calls[0][0][0].value).toBe(0);
     expect(mock.scale.applyOptions).toHaveBeenCalledWith({
-      scaleMargins: { top: 0.8, bottom: 0 },
+      scaleMargins: { top: 0.85, bottom: 0 },
     });
   });
 

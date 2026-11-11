@@ -10,10 +10,25 @@
 .replay-chart-plot {
   width: 100%;
   min-width: 0;
-  height: 260px;
+  height: 320px;
 }
 .replay-chart-levels {
   display: none;
+}
+.replay-chart-marker-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+.replay-chart-marker-key li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .replay-chart figcaption {
   margin-top: 8px;
@@ -48,6 +63,6 @@
     padding: 8px;
   }
   .replay-chart-plot {
-    height: 220px;
+    height: 240px;
   }
 }

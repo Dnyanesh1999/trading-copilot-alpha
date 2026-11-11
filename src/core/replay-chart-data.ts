@@ -15,7 +15,7 @@ export const REPLAY_CHART_COLORS = {
   resistance: "#8a83ab",
   stop: "#b47b73",
   target: "#719782",
-  volume: "#d7dae1",
+  volume: "rgba(180, 185, 195, 0.4)",
   ink: "#5f6675",
 } as const;
 
