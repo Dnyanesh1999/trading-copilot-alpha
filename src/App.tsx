@@ -36,7 +36,6 @@ import {
 } from "./core/review";
 import { StrategyEditor } from "./workspace/StrategyEditor";
 import { TradeWorkspace } from "./workspace/TradeWorkspace";
-import { ReviewView } from "./workspace/ReviewView";
 import { replayName } from "./workspace/replay-display";
 import {
   readWorkspace,
@@ -51,6 +50,9 @@ import {
 } from "./workspace/InternalJourney";
 import { useToast } from "./workspace/Toasts";
 const Orbit = lazy(() => import("./workspace/Orbit"));
+const ReviewView = lazy(() =>
+  import("./workspace/ReviewView").then((module) => ({ default: module.ReviewView })),
+);
 type Page = "overview" | "strategy" | "trades" | "history";
 
 const nav = [
@@ -533,23 +535,27 @@ export default function App({ studyMode = false }: { studyMode?: boolean }) {
           {page === "trades" &&
             (active ? (
               <>
-                <ReviewView
-                  key={active.id}
-                  onFocusChange={(title) => {
-                    setPendingFocus(title);
-                    setFocusStep(true);
-                  }}
-                  entry={active}
-                  onSave={save}
-                  onCorrect={correctPosition}
-                  onBack={() => {
-                    setActive(null);
-                    setCompletedJourney(false);
-                    setPendingFocus("");
-                    setMessage("");
-                  }}
-                  saved={history.some((h) => h === active)}
-                />
+                <Suspense
+                  fallback={<p className="field-note" role="status">Loading review…</p>}
+                >
+                  <ReviewView
+                    key={active.id}
+                    onFocusChange={(title) => {
+                      setPendingFocus(title);
+                      setFocusStep(true);
+                    }}
+                    entry={active}
+                    onSave={save}
+                    onCorrect={correctPosition}
+                    onBack={() => {
+                      setActive(null);
+                      setCompletedJourney(false);
+                      setPendingFocus("");
+                      setMessage("");
+                    }}
+                    saved={history.some((h) => h === active)}
+                  />
+                </Suspense>
                 {study.session()?.displayName && (
                   <AccountReviewSave
                     key={active.id}

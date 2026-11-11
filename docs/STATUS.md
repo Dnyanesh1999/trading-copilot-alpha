@@ -1,3 +1,11 @@
+# 11 November 2026 — historical replay price chart
+
+Replay reviews with stored `series` now show 22 candles, optional volume, the 20-session resistance, signal/entry markers and optional simulated stop/target lines directly below the banner. Old reviews without series show no chart. The signal uses unrounded close > resistance for coral; equality or below uses the existing rule-break red. Chart is 260px desktop / 220px at ≤600px, auto-sizes with its container, retains TradingView attribution and provides an accessible summary plus hidden 22-row OHLC/volume table. Mobile level names use a compact legend so axis labels cannot cover the signal marker. The component makes no data fetch and does not mutate session evidence.
+
+318 tests across 28 files, production build and logging type-check pass. Desktop 1440px and mobile 390px flows for both SBIN dates passed with live Dhan bars captured once and replayed locally; screenshots and raw licensed market fixtures remain private in canonical `06_Experiments/2026-11-11_Replay_Chart_QA/`. Production lazy-loading/resize checks also passed. Main entry JS is 532,566 bytes versus 546,160 before (13,594 bytes smaller); new chart JS is a separate 177,143-byte deferred chunk, with 699 bytes of lazy CSS. Existing large-bundle warnings remain. `review.ts`, saved data types/validation, Worker, server and workflow files are unchanged from `fb5a0f1`. Branch-only commit/push; no merge, PR or deployment. The owner-facing hidden-token restart prompt was opened in Terminal; port 5177 subsequently returned HTTP 200. No token was read or printed by Codex.
+
+---
+
 # 11 November 2026 — historical replay Step 5
 
 Fixed the live instrument lookup: its unauthenticated public endpoint returns a 302 redirect, which `redirect: "error"` rejected. The downloaded master parses with the expected headers, 10,271 rows and SBIN ID 3045. Instrument requests now follow that public redirect, while candle requests retain redirect rejection. Instrument capacity increased to 1,000,000 rows. Safe one-line terminal errors and stage-specific UI messages identify instrument HTTP/parse, candle HTTP/parse and coverage failures.

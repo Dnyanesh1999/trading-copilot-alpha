@@ -4,7 +4,7 @@ import { TermChip } from "./TermChip";
 import { recordTime, ruleTerm } from "../core/glossary";
 import { study } from "../study/client";
 import { useToast } from "./Toasts";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { ArrowLeft, Download } from "lucide-react";
 import type { Position } from "../core/types";
 import type { ReviewEntry } from "./persistence";
@@ -26,6 +26,8 @@ import {
   rupees,
   RULE_LABELS,
 } from "../core/review";
+const ReplayChart = lazy(() => import("./ReplayChart"));
+
 function istLocal(value: string | null | undefined) {
   const epoch = value ? Date.parse(value) : NaN;
   return Number.isFinite(epoch)
@@ -220,6 +222,13 @@ export function ReviewView({
       </section>
       {replay && (
         <p className="review-alert">{replayBanner(review.session)}</p>
+      )}
+      {replay?.series && (
+        <Suspense
+          fallback={<p className="field-note" role="status">Loading price chart…</p>}
+        >
+          <ReplayChart session={review.session} />
+        </Suspense>
       )}
       {replay && replay.priceSource !== "dhan" && replay.weekendDates?.map((date) => (
         <p className="review-alert" key={date}>

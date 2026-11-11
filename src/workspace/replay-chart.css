@@ -1,0 +1,53 @@
+.replay-chart {
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+.replay-chart-plot {
+  width: 100%;
+  min-width: 0;
+  height: 260px;
+}
+.replay-chart-levels {
+  display: none;
+}
+.replay-chart figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.replay-chart figcaption a {
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .replay-chart-levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .replay-chart-levels li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .replay-chart-levels span {
+    width: 12px;
+    border-top: 2px dashed;
+  }
+  .replay-chart {
+    padding: 8px;
+  }
+  .replay-chart-plot {
+    height: 220px;
+  }
+}
