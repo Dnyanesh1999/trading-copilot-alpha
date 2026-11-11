@@ -353,11 +353,12 @@ export function ReviewView({
             Profit or loss is separate from rule adherence. Gross result
             excludes fees, slippage and taxes.
           </p>
-          {replay ? (
+          {replay && position && (!position.stop || !position.target) && (
             <p className="field-note">
               Simulated plan: add a stop and target in the replay form to check risk and reward.
             </p>
-          ) : position && (
+          )}
+          {!replay && position && (
             <StopRecordEditor
               key={`${position.id}-${position.stopDeclaration}-${position.stop?.price}-${position.stop?.recordedAt}`}
               position={position}

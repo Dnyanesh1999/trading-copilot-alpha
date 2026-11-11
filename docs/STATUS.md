@@ -1,3 +1,9 @@
+# 11 November 2026 — historical replay Step 3
+
+The simulated-plan note now appears only when a replay position is missing its stop or target; a complete plan hides it. Two UI tests cover missing and complete plans (including either single missing level). 296 tests across 26 files, production build and logging type-check pass. `src/core/review.ts`, Worker files and deployment workflow are unchanged from `ac9f94d`. Canonical private CURRENT_STATE.md and NEXT_ACTIONS.md have dated 11 November entries recording the student-supplied ethics/testing status, pending participant results, replay commits and next deadlines; those files sit outside this app Git repository. Live browser-to-Dhan verification is still pending (Step 4); the owner must start the documented hidden-token command on port 5177. No merge, PR or deployment.
+
+---
+
 # 11 November 2026 — historical replay Step 2
 
 Supersedes the weekend rejection in the preceding checkpoint. Both sources accept weekend candles; new snapshots audit `weekendDates`, and CSV reviews ask the user to confirm those sessions. Gaps over five calendar days still fail. Saved evidence now cross-checks signal close/reference/date and simulated entry price/date against the hashed bars. Dhan filters valid out-of-window candles and maps input errors to HTTP 400. Replay banner/proof prices use two decimals for display only; stop correction is replaced with simulated-plan guidance, action instructions describe the replay, and history labels include symbol/date/source.

@@ -1,3 +1,9 @@
+# 11 November 2026 — historical replay Step 3
+
+OpenAI Codex (GPT-6 family; exact deployed model version not exposed) made the conditional simulated-plan note change and added two rendered UI tests. 296 tests, build and logging type-check passed. Updated the two canonical private project-control records from the student's explicit status statements; participant count/results and the live browser-to-Dhan check remain pending. No fresh supervisor/portal verification, external AI review or participant results are claimed. The existing documented hidden-token launch command is returned to the owner; no token was requested, read, logged or written to a file. No engine/Worker changes, merge, PR or deployment.
+
+---
+
 # 11 November 2026 — historical replay Step 2
 
 OpenAI Codex (GPT-6 family; exact deployed model version not exposed) implemented the user's follow-up requirements after user-reported Claude verification of `a1f0c45`. No new independent Claude review is claimed and no subagents were used. Added automated acceptance, integrity, provider-error and server-rendered UI tests; 294 total tests, build and logging type-check passed. Browser QA used the existing private SBIN archive through intercepted local Dhan responses, with no live provider request or credentials. Both requested screenshots were captured and visually inspected. UI tests initially needed the browser-only journey module mocked for Node rendering; a screenshot file-URL path encoding issue was corrected and its two artifacts moved into the canonical private QA folder. No participant records, verdict engine, Worker files or deployment were changed.

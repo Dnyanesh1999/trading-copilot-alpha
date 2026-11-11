@@ -115,6 +115,47 @@ describe("historical replay presentation", () => {
     );
   });
 
+  it("shows the simulated-plan note when either level is missing", async () => {
+    for (const [stop, target] of [
+      [null, null],
+      [610, null],
+      [null, 660],
+    ]) {
+      const value = await entry();
+      const position = value.review.session.positions[0];
+      const recordedAt = position.signal!.at;
+      position.stop =
+        stop === null ? null : { id: "stop", price: stop, recordedAt };
+      position.target =
+        target === null ? null : { id: "target", price: target, recordedAt };
+      value.review = reviewSession(
+        value.review.rules,
+        value.review.session,
+        "csv",
+      );
+      expect(render(value)).toContain(
+        "Simulated plan: add a stop and target in the replay form to check risk and reward.",
+      );
+    }
+  });
+
+  it("hides the simulated-plan note when both levels are present", async () => {
+    const value = await entry();
+    const position = value.review.session.positions[0];
+    const recordedAt = position.signal!.at;
+    position.stop = { id: "stop", price: 610, recordedAt };
+    position.target = { id: "target", price: 660, recordedAt };
+    value.review = reviewSession(
+      value.review.rules,
+      value.review.session,
+      "csv",
+    );
+    expect(render(value)).not.toContain(
+      "Simulated plan: add a stop and target",
+    );
+    expect(render(value)).not.toContain("stop-record-editor");
+  });
+
   it.each(["dhan", "csv"] as const)(
     "labels %s replay history with symbol, date and source",
     async (source) => {
