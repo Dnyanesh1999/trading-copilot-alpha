@@ -1,0 +1,11 @@
+DEMO replay data — fictional prices
+
+The two DEMO CSVs were generated for Trading Copilot from an original seeded
+algorithm in scripts/generate-replay-demo.mjs (seed 20261113).
+They contain no real instrument prices and are not derived from SBIN, Zenodo,
+Yahoo Finance or Dhan. Symbol DEMO and all prices/volumes are fictional.
+Created with OpenAI Codex assistance, 13 November 2026.
+
+Permission is granted to copy, modify and redistribute these original synthetic
+CSV files and their generator with this notice. Provided as-is, without warranty.
+They demonstrate rule checks only, not investment returns or trading performance.

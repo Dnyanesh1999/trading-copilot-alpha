@@ -23,6 +23,7 @@ export function HistoricalReplay({
   );
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
+  const [demo, setDemo] = useState(false);
   const [bars, setBars] = useState<DailyBar[]>([]);
   const [csvMetadata, setCsvMetadata] = useState<{
     fetchedAt: string;
@@ -37,6 +38,7 @@ export function HistoricalReplay({
   function chooseSource(next: typeof source) {
     if (next === source) return;
     setSource(next);
+    setDemo(false);
     setEntryDate("");
     setBars([]);
     setCsvMetadata(undefined);
@@ -44,6 +46,7 @@ export function HistoricalReplay({
   }
 
   async function load(file: File) {
+    setDemo(false);
     setBars([]);
     setCsvMetadata(undefined);
     setEntryDate("");
@@ -66,6 +69,26 @@ export function HistoricalReplay({
     }
   }
 
+  async function loadDemo(outcome: "followed" | "deviated") {
+    chooseSource("csv");
+    setError("");
+    try {
+      const response = await fetch(
+        `${import.meta.env.BASE_URL}demo/DEMO-fictional-${outcome}.csv`,
+      );
+      if (!response.ok)
+        throw new Error(
+          "The fictional demo could not be loaded. Try uploading a CSV.",
+        );
+      await load(
+        new File([await response.text()], `DEMO-fictional-${outcome}.csv`),
+      );
+      setDemo(true);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
   async function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (loading || request.current) return;
@@ -82,7 +105,7 @@ export function HistoricalReplay({
     let prices = bars;
     let fetchedAt = csvMetadata?.fetchedAt ?? new Date().toISOString();
     try {
-      if (source === "dhan") {
+      if (import.meta.env.DEV && source === "dhan") {
         const query = new URLSearchParams({
           symbol: instrument,
           date: entryDate,
@@ -161,6 +184,31 @@ export function HistoricalReplay({
               </button>
             </div>
           )}
+          <p className="field-note">
+            Live Dhan data is available only in the owner’s local setup.
+          </p>
+          <div className="source-tabs">
+            <button
+              className="secondary"
+              disabled={loading}
+              onClick={() => void loadDemo("followed")}
+            >
+              Try a demo (fictional prices)
+            </button>
+            <button
+              className="secondary"
+              disabled={loading}
+              onClick={() => void loadDemo("deviated")}
+            >
+              Try a deviated demo (fictional prices)
+            </button>
+          </div>
+          {demo && (
+            <p role="status">
+              DEMO — fictional prices, not real market data. Symbol DEMO is
+              reserved for fictional prices.
+            </p>
+          )}
           {source === "csv" && (
             <>
               <label className="secondary file-button">
@@ -179,15 +227,17 @@ export function HistoricalReplay({
               <p className="field-note">
                 Use one Indian equity in INR, with at least 22 consecutive
                 trading sessions and a consistent price series across corporate
-                actions. CSV headers: <code>date,open,high,low,close</code>.
-                An optional <code>volume</code> column is preserved. Use
-                YYYY-MM-DD dates and price data you have permission to use for
-                replay.
+                actions. CSV headers: <code>date,open,high,low,close</code>. An
+                optional <code>volume</code> column is preserved. Use YYYY-MM-DD
+                dates and price data you have permission to use for replay.
               </p>
             </>
           )}
           {(source === "dhan" || bars.length > 0) && (
-            <form key={source} onSubmit={(event) => void review(event)}>
+            <form
+              key={`${source}-${demo}-${csvMetadata?.fileName}`}
+              onSubmit={(event) => void review(event)}
+            >
               {source === "csv" && (
                 <p role="status" className="field-note">
                   {bars.length} daily rows loaded. Select an entry date present
@@ -203,7 +253,9 @@ export function HistoricalReplay({
                       name="instrument"
                       required
                       maxLength={40}
-                      placeholder="SBIN"
+                      placeholder="Equity symbol"
+                      defaultValue={demo ? "DEMO" : ""}
+                      readOnly={demo}
                     />
                   </label>
                   <label>
@@ -224,17 +276,29 @@ export function HistoricalReplay({
                       type="number"
                       min="1"
                       step="1"
-                      defaultValue="1"
+                      defaultValue={demo ? "5" : "1"}
                       required
                     />
                   </label>
                   <label>
                     Planned stop (₹, optional)
-                    <input name="stop" type="number" min="0.01" step="any" />
+                    <input
+                      name="stop"
+                      type="number"
+                      min="0.01"
+                      step="any"
+                      defaultValue={demo ? "110" : ""}
+                    />
                   </label>
                   <label>
                     Planned target (₹, optional)
-                    <input name="target" type="number" min="0.01" step="any" />
+                    <input
+                      name="target"
+                      type="number"
+                      min="0.01"
+                      step="any"
+                      defaultValue={demo ? "180" : ""}
+                    />
                   </label>
                 </div>
               </fieldset>

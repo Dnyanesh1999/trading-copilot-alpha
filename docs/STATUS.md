@@ -1,3 +1,13 @@
+# 13 November 2026 — Pages CSV replay release prepared (not deployed)
+
+Branch `codex/pages-replay-release` starts from `607242f`. Production builds remove the local Dhan fetch path; the owner’s development setup retains it. Two original seeded DEMO CSVs cover qualifying and non-qualifying breakouts, with fictional-price labelling in review/chart/export/History. Regenerate with `node scripts/generate-replay-demo.mjs`; licence/notice is in `public/licenses/DEMO.txt`. No real price dataset was bundled.
+
+Static Pages `?study=1` and `?researcher=1` show a collection-closed notice with a link to the normal demo, without backend requests. Root Worker study routing is not changed or deployed. Existing engine, Worker files and deployment workflow are unchanged. Latest checks: 320 tests / 29 files, production build and logging check pass. Isolated production-preview Chrome QA passed at 1440px and 390px for both demos, CSV upload, chart, export and saved History. Dist contains no local market route, token variable or loopback URL. Two bare loopback hostname literals remain only in an existing researcher guard; they are not URLs or a market-data path.
+
+Private release note, draft PR description, scripts, screenshots and full public-repo/history data audit: canonical `06_Experiments/2026-11-13_Pages_Release_QA/`. The audit found price-derived constants in three existing replay/chart tests; replacement with synthetic fixtures is proposed as a separate follow-up, not included in this change. No PR, merge, main push, Pages deployment or study Worker operation was performed for this preparation.
+
+---
+
 # 11 November 2026 — historical replay price chart
 
 Replay reviews with stored `series` now show 22 candles, optional volume, the 20-session resistance, signal/entry markers and optional simulated stop/target lines directly below the banner. Old reviews without series show no chart. The signal uses unrounded close > resistance for coral; equality or below uses the existing rule-break red. Chart is 260px desktop / 220px at ≤600px, auto-sizes with its container, retains TradingView attribution and provides an accessible summary plus hidden 22-row OHLC/volume table. Mobile level names use a compact legend so axis labels cannot cover the signal marker. The component makes no data fetch and does not mutate session evidence.

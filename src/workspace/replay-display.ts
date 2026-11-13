@@ -1,3 +1,4 @@
+import { isDemoReplay, DEMO_NOTICE } from "../core/demo-label";
 import type { Finding, Position, Session } from "../core/types";
 import { rupees, timestampInfo } from "../core/review";
 
@@ -7,7 +8,7 @@ export const replayPrice = (value: number | null | undefined) =>
 export function replayName(session: Session): string | null {
   const replay = session.historicalReplay;
   if (!replay) return null;
-  return `Historical replay · ${session.positions[0].instrument} · ${session.date} · ${replay.series?.source === "dhan" || replay.priceSource === "dhan" ? "Dhan" : "CSV"}`;
+  return `${isDemoReplay(session) ? DEMO_NOTICE : "Historical replay"} · ${session.positions[0].instrument} · ${session.date} · ${replay.series?.source === "dhan" || replay.priceSource === "dhan" ? "Dhan" : "CSV"}`;
 }
 
 export function replayBanner(session: Session): string {
@@ -15,7 +16,7 @@ export function replayBanner(session: Session): string {
   const position = session.positions[0];
   const money = (value: number | null | undefined) =>
     value == null ? "missing" : rupees(value);
-  return `Signal: ${timestampInfo(position.signal?.at ?? null)?.day ?? "unknown"} close ${money(position.signal?.close)} vs resistance ${money(position.signal?.reference)} (high on ${replay.resistanceDate}, 20 sessions ${replay.lookbackStart}–${replay.lookbackEnd}). Simulated entry at the ${session.date} open, ${money(position.executions[0]?.price)}.`;
+  return `${isDemoReplay(session) ? DEMO_NOTICE + ". " : ""}Signal: ${timestampInfo(position.signal?.at ?? null)?.day ?? "unknown"} close ${money(position.signal?.close)} vs resistance ${money(position.signal?.reference)} (high on ${replay.resistanceDate}, 20 sessions ${replay.lookbackStart}–${replay.lookbackEnd}). Simulated entry at the ${session.date} open, ${money(position.executions[0]?.price)}.`;
 }
 
 /** Display only: retain the engine's finding and unrounded comparison. */

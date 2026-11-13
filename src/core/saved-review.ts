@@ -1,3 +1,4 @@
+import { isDemoReplay, DEMO_NOTICE } from "./demo-label";
 import type { ConfirmedRules, DailyBar, Review } from "./types";
 import {
   isSessionDate,
@@ -244,6 +245,7 @@ export function validateReviewEntry(value: unknown): ReviewEntry | null {
 export function exportReview(entry: ReviewEntry) {
   return {
     ...entry,
+    ...(isDemoReplay(entry.review.session) ? { dataNotice: DEMO_NOTICE } : {}),
     evaluatedWithLogicVersion: REVIEW_LOGIC_VERSION,
     summary: reviewCounts(entry.review),
   };

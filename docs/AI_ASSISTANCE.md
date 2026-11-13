@@ -1,3 +1,9 @@
+# 13 November 2026 — static replay release preparation
+
+OpenAI Codex (model exposed as gpt-6.1-sol) prepared the CSV-only production replay, original seeded DEMO series, fictional-price provenance labels and static study-link notice. No real market prices were used to generate the demo. Two new tests check both outcomes, persistence/export labelling and replay integrity; the full 320-test suite, production build and logging type-check passed. Production-preview Chrome QA at 1440px and 390px verified both demos, CSV upload, charts, JSON exports and History restoration with no app console errors or steady-state horizontal overflow. Browser plugin was not available; Playwright used installed Chrome. The private read-only data audit reports existing price-derived test fixtures and proposes a separate replacement commit; no historical content was removed or rewritten. No merge, PR, deploy, model-provider calls or participant-data operations.
+
+---
+
 # 11 November 2026 — replay chart labels moved to legend
 
 OpenAI Codex (GPT-6 family; exact deployed model version not exposed) applied the requested layout-only correction after user-reported Claude live feedback. All price lines now have empty titles and visible numeric axis labels; their unchanged names/prices appear in the dashed-swatch legend on desktop and mobile. Framing uses one bar left and three bars right with right-edge clamping disabled to preserve the explicit gap. The retained TradingView logo is positioned at the upper-left clear of candles and volume. Entry arrows remain below their candles. 318 tests, build and logging type-check pass. Isolated Chrome checks for both SBIN dates at 1440px/390px passed; screenshots using previously captured private Dhan fixtures are in canonical `06_Experiments/2026-11-11_Replay_Chart_Label_QA/`. No new fetch/token access, verdict/data-shape/Worker changes, merge, PR or deployment.

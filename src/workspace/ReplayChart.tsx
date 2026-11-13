@@ -1,3 +1,4 @@
+import { isDemoReplay, DEMO_NOTICE } from "../core/demo-label";
 import { useEffect, useMemo, useRef } from "react";
 import {
   CandlestickSeries,
@@ -19,13 +20,21 @@ import "./replay-chart.css";
 export default function ReplayChart({ session }: { session: Session }) {
   const series = session.historicalReplay?.series;
   if (!series) return null;
-  return <PriceChart series={series} position={session.positions[0]} />;
+  return (
+    <PriceChart
+      series={series}
+      position={session.positions[0]}
+      demo={isDemoReplay(session)}
+    />
+  );
 }
 
 function PriceChart({
   series,
   position,
+  demo,
 }: {
+  demo: boolean;
   series: ReplaySeries;
   position: Position;
 }) {
@@ -142,7 +151,7 @@ function PriceChart({
       : model.signal.close === model.resistance
         ? "equal to"
         : "below";
-  const label = `${position.instrument} daily prices, ${replayChartRange(bars[0].date, model.entry.date, true)}. Signal close ${model.signal.close.toFixed(2)} ${relation} resistance ${model.resistance.toFixed(2)}. Entry at ${model.entry.open.toFixed(2)}.`;
+  const label = `${demo ? DEMO_NOTICE + ". " : ""}${position.instrument} daily prices, ${replayChartRange(bars[0].date, model.entry.date, true)}. Signal close ${model.signal.close.toFixed(2)} ${relation} resistance ${model.resistance.toFixed(2)}. Entry at ${model.entry.open.toFixed(2)}.`;
   return (
     <figure className="replay-chart">
       <ul className="replay-chart-marker-key" aria-label="Chart markers">
@@ -167,6 +176,7 @@ function PriceChart({
         <div ref={container} className="replay-chart-plot" />
       </div>
       <figcaption>
+        {demo && <strong>{DEMO_NOTICE}. </strong>}
         Daily prices from {series.source === "dhan" ? "Dhan" : "CSV"} ·
         20-session lookback {replayChartRange(bars[0].date, bars[19].date)} ·
         chart by{" "}
