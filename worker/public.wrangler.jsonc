@@ -16,7 +16,7 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
-    "STUDY_MODE": "rehearsal",
+    "STUDY_MODE": "closed",
     "GEMINI_MODEL": "gemini-3.5-flash-lite",
     "ETHICS_APPROVED": "no",
     "PUBLIC_ORIGIN": "https://trading-copilot-study.dnyanesh-copilot.workers.dev",
