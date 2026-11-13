@@ -1,34 +1,36 @@
+// Original synthetic DEMO-style prices; no real instrument data.
+// Extra decimal places exercise unrounded evidence vs two-decimal display.
 import { describe, expect, it } from "vitest";
 import { REPLAY_CHART_COLORS, replayChartData } from "./replay-chart-data";
 import type { DailyBar } from "./types";
 
 export function chartBars(): DailyBar[] {
   const dates = Array.from({ length: 40 }, (_, i) =>
-    new Date(Date.UTC(2022, 10, 16 + i)).toISOString().slice(0, 10),
+    new Date(Date.UTC(2025, 1, 3 + i)).toISOString().slice(0, 10),
   )
     .filter((date) => ![0, 6].includes(new Date(date).getUTCDay()))
     .slice(0, 22);
   const bars = dates.map((date) => ({
     date,
-    open: 610,
-    high: 615,
-    low: 600,
-    close: 612,
+    open: 140,
+    high: 145,
+    low: 130,
+    close: 142,
   }));
-  bars[14].high = 619.799988;
+  bars[14].high = 149.123456;
   bars[20] = {
     date: dates[20],
-    open: 618.5,
-    high: 626.75,
-    low: 617.5,
-    close: 625.5,
+    open: 150,
+    high: 165,
+    low: 135,
+    close: 160.5,
   };
   bars[21] = {
     date: dates[21],
-    open: 625.549988,
-    high: 629.549988,
-    low: 614.299988,
-    close: 615.950012,
+    open: 160.654321,
+    high: 170.345678,
+    low: 155.234567,
+    close: 166.234567,
   };
   return bars;
 }
@@ -40,36 +42,36 @@ describe("replay chart data", () => {
     const model = replayChartData(bars, {});
     expect(model.candles).toHaveLength(22);
     expect(model.candles[21]).toMatchObject({
-      time: "2022-12-15",
-      open: 625.549988,
+      time: "2025-03-04",
+      open: 160.654321,
     });
     expect(bars).toEqual(original);
   });
   it("uses the largest high of bars 0–19, excluding the signal and entry highs", () => {
     const model = replayChartData(chartBars(), {});
-    expect(model.resistance).toBe(619.799988);
+    expect(model.resistance).toBe(149.123456);
     expect(model.lines[0]).toMatchObject({
-      price: 619.799988,
-      title: "Resistance ₹619.80",
+      price: 149.123456,
+      title: "Resistance ₹149.12",
     });
     expect(model.markers[0]).toMatchObject({
-      time: "2022-12-06",
+      time: "2025-02-21",
       text: "20-day high",
     });
     expect(model.markers[1]).toMatchObject({
-      time: "2022-12-14",
+      time: "2025-03-03",
       text: "Signal close",
     });
     expect(model.markers[2]).toMatchObject({
-      time: "2022-12-15",
+      time: "2025-03-04",
       shape: "arrowUp",
-      text: "Entry ₹625.55 (open)",
+      text: "Entry ₹160.65 (open)",
     });
   });
   it.each([
-    { close: 625.5, color: "#e86f5a" },
-    { close: 619.799988, color: "#a22b2b" },
-    { close: 611.8, color: "#a22b2b" },
+    { close: 160.5, color: "#e86f5a" },
+    { close: 149.123456, color: "#a22b2b" },
+    { close: 140.75, color: "#a22b2b" },
   ])("colours signal close $close as $color", ({ close, color }) => {
     const bars = chartBars();
     bars[20].close = close;
@@ -85,13 +87,13 @@ describe("replay chart data", () => {
     const bars = chartBars();
     expect(replayChartData(bars, {}).lines).toHaveLength(1);
     expect(
-      replayChartData(bars, { stop: 610 }).lines.map((line) => line.title),
-    ).toEqual(["Resistance ₹619.80", "Stop ₹610.00"]);
+      replayChartData(bars, { stop: 140 }).lines.map((line) => line.title),
+    ).toEqual(["Resistance ₹149.12", "Stop ₹140.00"]);
     expect(
-      replayChartData(bars, { target: 660 }).lines.map((line) => line.title),
-    ).toEqual(["Resistance ₹619.80", "Target ₹660.00"]);
+      replayChartData(bars, { target: 200 }).lines.map((line) => line.title),
+    ).toEqual(["Resistance ₹149.12", "Target ₹200.00"]);
     expect(
-      replayChartData(bars, { stop: 610, target: 660 }).lines,
+      replayChartData(bars, { stop: 140, target: 200 }).lines,
     ).toHaveLength(3);
   });
   it("keeps optional and zero volume without inventing missing values", () => {

@@ -1,3 +1,11 @@
+# 13 November 2026 — synthetic fixture cleanup, separate follow-up
+
+The approved Option A follow-up replaces the three replay/chart test fixtures with original DEMO-TEST prices and synthetic decimal precision probes. Existing followed/deviated/equality, weekend, optional/zero volume, provenance, marker and rounding coverage is retained. Full suite remains **320 passed / 29 files**; production build and logging check pass. No runtime code changed. `src/core/review.ts` remains byte-identical to `283dea8`; Worker files and deploy workflow remain unchanged from `607242f`.
+
+Current-tree audit finds zero known real-price-derived fixtures. Historical copies of the three test files remain reachable, as do historical documentation reference prices and symbol-only mock data. Full path/commit evidence and current-tree search results are in the canonical private Pages QA folder. No deletion/history rewrite/force-push, PR, merge or deploy. The earlier proposed fixture follow-up below is now complete.
+
+---
+
 # 13 November 2026 — Pages CSV replay release prepared (not deployed)
 
 Branch `codex/pages-replay-release` starts from `607242f`. Production builds remove the local Dhan fetch path; the owner’s development setup retains it. Two original seeded DEMO CSVs cover qualifying and non-qualifying breakouts, with fictional-price labelling in review/chart/export/History. Regenerate with `node scripts/generate-replay-demo.mjs`; licence/notice is in `public/licenses/DEMO.txt`. No real price dataset was bundled.

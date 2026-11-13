@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+// Original synthetic DEMO-style prices; no real instrument data.
+// Extra decimal places exercise unrounded evidence vs two-decimal display.
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { webcrypto } from "node:crypto";
@@ -48,21 +50,21 @@ vi.mock("lightweight-charts", () => ({
 
 async function session(withVolume = false) {
   const dates = Array.from({ length: 40 }, (_, i) =>
-    new Date(Date.UTC(2022, 10, 16 + i)).toISOString().slice(0, 10),
+    new Date(Date.UTC(2025, 1, 3 + i)).toISOString().slice(0, 10),
   )
     .filter((date) => ![0, 6].includes(new Date(date).getUTCDay()))
     .slice(0, 22);
   const bars: DailyBar[] = dates.map((date, i) => ({
     date,
-    open: 610,
-    high: 619.799988,
-    low: 600,
-    close: 612,
+    open: 140,
+    high: 149.123456,
+    low: 130,
+    close: 142,
     ...(withVolume ? { volume: i * 1000 } : {}),
   }));
-  bars[20] = { ...bars[20], high: 627, close: 625.5 };
-  bars[21] = { ...bars[21], open: 625.549988, high: 630 };
-  return createHistoricalReplay(bars, dates[21], "SBIN", 10, null, null, {
+  bars[20] = { ...bars[20], high: 165, close: 160.5 };
+  bars[21] = { ...bars[21], open: 160.654321, high: 170 };
+  return createHistoricalReplay(bars, dates[21], "DEMO-TEST", 10, null, null, {
     source: "dhan",
     fetchedAt: "2026-11-11T13:00:00.000Z",
   });
@@ -88,8 +90,8 @@ describe("ReplayChart", () => {
 
   it("creates the v5 chart with attribution, candles, dashed levels and markers; cleans it up", async () => {
     const value = await session();
-    value.positions[0].stop = { id: "stop", price: 610, recordedAt: null };
-    value.positions[0].target = { id: "target", price: 660, recordedAt: null };
+    value.positions[0].stop = { id: "stop", price: 140, recordedAt: null };
+    value.positions[0].target = { id: "target", price: 200, recordedAt: null };
     const original = structuredClone(value);
     await act(() => root.render(<ReplayChart session={value} />));
     expect(mock.createChart).toHaveBeenCalledWith(
@@ -106,17 +108,17 @@ describe("ReplayChart", () => {
       expect.arrayContaining([
         expect.objectContaining({
           title: "",
-          price: 619.799988,
+          price: 149.123456,
           lineStyle: 2,
         }),
         expect.objectContaining({
           title: "",
-          price: 610,
+          price: 140,
           lineStyle: 2,
         }),
         expect.objectContaining({
           title: "",
-          price: 660,
+          price: 200,
           lineStyle: 2,
         }),
       ]),
@@ -131,7 +133,7 @@ describe("ReplayChart", () => {
       mock.createSeriesMarkers.mock.calls[0][1].find(
         (marker: { shape: string }) => marker.shape === "arrowUp",
       ),
-    ).toMatchObject({ position: "belowBar", time: "2022-12-15" });
+    ).toMatchObject({ position: "belowBar", time: "2025-03-04" });
     expect(mock.createSeriesMarkers.mock.calls[0][2]).toEqual({
       autoScale: false,
     });
@@ -140,9 +142,9 @@ describe("ReplayChart", () => {
     };
     expect(
       options.autoscaleInfoProvider!(() => ({
-        priceRange: { minValue: 600, maxValue: 630 },
+        priceRange: { minValue: 130, maxValue: 170 },
       }))?.priceRange,
-    ).toEqual({ minValue: 600, maxValue: 660 });
+    ).toEqual({ minValue: 130, maxValue: 200 });
     expect(mock.fitContent).toHaveBeenCalledOnce();
     expect(fetch).not.toHaveBeenCalled();
     expect(value).toEqual(original);
@@ -164,7 +166,7 @@ describe("ReplayChart", () => {
       root.render(<ReplayChart session={await session()} />),
     );
     expect(host.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe(
-      "SBIN daily prices, 16 Nov–15 Dec 2022. Signal close 625.50 above resistance 619.80. Entry at 625.55.",
+      "DEMO-TEST daily prices, 3 Feb–4 Mar 2025. Signal close 160.50 above resistance 149.12. Entry at 160.65.",
     );
     const table = host.querySelector("table")!;
     expect(table.closest(".sr-only")).not.toBeNull();
@@ -173,7 +175,7 @@ describe("ReplayChart", () => {
       [...table.tHead!.rows[0].cells].map((cell) => cell.textContent),
     ).toEqual(["Date", "O", "H", "L", "C", "Volume"]);
     expect(host.querySelector("figcaption")?.textContent).toContain(
-      "Daily prices from Dhan · 20-session lookback 16 Nov–13 Dec · chart by",
+      "Daily prices from Dhan · 20-session lookback 3 Feb–28 Feb · chart by",
     );
     expect(
       host.querySelector('a[href="https://www.tradingview.com/"]'),
@@ -221,6 +223,6 @@ describe("ReplayChart", () => {
     });
     expect(
       host.querySelector('[aria-label="Chart price levels"]')?.textContent,
-    ).toContain("Resistance ₹619.80");
+    ).toContain("Resistance ₹149.12");
   });
 });

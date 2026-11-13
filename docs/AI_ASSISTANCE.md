@@ -1,3 +1,9 @@
+# 13 November 2026 — approved synthetic test fixture replacement
+
+OpenAI Codex (gpt-6.1-sol) replaced SBIN-derived price constants/rows in three replay/chart tests with newly invented DEMO-TEST constants, preserving extra-decimal rounding, signal equality, both outcomes, weekends and optional/zero volume coverage. Tests remain 320/29 passing; production build and logging type-check pass. Current-tree search reports zero known real-price-derived fixtures; Git history and documentary reference prices are preserved and inventoried privately. The engine and all runtime implementation files are unchanged in this follow-up. No provider calls, Worker operations, merge, PR, deployment or history rewriting.
+
+---
+
 # 13 November 2026 — static replay release preparation
 
 OpenAI Codex (model exposed as gpt-6.1-sol) prepared the CSV-only production replay, original seeded DEMO series, fictional-price provenance labels and static study-link notice. No real market prices were used to generate the demo. Two new tests check both outcomes, persistence/export labelling and replay integrity; the full 320-test suite, production build and logging type-check passed. Production-preview Chrome QA at 1440px and 390px verified both demos, CSV upload, charts, JSON exports and History restoration with no app console errors or steady-state horizontal overflow. Browser plugin was not available; Playwright used installed Chrome. The private read-only data audit reports existing price-derived test fixtures and proposes a separate replacement commit; no historical content was removed or rewritten. No merge, PR, deploy, model-provider calls or participant-data operations.

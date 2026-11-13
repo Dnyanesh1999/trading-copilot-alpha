@@ -1,3 +1,5 @@
+// Original synthetic DEMO-style prices; no real instrument data.
+// Extra decimal places exercise unrounded evidence vs two-decimal display.
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ReviewView } from "./ReviewView";
@@ -14,7 +16,7 @@ vi.mock("./InternalJourney", () => ({ workspaceJourney: { action: vi.fn() } }));
 async function entry(
   source: "dhan" | "csv" = "dhan",
   weekend = false,
-  close = 625.5,
+  close = 160.5,
 ): Promise<ReviewEntry> {
   const dates = Array.from({ length: 40 }, (_, i) =>
     new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10),
@@ -24,17 +26,17 @@ async function entry(
   if (weekend) dates[2] = "2025-01-04";
   const bars: DailyBar[] = dates.map((date) => ({
     date,
-    open: 600,
-    high: 619.799988,
-    low: 580,
-    close: 610,
+    open: 130,
+    high: 149.123456,
+    low: 130,
+    close: 140,
   }));
-  bars[20] = { ...bars[20], high: 630, close };
-  bars[21] = { ...bars[21], open: 625.549988, high: 630 };
+  bars[20] = { ...bars[20], high: 170, close };
+  bars[21] = { ...bars[21], open: 160.654321, high: 170 };
   const session = await createHistoricalReplay(
     bars,
     dates[21],
-    "SBIN",
+    "DEMO-TEST",
     10,
     null,
     null,
@@ -74,19 +76,19 @@ describe("historical replay presentation", () => {
     const original = structuredClone(value);
     const html = render(value);
     expect(html).toContain(
-      "Signal: 2025-01-29 close ₹625.50 vs resistance ₹619.80",
+      "Signal: 2025-01-29 close ₹160.50 vs resistance ₹149.12",
     );
     expect(html).toContain("20 sessions 2025-01-01–2025-01-28");
-    expect(html).toContain("Simulated entry at the 2025-01-30 open, ₹625.55.");
-    expect(html).toContain("625.50 &gt; 619.80; signal precedes entry");
-    expect(html).toContain("Signal close: 625.50; reference: 619.80;");
-    expect(html).not.toContain("619.799988");
-    expect(value.review.findings[0].calculation).toContain("619.799988");
+    expect(html).toContain("Simulated entry at the 2025-01-30 open, ₹160.65.");
+    expect(html).toContain("160.50 &gt; 149.12; signal precedes entry");
+    expect(html).toContain("Signal close: 160.50; reference: 149.12;");
+    expect(html).not.toContain("149.123456");
+    expect(value.review.findings[0].calculation).toContain("149.123456");
     expect(value).toEqual(original);
   });
 
   it("hides stop correction and uses simulation instructions throughout the replay plan", async () => {
-    const value = await entry("dhan", false, 611.799988);
+    const value = await entry("dhan", false, 140.765432);
     const html = render(value);
     expect(html).not.toContain("Correct this stop record");
     expect(html).not.toContain("stop-record-editor");
@@ -118,8 +120,8 @@ describe("historical replay presentation", () => {
   it("shows the simulated-plan note when either level is missing", async () => {
     for (const [stop, target] of [
       [null, null],
-      [610, null],
-      [null, 660],
+      [140, null],
+      [null, 200],
     ]) {
       const value = await entry();
       const position = value.review.session.positions[0];
@@ -143,8 +145,8 @@ describe("historical replay presentation", () => {
     const value = await entry();
     const position = value.review.session.positions[0];
     const recordedAt = position.signal!.at;
-    position.stop = { id: "stop", price: 610, recordedAt };
-    position.target = { id: "target", price: 660, recordedAt };
+    position.stop = { id: "stop", price: 140, recordedAt };
+    position.target = { id: "target", price: 200, recordedAt };
     value.review = reviewSession(
       value.review.rules,
       value.review.session,
@@ -161,7 +163,7 @@ describe("historical replay presentation", () => {
     async (source) => {
       const value = await entry(source);
       expect(replayName(value.review.session)).toBe(
-        `Historical replay · SBIN · 2025-01-30 · ${source === "dhan" ? "Dhan" : "CSV"}`,
+        `Historical replay · DEMO-TEST · 2025-01-30 · ${source === "dhan" ? "Dhan" : "CSV"}`,
       );
     },
   );
