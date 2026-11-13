@@ -71,6 +71,37 @@ const render = (entry: ReviewEntry) =>
   );
 
 describe("historical replay presentation", () => {
+  it.each([true, false])(
+    "shows stop/entry dates only across IST dates: %s",
+    async (differentDay) => {
+      const value = await entry();
+      const position = value.review.session.positions[0];
+      position.stop = {
+        id: "stop",
+        price: 140,
+        recordedAt: differentDay
+          ? position.signal!.at
+          : `${value.review.session.date}T09:00:00+05:30`,
+      };
+      value.review = reviewSession(
+        value.review.rules,
+        value.review.session,
+        "csv",
+      );
+      const original = structuredClone(value);
+      const html = render(value);
+      expect(html).toContain(
+        differentDay
+          ? "Stop recorded 29 Jan 15:30 · entry 30 Jan 09:15 IST"
+          : "Stop recorded 09:00 · entry 09:15 IST",
+      );
+      expect(value).toEqual(original);
+      expect(
+        value.review.findings.find((f) => f.ruleId === "stop-before-entry")
+          ?.label,
+      ).not.toContain("Jan");
+    },
+  );
   it("displays prices to two decimals in banner and proof without changing evidence or verdicts", async () => {
     const value = await entry();
     const original = structuredClone(value);

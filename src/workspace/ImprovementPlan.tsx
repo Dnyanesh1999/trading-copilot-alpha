@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { study } from "../study/client";
@@ -23,6 +23,18 @@ export function ImprovementPlan({
   saved: boolean;
   onFocusChange?: (title: string) => void;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const [stickyFocus, setStickyFocus] = useState(false);
+  useEffect(() => {
+    const update = () => setStickyFocus((heading.current?.getBoundingClientRect().bottom ?? Infinity) <= 80);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
   const rows = actionRowsFor(review);
   const replay = !!review.session.historicalReplay;
   const [selected, setSelected] = useState(
@@ -40,9 +52,10 @@ export function ImprovementPlan({
       id="next-focus"
       tabIndex={-1}
       className="panel improvement-panel"
+      data-sticky-focus={stickyFocus}
       onFocusCapture={() => study.start("action")}
     >
-      <h2>{replay ? "Review this replay." : "Make the next review count."}</h2>
+      <h2 ref={heading}>{replay ? "Review this replay." : "Make the next review count."}</h2>
       <p className="muted">{replay ? "Choose one thing to check in this simulation." : "Pick one thing to practise next time."}</p>
       <div className="action-list" role="group" aria-label="Next review action">
         {rows.map((row, index) => {

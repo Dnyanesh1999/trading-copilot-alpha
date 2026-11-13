@@ -13,10 +13,27 @@ const staticStudyLink =
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
     {staticStudyLink ? (
-      <main className="panel">
-        <h1>Study collection is closed</h1>
-        <p>This static demo does not collect study sessions or feedback.</p>
-        <a href={import.meta.env.BASE_URL}>Open the Trading Copilot demo</a>
+      <main className="workspace study-closed-page">
+        <a
+          className="brand"
+          href={import.meta.env.BASE_URL}
+          aria-label="Trading Copilot home"
+        >
+          <span className="brand-mark" aria-hidden="true">
+            ◩
+          </span>
+          Trading Copilot
+        </a>
+        <section
+          className="panel study-closed-card"
+          aria-labelledby="closed-title"
+        >
+          <h1 id="closed-title">Study collection is closed</h1>
+          <p>This static demo does not collect study sessions or feedback.</p>
+          <a className="primary" href={import.meta.env.BASE_URL}>
+            Open the Trading Copilot demo
+          </a>
+        </section>
       </main>
     ) : new URLSearchParams(location.search).has("researcher") ? (
       <ResearcherDesk />

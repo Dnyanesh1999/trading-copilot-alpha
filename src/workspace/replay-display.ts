@@ -5,6 +5,32 @@ import { rupees, timestampInfo } from "../core/review";
 export const replayPrice = (value: number | null | undefined) =>
   value == null ? "missing" : value.toFixed(2);
 
+/** Presentation only: a previous-day stop must not appear later than entry. */
+export function replayStopLabel(finding: Finding, position: Position): string {
+  if (
+    finding.ruleId !== "stop-before-entry" ||
+    !finding.label.startsWith("Stop recorded ")
+  )
+    return finding.label;
+  const stop = timestampInfo(position.stop?.recordedAt ?? null);
+  const entry = position.executions
+    .filter((e) => e.side === "entry")
+    .map((e) => timestampInfo(e.timestamp))
+    .filter((t) => t !== null)
+    .sort((a, b) => a.epoch - b.epoch)[0];
+  if (!stop || !entry || stop.day === entry.day) return finding.label;
+  const date = (day: string) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+      ...(stop.day.slice(0, 4) !== entry.day.slice(0, 4)
+        ? { year: "numeric" as const }
+        : {}),
+    }).format(new Date(`${day}T00:00:00Z`));
+  return `Stop recorded ${date(stop.day)} ${stop.clock} · entry ${date(entry.day)} ${entry.clock} IST`;
+}
+
 export function replayName(session: Session): string | null {
   const replay = session.historicalReplay;
   if (!replay) return null;

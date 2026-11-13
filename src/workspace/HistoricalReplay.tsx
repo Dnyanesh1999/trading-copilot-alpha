@@ -287,7 +287,9 @@ export function HistoricalReplay({
                       type="number"
                       min="0.01"
                       step="any"
-                      defaultValue={demo ? "110" : ""}
+                      defaultValue={
+                        demo && entry ? (entry.open - 5).toFixed(2) : ""
+                      }
                     />
                   </label>
                   <label>
@@ -297,7 +299,9 @@ export function HistoricalReplay({
                       type="number"
                       min="0.01"
                       step="any"
-                      defaultValue={demo ? "180" : ""}
+                      defaultValue={
+                        demo && entry ? (entry.open + 15).toFixed(2) : ""
+                      }
                     />
                   </label>
                 </div>

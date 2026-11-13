@@ -1,3 +1,9 @@
+# 13 November 2026 — requested Pages presentation fixes
+
+OpenAI Codex (gpt-6.1-sol) implemented cross-date replay stop labels without mutating stored findings, mobile sticky activation after the focus heading scrolls away, and a branded static collection-closed page. The original seed 20261113 now generates varied fictional OHLC/volume, rounded to 0.05, with explicit breakout margins. Two added rendering tests verify date/no-date labels and immutable stored review evidence; DEMO tests additionally check varied candles, tick grid, volume and both signal margins. 322 tests, production build and logging check pass. Production-preview 1440px/390px Chrome QA verifies the visible fixes and no provider/study calls. Screenshots/scripts/results remain private. No changes to the engine, Worker or deployment workflow; no merge/PR/deploy.
+
+---
+
 # 13 November 2026 — approved synthetic test fixture replacement
 
 OpenAI Codex (gpt-6.1-sol) replaced SBIN-derived price constants/rows in three replay/chart tests with newly invented DEMO-TEST constants, preserving extra-decimal rounding, signal equality, both outcomes, weekends and optional/zero volume coverage. Tests remain 320/29 passing; production build and logging type-check pass. Current-tree search reports zero known real-price-derived fixtures; Git history and documentary reference prices are preserved and inventoried privately. The engine and all runtime implementation files are unchanged in this follow-up. No provider calls, Worker operations, merge, PR, deployment or history rewriting.

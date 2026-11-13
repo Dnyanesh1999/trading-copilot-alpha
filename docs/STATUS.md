@@ -1,3 +1,13 @@
+# 13 November 2026 — final Pages UI fixes prepared
+
+Replay stop/entry labels now include dates when IST days differ; same-day labels remain time-only. This is display-only, with stored review evidence and engine labels unchanged. On phones, Save focus becomes sticky only after the action heading scrolls away, preventing overlap; desktop footer behaviour is unchanged. The static collection-closed screen now uses the app brand, centred card and coral return button, without study requests.
+
+Both original seeded DEMO series now use a gentle random walk with varied bodies/wicks/volume and 0.05-rounded OHLC. Signal closes have a clear 5-rupee margin above/below resistance, and plans default to entry-relative simulated levels. They remain 22-row fictional CSVs with DEMO labels everywhere and an updated notice. Seed 20261113 regenerates byte-identical files.
+
+322 tests / 29 files, production build and logging check pass. Production-preview Chrome QA at 1440px and 390px checks home, both DEMOs, CSV, chart/export/History, cross-date labels, non-overlapping mobile heading and branded study-closed page. No console errors, steady-state overflow, study or market requests. Dist contains zero Dhan route/token/loopback URL matches; two existing bare hostname guard literals remain. Engine is byte-identical to 283dea8, Worker/workflow unchanged. No merge, PR or deploy; branch preparation only. Evidence/screenshots are replaced in the private canonical Pages QA folder.
+
+---
+
 # 13 November 2026 — synthetic fixture cleanup, separate follow-up
 
 The approved Option A follow-up replaces the three replay/chart test fixtures with original DEMO-TEST prices and synthetic decimal precision probes. Existing followed/deviated/equality, weekend, optional/zero volume, provenance, marker and rounding coverage is retained. Full suite remains **320 passed / 29 files**; production build and logging check pass. No runtime code changed. `src/core/review.ts` remains byte-identical to `283dea8`; Worker files and deploy workflow remain unchanged from `607242f`.

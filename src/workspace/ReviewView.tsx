@@ -15,7 +15,12 @@ import { correctStopRecord } from "../core/workspace";
 import { stopDeclaration, type StopDeclaration } from "../core/stop-record";
 import { workspaceJourney } from "./InternalJourney";
 import { ImprovementPlan } from "./ImprovementPlan";
-import { replayBanner, replayCalculation, replayPrice } from "./replay-display";
+import {
+  replayBanner,
+  replayCalculation,
+  replayPrice,
+  replayStopLabel,
+} from "./replay-display";
 import {
   grossResult,
   planMetrics,
@@ -427,7 +432,11 @@ export function ReviewView({
                       RULE_LABELS[f.ruleId]
                     )}
                   </strong>
-                  <small>{f.label}</small>
+                  <small>
+                    {replay && position
+                      ? replayStopLabel(f, position)
+                      : f.label}
+                  </small>
                 </span>
                 <StatusPill
                   status={needsReview(f) ? "needs-review" : f.status}

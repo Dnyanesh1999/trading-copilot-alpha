@@ -2,6 +2,9 @@ DEMO replay data — fictional prices
 
 The two DEMO CSVs were generated for Trading Copilot from an original seeded
 algorithm in scripts/generate-replay-demo.mjs (seed 20261113).
+Revised 13 November 2026: seeded gentle random walk with varied candle bodies,
+wicks and volumes; OHLC rounded to INR 0.05. Both outcome variants retain
+22 rows and a clear signal-close margin above/below the prior 20-day high.
 They contain no real instrument prices and are not derived from SBIN, Zenodo,
 Yahoo Finance or Dhan. Symbol DEMO and all prices/volumes are fictional.
 Created with OpenAI Codex assistance, 13 November 2026.
