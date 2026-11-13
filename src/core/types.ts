@@ -1,10 +1,12 @@
-export type FindingStatus = "followed" | "deviated" | "insufficient_evidence";
+export type FindingStatus =
+  "followed" | "deviated" | "insufficient_evidence" | "not_checked";
 export type RuleId =
   | "daily-limit"
   | "entry-cutoff"
   | "stop-before-entry"
   | "planned-risk"
-  | "reward-risk";
+  | "reward-risk"
+  | "setup-entry";
 export interface PlanChecks {
   stopBeforeEntry: boolean;
   maxRisk: number | null;
@@ -15,7 +17,10 @@ export interface PlanLevel {
   price: number;
   recordedAt: string | null;
 }
+export type SetupKind = "breakout" | "ma-reclaim" | "opening-range";
 export interface ConfirmedRules {
+  setup?: { kind: SetupKind; label: string };
+  enabledRules?: RuleId[];
   checks?: PlanChecks;
   id: string;
   maxPositions: number;
@@ -32,6 +37,15 @@ export interface Execution {
   price: number;
 }
 export interface Position {
+  stopDeclaration?: "had-stop" | "no-stop" | "not-recorded";
+  signal?: {
+    at: string | null;
+    close: number | null;
+    reference: number | null;
+    previousClose: number | null;
+    previousReference: number | null;
+    rangeEnd: string | null;
+  };
   name?: string;
   direction?: "long" | "short";
   allEntriesCovered?: boolean;
@@ -44,7 +58,32 @@ export interface Position {
   executions: Execution[];
 }
 export type ExampleMode = "full" | "daily-gap" | "plan-gap";
+export interface DailyBar {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+export interface ReplaySeries {
+  source: "dhan" | "csv";
+  fetchedAt: string;
+  fileName?: string;
+  bars: DailyBar[];
+  sha256: string;
+}
 export interface Session {
+  dataSource?: "fictional" | "user-supplied";
+  historicalReplay?: {
+    lookbackStart: string;
+    lookbackEnd: string;
+    resistanceDate: string;
+    priceSource?: "dhan";
+    maxGapDays?: number;
+    weekendDates?: string[];
+    series?: ReplaySeries;
+  };
   exampleMode?: ExampleMode;
   id: string;
   date: string;
@@ -52,6 +91,18 @@ export interface Session {
   positions: Position[];
 }
 export interface Finding {
+  comparisonBasis?:
+    | "pre-entry"
+    | "late-plan"
+    | "timing-unknown"
+    | "user-declared"
+    | "invalid-record";
+  reportedComparison?: {
+    value: number;
+    limit: number;
+    unit: "INR" | "R";
+    breached: boolean;
+  };
   positionId: string;
   ruleId: RuleId;
   rulesId: string;

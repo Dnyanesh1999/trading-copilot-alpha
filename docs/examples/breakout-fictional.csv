@@ -1,0 +1,5 @@
+instrument,direction,quantity,entry_price,entry_at,exit_price,exit_at,stop_price,target_price,plan_recorded_at,signal_at,signal_close,reference_level,previous_close,previous_reference,range_end,data_source
+DEMO-ALPHA,long,20,100,2026-10-15T09:40:00+05:30,110,2026-10-19T14:00:00+05:30,95,110,2026-10-15T09:31:00+05:30,2026-10-14T15:30:00+05:30,99,98,96,97,,fictional
+DEMO-BETA,long,20,150,2026-10-15T09:50:00+05:30,145,2026-10-19T14:00:00+05:30,145,160,2026-10-15T09:31:00+05:30,2026-10-14T15:30:00+05:30,149,148,146,147,,fictional
+DEMO-GAMMA,long,120,200,2026-10-15T10:00:00+05:30,210,2026-10-19T14:00:00+05:30,195,210,2026-10-15T09:31:00+05:30,2026-10-14T15:30:00+05:30,197,198,196,197,,fictional
+DEMO-DELTA,long,20,250,2026-10-15T10:10:00+05:30,260,2026-10-19T14:00:00+05:30,245,260,,,249,248,246,247,,fictional

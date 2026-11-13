@@ -15,19 +15,32 @@
     "logging:dev": "WRANGLER_SEND_METRICS=false wrangler dev --local --ip 127.0.0.1 --port 8787 --config worker/wrangler.jsonc",
     "logging:export": "node scripts/export-logging.mjs",
     "logging:check": "tsc --noEmit -p worker/tsconfig.json",
-    "logging:test": "node scripts/check-logging.mjs"
+    "logging:test": "node scripts/check-logging.mjs",
+    "ai:dev": "node server/strategy-api.mjs",
+    "study:setup": "node scripts/setup-study.mjs",
+    "study:migrate": "WRANGLER_SEND_METRICS=false wrangler d1 migrations apply DB --local --config worker/study.wrangler.jsonc",
+    "study:dev": "WRANGLER_SEND_METRICS=false wrangler dev --local --ip 127.0.0.1 --port 8789 --config worker/study.wrangler.jsonc",
+    "study:check": "node scripts/check-study.mjs"
   },
   "dependencies": {
+    "@noble/hashes": "2.4.0",
+    "@react-three/fiber": "^9.8.2",
+    "better-auth": "1.7.11",
+    "lightweight-charts": "5.2.1",
     "lucide-react": "^1.52.0",
+    "motion": "^14.3.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261011.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "31.0.0",
     "prettier": "^3.9.9",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",

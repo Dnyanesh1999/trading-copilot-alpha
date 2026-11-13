@@ -1,0 +1,42 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "trading-copilot-study",
+  "main": "public.ts",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": true,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": {
+    "enabled": false
+  },
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "STUDY_MODE": "closed",
+    "GEMINI_MODEL": "gemini-3.5-flash-lite",
+    "ETHICS_APPROVED": "no",
+    "PUBLIC_ORIGIN": "https://trading-copilot-study.dnyanesh-copilot.workers.dev",
+    "ACCOUNT_LOGIN": "on"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trading-copilot-study",
+      "database_id": "d53daa10-4332-4909-8a91-0a678f8ca899",
+      "migrations_dir": "participant-migrations"
+    },
+    {
+      "binding": "AUTH_DB",
+      "database_name": "trading-copilot-accounts",
+      "database_id": "3340250b-dfb7-4ac7-9c61-1c7e856b3a93",
+      "migrations_dir": "auth-migrations"
+    }
+  ],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

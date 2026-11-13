@@ -1,0 +1,362 @@
+[
+  {
+    "case_id": "H01",
+    "persona_context": "beginner",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 108, and my minimum planned reward-to-risk is 2 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 12,
+          "price": 180
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 171,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 198,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H02",
+    "persona_context": "beginner",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 108, and my minimum planned reward-to-risk is 2 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 15,
+          "price": 180
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 171,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 198,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H03",
+    "persona_context": "beginner",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 108, and my minimum planned reward-to-risk is 2 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 12,
+          "price": 180
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 171,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 193.5,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H04",
+    "persona_context": "beginner",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 108, and my minimum planned reward-to-risk is 2 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 12,
+          "price": 180
+        }
+      ],
+      "stop": null,
+      "target": {
+        "id": "T1",
+        "price": 198,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H05",
+    "persona_context": "working professional",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 126, and my minimum planned reward-to-risk is 2.5 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 7,
+          "price": 410
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 392,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 455.0,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H06",
+    "persona_context": "working professional",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 126, and my minimum planned reward-to-risk is 2.5 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 10,
+          "price": 410
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 392,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 455.0,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H07",
+    "persona_context": "working professional",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 126, and my minimum planned reward-to-risk is 2.5 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 7,
+          "price": 410
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 392,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 446.0,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H08",
+    "persona_context": "working professional",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 126, and my minimum planned reward-to-risk is 2.5 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 7,
+          "price": 410
+        }
+      ],
+      "stop": null,
+      "target": {
+        "id": "T1",
+        "price": 455.0,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H09",
+    "persona_context": "active trader",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 180, and my minimum planned reward-to-risk is 3 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 15,
+          "price": 735
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 723,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 771,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H10",
+    "persona_context": "active trader",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 180, and my minimum planned reward-to-risk is 3 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 18,
+          "price": 735
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 723,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 771,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H11",
+    "persona_context": "active trader",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 180, and my minimum planned reward-to-risk is 3 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 15,
+          "price": 735
+        }
+      ],
+      "stop": {
+        "id": "S1",
+        "price": 723,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      },
+      "target": {
+        "id": "T1",
+        "price": 765.0,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  },
+  {
+    "case_id": "H12",
+    "persona_context": "active trader",
+    "strategy_text": "I review long equity trades. My maximum planned loss per position is INR 180, and my minimum planned reward-to-risk is 3 to 1. Only check these two rules. Do not infer a stop from missing records.",
+    "clarification_answers": [],
+    "trade_evidence": {
+      "date": "2026-11-02",
+      "timezone": "Asia/Kolkata",
+      "records_complete": true,
+      "position_id": "P1",
+      "direction": "long",
+      "entries": [
+        {
+          "id": "E1",
+          "time": "2026-11-02T09:50:00+05:30",
+          "quantity": 15,
+          "price": 735
+        }
+      ],
+      "stop": null,
+      "target": {
+        "id": "T1",
+        "price": 771,
+        "recorded_at": "2026-11-02T09:40:00+05:30"
+      }
+    }
+  }
+]

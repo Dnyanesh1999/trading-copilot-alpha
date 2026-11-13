@@ -1,3 +1,9 @@
+# Local strategy library and CSV review — 18 October 2026
+
+Three defined long-equity setups, fictional selectable sessions, local template CSV import and evidence-linked improvement cards now work. Sample actions open a chooser before review; saved setup/action snapshots restore.191tests, frontend build and Worker typecheck pass; desktop/mobile and download→upload→review verified. Actual broker import/chart verification remain unsupported; all bundled records are fictional. Local only, no deployment/participant collection. See [verification](verification/STRATEGY_CSV_REVIEW.md).
+
+---
+
 # Accepted alpha specification — revised 7 October 2026
 
 The user requested a richer, more realistic static alpha while preserving the smooth flow. This revision adds three evidence-based plan checks to the initial two-rule release. It is a user-requested enhancement, not a new supervisor approval.

@@ -1,3 +1,19 @@
+# Local strategy library and CSV review — 18 October 2026
+
+Three defined long-equity setups, fictional selectable sessions, local template CSV import and evidence-linked improvement cards now work. Sample actions open a chooser before review; saved setup/action snapshots restore.191tests, frontend build and Worker typecheck pass; desktop/mobile and download→upload→review verified. Actual broker import/chart verification remain unsupported; all bundled records are fictional. Local only, no deployment/participant collection. See [verification](docs/verification/STRATEGY_CSV_REVIEW.md).
+
+---
+
+# Local minimal workspace — 17 October 2026
+
+Run `npm ci`, then `npm run dev` and open http://127.0.0.1:5173/trading-copilot-alpha/. Set up a strategy, confirm supported checks, enter trades or use the fictional sample, inspect evidence and save a next focus.
+
+Optional local AI: `npm run ai:dev`; see [AI setup](docs/AI_SETUP.md) for the free-first Gemini route and verification limits. No key is configured automatically. Static GitHub Pages cannot run this local AI server. The current workspace is local and has not replaced the public demo.
+
+[Verification and limits](docs/verification/WORKSPACE.md).
+
+---
+
 # Trading Copilot
 
 A guided strategy-aware trading review: **your rules → your session → your next step**. Static alpha for supervisor UX review; every trade is fictional.
@@ -39,3 +55,7 @@ Optional local Worker/D1 collection is available only in explicitly enabled deve
 ## Current checkpoint — 12 October 2026
 
 User-approved motion polish is implemented, with 107 passing tests/build and desktop/mobile production checks. Current app baseline 5784fb5. 8 October supervision reviewed the alpha positively and agreed about ten beta traders; survey remains n9 last checked 11 October. Trader recruitment descriptions remain pending. No participant results or external AI reviews. Read docs/STATUS.md for deployment evidence.
+
+## Coded study rehearsal
+
+The `?study=1` route provides private-code entry, consent/profile, review and post-use feedback. `?researcher=1` provides protected status and CSV exports. The deployment stays in fictional rehearsal mode until ethics confirmation and final participant information are configured. See [study sessions](docs/verification/STUDY_SESSIONS.md) for data definitions, measurement limits, storage, access and verification.
